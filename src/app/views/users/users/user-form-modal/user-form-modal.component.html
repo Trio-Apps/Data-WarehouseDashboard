@@ -1,0 +1,337 @@
+<c-modal
+  [visible]="visible"
+  (visibleChange)="onVisibleChange($event)"
+  [backdrop]="true"
+  size="lg"
+>
+  <c-modal-header>
+    <h5 cModalTitle>{{ isEditMode ? 'Edit User' : 'Add New User' }}</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <div>{{userForm.value | json}}</div>
+
+    <form [formGroup]="userForm" (ngSubmit)="onSave()">
+      <c-row [gutter]="3">
+        <!-- Username -->
+        <!-- <c-col [md]="6">
+          <label class="form-label">
+            Username <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="userName"
+            placeholder="Enter username"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('userName')"
+          />
+          @if (isFieldInvalid('userName')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('userName') }}
+            </div>
+          }
+        </c-col> -->
+
+        <!-- Email -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Email <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="email"
+            formControlName="email"
+            placeholder="Enter email"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('email')"
+          />
+          @if (isFieldInvalid('email')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('email') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- First Name -->
+        <c-col [md]="6">
+          <label class="form-label">Full Name</label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="fullName"
+            placeholder="Enter full name"
+            class="form-control"
+          />
+        </c-col>
+
+      
+
+        <!-- phoneNumber -->
+        <c-col [md]="6">
+          <label class="form-label">phoneNumber</label>
+          <input
+            cFormControl
+            type="tel"
+            formControlName="phoneNumber"
+            placeholder="Enter phoneNumber number"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('phoneNumber')"
+          />
+          @if (isFieldInvalid('phoneNumber')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('phoneNumber') }}
+            </div>
+          }
+        </c-col>
+  <!-- roles -->
+        <c-col [md]="6">
+          <label class="form-label">
+            roles <span class="text-danger">*</span>
+          </label>
+          <select
+            cFormControl
+            formControlName="roles"
+            class="form-select"
+            [class.is-invalid]="isFieldInvalid('roles')"
+          >
+            <option value="">Select roles</option>
+            @for (role of getAvailableRoles(); track role.id || $index) {
+              <option [value]="role.roleName">{{ role.roleName }}</option>
+            }
+          </select>
+          @if (isFieldInvalid('roles')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('roles') }}
+            </div>
+          }
+        </c-col>
+        <!-- Company select for super-admin -->
+        @if (isSuperAdmin) {
+          <c-col [md]="6">
+            <label class="form-label">
+              Company <span class="text-danger">*</span>
+            </label>
+            @if (loadingCompanies) {
+              <div class="text-body-secondary">Loading companies...</div>
+            } @else {
+              <select
+                cFormControl
+                formControlName="companyId"
+                class="form-select"
+                [class.is-invalid]="isFieldInvalid('companyId')"
+              >
+                <option [value]="null">-- Select Company --</option>
+                @for (company of companies; track company.companyId) {
+                  <option [value]="company.companyId">{{ company.name }}</option>
+                }
+              </select>
+              @if (isFieldInvalid('companyId')) {
+                <div class="invalid-feedback d-block">
+                  {{ getFieldError('companyId') }}
+                </div>
+              }
+            }
+          </c-col>
+        }
+
+        <!-- SAP selection based on role -->
+        @if (selectedRole === 'manager' && (isAdmin || isSuperAdmin)) {
+          <!-- Multiple SAPs for manager -->
+          <c-col [md]="12">
+            <label class="form-label">
+              SAP Connections <span class="text-danger">*</span>
+            </label>
+            @if (loadingSaps) {
+              <div class="text-body-secondary">Loading SAPs...</div>
+            } @else {
+              <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                @for (sap of saps; track sap.sapId) {
+                  <div class="form-check mb-2">
+                    <input
+                      cFormCheckInput
+                      type="checkbox"
+                      [id]="'sap-' + sap.sapId"
+                      [checked]="isSapSelected(sap.sapId)"
+                      (change)="onSapCheckboxChange(sap.sapId, $event)"
+                    />
+                    <label cFormCheckLabel [for]="'sap-' + sap.sapId">
+                      {{ sap.name }}
+                    </label>
+                  </div>
+                }
+                @if (saps.length === 0) {
+                  <div class="text-body-secondary text-center py-2">No SAPs available</div>
+                }
+              </div>
+              @if (isSapIdsInvalid()) {
+                <div class="invalid-feedback d-block">
+                  Please select at least one SAP connection
+                </div>
+              }
+            }
+          </c-col>
+        } @else if (selectedRole !== 'super-admin' && selectedRole !== 'admin' && selectedRole !== 'manager' && (isAdmin || isSuperAdmin || isManager)) {
+          <!-- Single SAP for employee -->
+          <c-col [md]="6">
+            <label class="form-label">
+              SAP Connection <span class="text-danger">*</span>
+            </label>
+            @if (loadingSaps) {
+              <div class="text-body-secondary">Loading SAPs...</div>
+            } @else {
+              <select
+                cFormControl
+                formControlName="sapEmployeeId"
+                class="form-select"
+                [class.is-invalid]="isFieldInvalid('sapEmployeeId')"
+                (change)="onSapIdChange($any($event.target).value)"
+              >
+                <option [value]="null">-- Select SAP --</option>
+                @for (sap of saps; track sap.sapId) {
+                  <option [value]="sap.sapId">{{ sap.name }}</option>
+                }
+              </select>
+              @if (isFieldInvalid('sapEmployeeId')) {
+                <div class="invalid-feedback d-block">
+                  {{ getFieldError('sapEmployeeId') }}
+                </div>
+              }
+            }
+          </c-col>
+          
+          <!-- Warehouses selection for employee (after SAP is selected) -->
+          @if (userForm.get('sapEmployeeId')?.value) {
+            <c-col [md]="12">
+              <label class="form-label">
+                Warehouses <span class="text-danger">*</span>
+              </label>
+              @if (loadingWarehouses) {
+                <div class="text-body-secondary">Loading warehouses...</div>
+              } @else if (warehouses.length === 0 && userForm.get('sapEmployeeId')?.value) {
+                <div class="text-body-secondary">No warehouses available for this SAP</div>
+              } @else {
+                <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
+                  @for (warehouse of warehouses; track warehouse.warehouseId) {
+                    <div class="form-check mb-2">
+                      <input
+                        cFormCheckInput
+                        type="checkbox"
+                        [id]="'warehouse-' + warehouse.warehouseId"
+                        [checked]="isWarehouseSelected(warehouse.warehouseId)"
+                        (change)="onWarehouseCheckboxChange(warehouse.warehouseId, $event)"
+                      />
+                      <label cFormCheckLabel [for]="'warehouse-' + warehouse.warehouseId">
+                        {{ warehouse.warehouseName }}
+                      </label>
+                    </div>
+                  }
+                </div>
+                @if (isWarehouseIdsInvalid()) {
+                  <div class="invalid-feedback d-block">
+                    Please select at least one warehouse
+                  </div>
+                }
+              }
+            </c-col>
+          }
+        }
+        
+        <!-- @else if (isAdmin && !isSuperAdmin && selectedRole !== 'manager' && selectedRole !== 'employee') {
+          <c-col [md]="6">
+            <label class="form-label">
+              SAP <span class="text-danger">*</span>
+            </label>
+            @if (loadingSaps) {
+              <div class="text-body-secondary">Loading SAPs...</div>
+            } @else {
+              <select
+                cFormControl
+                formControlName="sapId"
+                class="form-select"
+                [class.is-invalid]="isFieldInvalid('sapId')"
+              >
+                <option [value]="null">-- Select SAP --</option>
+                @for (sap of saps; track sap.sapId) {
+                  <option [value]="sap.sapId">{{ sap.name }}</option>
+                }
+              </select>
+              @if (isFieldInvalid('sapId')) {
+                <div class="invalid-feedback d-block">
+                  {{ getFieldError('sapId') }}
+                </div>
+              }
+            }
+          </c-col>
+        } -->
+
+      
+
+        <!-- Password (only for new users) -->
+        @if (!isEditMode) {
+          <c-col [md]="6">
+            <label class="form-label">
+              Password <span class="text-danger">*</span>
+            </label>
+            <input
+              cFormControl
+              type="password"
+              formControlName="password"
+              placeholder="Enter password"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('password')"
+            />
+            @if (isFieldInvalid('password')) {
+              <div class="invalid-feedback d-block">
+                {{ getFieldError('password') }}
+              </div>
+            }
+          </c-col>
+
+          <!-- Confirm Password -->
+          <c-col [md]="6">
+            <label class="form-label">
+              Confirm Password <span class="text-danger">*</span>
+            </label>
+            <input
+              cFormControl
+              type="password"
+              formControlName="confirmPassword"
+              placeholder="Confirm password"
+              class="form-control"
+              [class.is-invalid]="isFieldInvalid('confirmPassword')"
+            />
+            @if (isFieldInvalid('confirmPassword')) {
+              <div class="invalid-feedback d-block">
+                {{ getFieldError('confirmPassword') }}
+              </div>
+            }
+          </c-col>
+        }
+
+        <!-- Is Active -->
+        <!-- <c-col [md]="12">
+          <div class="form-check">
+            <input
+              cFormCheckInput
+              type="checkbox"
+              formControlName="isActive"
+              id="isActive"
+            />
+            <label cFormCheckLabel for="isActive">
+              Active User
+            </label>
+          </div>
+        </c-col> -->
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" (click)="onCancel()">
+      Cancel
+    </button>
+    <button cButton color="primary" (click)="onSave()" [disabled]="userForm.invalid">
+      {{ isEditMode ? 'Update' : 'Create' }}
+    </button>
+  </c-modal-footer>
+</c-modal>
+

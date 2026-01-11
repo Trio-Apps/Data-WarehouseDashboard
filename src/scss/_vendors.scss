@@ -1,0 +1,11 @@
+/* src/scss/_vendors.scss */
+
+@forward '@angular/material';
+@forward "@coreui/coreui/scss/coreui" with (
+  $enable-deprecation-messages: false
+);
+
+@forward "@coreui/chartjs/scss/coreui-chartjs";
+@forward "theme";
+@forward "custom";
+@forward "examples";

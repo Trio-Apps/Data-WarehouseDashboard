@@ -1,0 +1,43 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header">
+      <h4 class="mb-0 header-title">Item Processes - Item ID: {{ itemId }}</h4>
+    </c-card-header>
+    <c-card-body class="flex-grow-1 d-flex flex-column p-4">
+      <c-row [gutter]="3">
+        <!-- Barcodes Card -->
+        <c-col [xs]="12" [md]="4">
+          <c-card class="h-100" style="cursor: pointer;" (click)="onCardClick('barcodes')">
+            <c-card-body class="text-center">
+              <svg cIcon name="cil-barcode" size="3xl" class="mb-3 text-primary"></svg>
+              <h5 class="card-title">Barcodes</h5>
+              <p class="card-text text-body-secondary">Manage item barcodes</p>
+            </c-card-body>
+          </c-card>
+        </c-col>
+
+        <!-- Purchases Card -->
+        <c-col [xs]="12" [md]="4">
+          <c-card class="h-100" style="cursor: pointer;" (click)="onCardClick('purchases')">
+            <c-card-body class="text-center">
+              <svg cIcon name="cil-cart" size="3xl" class="mb-3 text-success"></svg>
+              <h5 class="card-title">Purchases</h5>
+              <p class="card-text text-body-secondary">View purchase history</p>
+            </c-card-body>
+          </c-card>
+        </c-col>
+
+        <!-- Sales Card -->
+        <c-col [xs]="12" [md]="4">
+          <c-card class="h-100" style="cursor: pointer;" (click)="onCardClick('sales')">
+            <c-card-body class="text-center">
+              <svg cIcon name="cil-dollar" size="3xl" class="mb-3 text-info"></svg>
+              <h5 class="card-title">Sales</h5>
+              <p class="card-text text-body-secondary">View sales history</p>
+            </c-card-body>
+          </c-card>
+        </c-col>
+      </c-row>
+    </c-card-body>
+  </c-card>
+</div>

@@ -1,0 +1,26 @@
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.invalid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--cui-danger, #dc3545);
+}
+
+.is-invalid {
+  border-color: var(--cui-danger, #dc3545);
+}
+
+.form-check {
+  margin-top: 1rem;
+}
+
+.text-danger {
+  color: var(--cui-danger, #dc3545);
+}
+

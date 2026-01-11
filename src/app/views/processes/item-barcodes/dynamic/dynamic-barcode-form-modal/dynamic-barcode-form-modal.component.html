@@ -1,0 +1,44 @@
+<c-modal
+  [visible]="visible"
+  (visibleChange)="onVisibleChange($event)"
+  [backdrop]="true"
+  size="lg"
+>
+  <c-modal-header>
+    <h5 cModalTitle>{{ isEditMode ? 'Edit Dynamic Barcode' : 'Add New Dynamic Barcode' }}</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <form [formGroup]="dynamicBarcodeForm" (ngSubmit)="onSave()">
+      <c-row [gutter]="3">
+        <!-- Barcode -->
+        <c-col [md]="12">
+          <label class="form-label">
+            Barcode <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="barCode"
+            placeholder="Enter barcode"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('barCode')"
+          />
+          @if (isFieldInvalid('barCode')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('barCode') }}
+            </div>
+          }
+        </c-col>
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" (click)="onCancel()">
+      Cancel
+    </button>
+    <button cButton color="primary" (click)="onSave()" [disabled]="dynamicBarcodeForm.invalid || !itemBarCodeId">
+      {{ isEditMode ? 'Update' : 'Create' }}
+    </button>
+  </c-modal-footer>
+</c-modal>
+

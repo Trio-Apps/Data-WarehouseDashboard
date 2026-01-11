@@ -1,0 +1,99 @@
+<c-modal
+  [visible]="visible"
+  (visibleChange)="onVisibleChange($event)"
+  [backdrop]="true"
+  size="lg"
+>
+  <c-modal-header>
+    <h5 cModalTitle>{{ isEditMode ? 'Edit Role' : 'Add New Role' }}</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <form [formGroup]="roleForm" (ngSubmit)="onSave()">
+      <c-row [gutter]="3">
+        <!-- Role Name -->
+        <c-col [md]="12">
+          <label class="form-label">
+            Role Name <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="roleName"
+            placeholder="Enter role name"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('roleName')"
+          />
+          @if (isFieldInvalid('roleName')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('roleName') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- Description -->
+        <!-- <c-col [md]="12">
+          <label class="form-label">Description</label>
+          <textarea
+            cFormControl
+            formControlName="description"
+            placeholder="Enter role description"
+            class="form-control"
+            rows="3"
+          ></textarea>
+        </c-col> -->
+
+        <!-- Permissions -->
+        <!-- <c-col [md]="12">
+          <label class="form-label">Permissions</label>
+          <div class="permissions-container border rounded p-3" style="max-height: 300px; overflow-y: auto;">
+            <c-row [gutter]="2">
+              @for (permission of availablePermissions; track permission) {
+                <c-col [md]="6" [sm]="12">
+                  <div class="form-check">
+                    <input
+                      cFormCheckInput
+                      type="checkbox"
+                      [id]="'perm-' + permission"
+                      [checked]="isPermissionSelected(permission)"
+                      (change)="togglePermission(permission)"
+                    />
+                    <label cFormCheckLabel [for]="'perm-' + permission">
+                      {{ permission }}
+                    </label>
+                  </div>
+                </c-col>
+              }
+            </c-row>
+          </div>
+          <small class="text-body-secondary">
+            Selected: {{ roleForm.get('permissions')?.value?.length || 0 }} permissions
+          </small>
+        </c-col> -->
+
+        <!-- Is Active -->
+        <!-- <c-col [md]="12">
+          <div class="form-check">
+            <input
+              cFormCheckInput
+              type="checkbox"
+              formControlName="isActive"
+              id="isActive"
+            />
+            <label cFormCheckLabel for="isActive">
+              Active Role
+            </label>
+          </div>
+        </c-col> -->
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" (click)="onCancel()">
+      Cancel
+    </button>
+    <button cButton color="primary" (click)="onSave()" [disabled]="roleForm.invalid">
+      {{ isEditMode ? 'Update' : 'Create' }}
+    </button>
+  </c-modal-footer>
+</c-modal>
+

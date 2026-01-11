@@ -1,0 +1,207 @@
+<c-modal
+  [visible]="visible"
+  (visibleChange)="onVisibleChange($event)"
+  [backdrop]="true"
+  size="lg"
+>
+  <c-modal-header>
+    <h5 cModalTitle>{{ isEditMode ? 'Edit Barcode Setting' : 'Add New Barcode Setting' }}</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <form [formGroup]="barcodeForm" (ngSubmit)="onSave()">
+      <c-row [gutter]="3">
+        <!-- Total Length -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Total Length <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="number"
+            formControlName="totalLength"
+            placeholder="Enter total length"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('totalLength')"
+            min="1"
+          />
+          @if (isFieldInvalid('totalLength')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('totalLength') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- Starts With -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Starts With <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="startsWith"
+            placeholder="Enter starts with"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('startsWith')"
+          />
+          @if (isFieldInvalid('startsWith')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('startsWith') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- SAP Start Position -->
+        <c-col [md]="6">
+          <label class="form-label">
+            SAP Start Position <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="number"
+            formControlName="sapStartPosition"
+            placeholder="Enter SAP start position"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('sapStartPosition')"
+            min="0"
+          />
+          @if (isFieldInvalid('sapStartPosition')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('sapStartPosition') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- SAP Length -->
+        <c-col [md]="6">
+          <label class="form-label">
+            SAP Length <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="number"
+            formControlName="sapLength"
+            placeholder="Enter SAP length"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('sapLength')"
+            min="1"
+          />
+          @if (isFieldInvalid('sapLength')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('sapLength') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- Quantity Start Position -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Quantity Start Position <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="number"
+            formControlName="quantityStartPosition"
+            placeholder="Enter quantity start position"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('quantityStartPosition')"
+            min="0"
+          />
+          @if (isFieldInvalid('quantityStartPosition')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('quantityStartPosition') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- Quantity Length -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Quantity Length <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="number"
+            formControlName="quantityLength"
+            placeholder="Enter quantity length"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('quantityLength')"
+            min="1"
+          />
+          @if (isFieldInvalid('quantityLength')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('quantityLength') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- Default UOM -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Default UOM <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="defaultUom"
+            placeholder="Enter default UOM"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('defaultUom')"
+          />
+          @if (isFieldInvalid('defaultUom')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('defaultUom') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- SAP ID -->
+        <!-- <c-col [md]="6">
+          <label class="form-label">
+            SAP <span class="text-danger">*</span>
+          </label>
+          <select
+            cFormControl
+            formControlName="sapId"
+            class="form-select"
+            [class.is-invalid]="isFieldInvalid('sapId')"
+          >
+            <option value="0">Select SAP</option>
+            @for (sap of sapsList; track sap.sapId || $index) {
+              <option [value]="sap.sapId">{{ sap.name || sap.companyDB || 'SAP ' + sap.sapId }}</option>
+            }
+          </select>
+          @if (isFieldInvalid('sapId')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('sapId') }}
+            </div>
+          }
+        </c-col> -->
+
+        <!-- Ignore Last Digit -->
+        <c-col [md]="12">
+          <div class="form-check">
+            <input
+              cFormCheckInput
+              type="checkbox"
+              formControlName="ignoreLastDigit"
+              id="ignoreLastDigit"
+            />
+            <label cFormCheckLabel for="ignoreLastDigit">
+              Ignore Last Digit
+            </label>
+          </div>
+        </c-col>
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" (click)="onCancel()">
+      Cancel
+    </button>
+    <button cButton color="primary" (click)="onSave()" [disabled]="barcodeForm.invalid">
+      {{ isEditMode ? 'Update' : 'Create' }}
+    </button>
+  </c-modal-footer>
+</c-modal>
+

@@ -1,0 +1,153 @@
+<c-modal
+  [visible]="visible"
+  (visibleChange)="onVisibleChange($event)"
+  [backdrop]="true"
+  size="lg"
+>
+  <c-modal-header>
+    <h5 cModalTitle>{{ isEditMode ? 'Edit SAP' : 'Add New SAP' }}</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <form [formGroup]="sapForm" (ngSubmit)="onSave()">
+      <c-row [gutter]="3">
+        <!-- SAP Name -->
+        <c-col [md]="6">
+          <label class="form-label">
+            SAP Name <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="name"
+            placeholder="ex: SAP_SRV"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('name')"
+          />
+          @if (isFieldInvalid('name')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('name') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- Company DB -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Company DB <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="companyDB"
+            placeholder="ex: SBODEMOGB_NEW"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('companyDB')"
+          />
+          @if (isFieldInvalid('companyDB')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('companyDB') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- User Name -->
+        <c-col [md]="6">
+          <label class="form-label">
+            User Name <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="userName"
+            placeholder="User Name"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('userName')"
+          />
+          @if (isFieldInvalid('userName')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('userName') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- Password -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Password <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="password"
+            formControlName="password"
+            placeholder="Password"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('password')"
+          />
+          @if (isFieldInvalid('password')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('password') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- SAP URL -->
+        <c-col [md]="12">
+          <label class="form-label">
+            SAP URL <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="url"
+            formControlName="sapUrl"
+            placeholder="ex: https://sap-server.com:50000"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('sapUrl')"
+          />
+          @if (isFieldInvalid('sapUrl')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('sapUrl') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- Company Select (only for super-admin) -->
+        @if (isSuperAdmin) {
+          <c-col [md]="12">
+            <label class="form-label">
+              Company
+            </label>
+            @if (loadingCompanies) {
+              <div class="text-body-secondary">Loading companies...</div>
+            } @else {
+              <select
+                cFormControl
+                formControlName="companyId"
+                class="form-select"
+                [class.is-invalid]="isFieldInvalid('companyId')"
+              >
+                <option [value]="null">-- Select Company --</option>
+                @for (company of companies; track company.companyId) {
+                  <option [value]="company.companyId">{{ company.name }}</option>
+                }
+              </select>
+            }
+            @if (isFieldInvalid('companyId')) {
+              <div class="invalid-feedback d-block">
+                {{ getFieldError('companyId') }}
+              </div>
+            }
+          </c-col>
+        }
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" (click)="onCancel()">
+      Cancel
+    </button>
+    <button cButton color="primary" (click)="onSave()" [disabled]="sapForm.invalid">
+      {{ isEditMode ? 'Update' : 'Create' }}
+    </button>
+  </c-modal-footer>
+</c-modal>
+

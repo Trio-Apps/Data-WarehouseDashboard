@@ -1,0 +1,113 @@
+<c-modal
+  [visible]="visible"
+  (visibleChange)="onVisibleChange($event)"
+  [backdrop]="true"
+  size="lg"
+>
+  <c-modal-header>
+    <h5 cModalTitle>{{ isEditMode ? 'Edit Item Barcode' : 'Add New Item Barcode' }}</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <!-- <div>{{barcodeForm.value | json}}</div> -->
+    <form [formGroup]="barcodeForm" (ngSubmit)="onSave()">
+      <c-row [gutter]="3">
+        <!-- Barcode -->
+        <c-col [md]="12">
+          <label class="form-label">
+            Barcode <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="barcode"
+            placeholder="Enter barcode"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('barcode')"
+          />
+          @if (isFieldInvalid('barcode')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('barcode') }}
+            </div>
+          }
+        </c-col>
+  <c-col [md]="12">
+          <label class="form-label">
+            UoM Entry <span class="text-danger">*</span>
+          </label>
+          @if (loadingUomGroups) {
+            <div class="form-control">
+              <span class="text-body-secondary">Loading UoM groups...</span>
+            </div>
+          } @else {
+            <select
+              cFormControl
+              formControlName="uoMEntry"
+              class="form-select"
+              [class.is-invalid]="isFieldInvalid('uoMEntry')"
+            >
+              <option value="">Select UoM Entry</option>
+              @for (uom of uomGroups; track uom.uomEntry) {
+                <option [value]="uom.uomEntry">{{ uom.uomCode }}</option>
+              }
+            </select>
+          }
+          @if (isFieldInvalid('uoMEntry')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('uoMEntry') }}
+            </div>
+          }
+        </c-col>
+          <c-col [md]="12">
+          <label class="form-label">
+            FreeText <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="freeText"
+            placeholder="Enter freeText"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('freeText')"
+          />
+          @if (isFieldInvalid('freeText')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('freeText') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- Type -->
+        <!-- <c-col [md]="12">
+          <label class="form-label">
+            Type <span class="text-danger">*</span>
+          </label>
+          <select
+            cFormControl
+            formControlName="type"
+            class="form-select"
+            [class.is-invalid]="isFieldInvalid('type')"
+          >
+            <option value="">Select Type</option>
+            <option value="dynamic">Dynamic</option>
+            <option value="static">Static</option>
+          </select>
+          @if (isFieldInvalid('type')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('type') }}
+            </div>
+          }
+        </c-col> -->
+      
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" (click)="onCancel()">
+      Cancel
+    </button>
+    <button cButton color="primary" (click)="onSave()" [disabled]="barcodeForm.invalid || !itemId">
+      {{ isEditMode ? 'Update' : 'Create' }}
+    </button>
+  </c-modal-footer>
+</c-modal>
+

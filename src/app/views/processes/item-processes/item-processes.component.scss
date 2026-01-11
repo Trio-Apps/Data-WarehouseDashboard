@@ -1,0 +1,80 @@
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+// Custom Header Styling with Gradient
+.custom-header {
+  background: linear-gradient(135deg, #286A61 0%, #00EBB5 100%);
+  border: none;
+  padding: 1.25rem 1.5rem;
+  color: white;
+
+  .header-title {
+    color: white;
+    font-weight: 600;
+    margin: 0;
+  }
+}
+
+.container-fluid {
+  height: calc(100vh - 60px);
+  overflow: hidden;
+  padding: 0 !important;
+}
+
+c-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  border-radius: 0;
+
+  &.full-height-card {
+    height: 100%;
+    min-height: 100%;
+  }
+}
+
+c-card-body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 400px;
+}
+
+c-card {
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  border: 1px solid var(--cui-border-color, #dee2e6);
+
+
+    c-col c-card:hover{
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: var(--cui-primary, #0d6efd);
+  }
+  // &:hover {
+  //  // transform: translateY(-5px);
+    
+  // }
+
+  .card-title {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    color: var(--cui-body-color, #212529);
+  }
+
+  .card-text {
+    font-size: 0.9rem;
+    margin-bottom: 0;
+  }
+
+  svg {
+    transition: transform 0.2s ease-in-out;
+  }
+
+  c-col c-card:hover svg {
+    transform: scale(1.1);
+  }
+}
+

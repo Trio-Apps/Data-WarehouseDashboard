@@ -1,0 +1,43 @@
+.form-label {
+  font-weight: 500;
+  margin-bottom: 0.5rem;
+  display: block;
+}
+
+.invalid-feedback {
+  display: block;
+  width: 100%;
+  margin-top: 0.25rem;
+  font-size: 0.875rem;
+  color: var(--cui-danger, #dc3545);
+}
+
+.is-invalid {
+  border-color: var(--cui-danger, #dc3545);
+}
+
+.form-check {
+  margin-bottom: 0.5rem;
+}
+
+.text-danger {
+  color: var(--cui-danger, #dc3545);
+}
+
+.permissions-container {
+  background-color: var(--cui-body-tertiary-bg, #f8f9fa);
+}
+
+.permissions-container::-webkit-scrollbar {
+  width: 6px;
+}
+
+.permissions-container::-webkit-scrollbar-track {
+  background: var(--cui-body-bg, #fff);
+}
+
+.permissions-container::-webkit-scrollbar-thumb {
+  background: var(--cui-border-color, #dee2e6);
+  border-radius: 3px;
+}
+

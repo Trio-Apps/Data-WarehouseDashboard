@@ -1,0 +1,59 @@
+<c-modal
+  [visible]="visible"
+  (visibleChange)="onVisibleChange($event)"
+  [backdrop]="true"
+  size="lg"
+>
+  <c-modal-header>
+    <h5 cModalTitle>{{ isEditMode ? 'Edit Company' : 'Add New Company' }}</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <form [formGroup]="companyForm" (ngSubmit)="onSave()">
+      <c-row [gutter]="3">
+        <!-- Company Name -->
+        <c-col [md]="12">
+          <label class="form-label">
+            Company Name <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="name"
+            placeholder="Enter company name"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('name')"
+          />
+          @if (isFieldInvalid('name')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('name') }}
+            </div>
+          }
+        </c-col>
+
+        <!-- Is Active -->
+        <c-col [md]="12">
+          <div class="form-check">
+            <input
+              cFormCheckInput
+              type="checkbox"
+              formControlName="isActive"
+              id="isActive"
+            />
+            <label cFormCheckLabel for="isActive">
+              Active Company
+            </label>
+          </div>
+        </c-col>
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" (click)="onCancel()">
+      Cancel
+    </button>
+    <button cButton color="primary" (click)="onSave()" [disabled]="companyForm.invalid">
+      {{ isEditMode ? 'Update' : 'Create' }}
+    </button>
+  </c-modal-footer>
+</c-modal>
+

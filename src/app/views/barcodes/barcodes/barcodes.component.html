@@ -1,0 +1,147 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <h4 class="mb-0 header-title">Barcode Settings Management</h4>
+      <button cButton color="primary" class="header-button" (click)="onAddBarcode()">
+        <svg cIcon name="cil-plus" class="me-2"></svg>
+        Add Barcode Setting
+      </button>
+    </c-card-header>
+    <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
+      <!-- Search Section -->
+      <!-- <div class="search-section p-3 border-bottom">
+        <form [formGroup]="form" (ngSubmit)="onSearch()">
+          <c-row [gutter]="3">
+            <c-col [md]="10">
+              <input
+                cFormControl
+                type="text"
+                formControlName="search"
+                placeholder="Search by starts with, default UOM..."
+                class="form-control"
+              />
+            </c-col>
+            <c-col [md]="2">
+              <button cButton color="primary" type="submit" class="w-100">
+                Search
+              </button>
+            </c-col>
+          </c-row>
+        </form>
+      </div> -->
+
+      <!-- Table Container with Scroll -->
+      <div class="table-container">
+        <table
+          [hover]="true"
+          [striped]="true"
+          cTable
+          class="mb-0"
+        >
+          <thead class="table-header">
+            <tr>
+              <th scope="col" class="bg-body-tertiary">#</th>
+              <th scope="col" class="bg-body-tertiary">Total Length</th>
+              <th scope="col" class="bg-body-tertiary">Starts With</th>
+              <th scope="col" class="bg-body-tertiary">SAP Position</th>
+              <th scope="col" class="bg-body-tertiary">SAP Length</th>
+              <th scope="col" class="bg-body-tertiary">Quantity Position</th>
+              <th scope="col" class="bg-body-tertiary">Quantity Length</th>
+              <th scope="col" class="bg-body-tertiary">Ignore Last Digit</th>
+              <th scope="col" class="bg-body-tertiary">Default UOM</th>
+           
+              <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (loading) {
+              <tr>
+                <td colspan="11" class="text-center py-4">
+                  <span class="text-body-secondary">Loading...</span>
+                </td>
+              </tr>
+            } @else if (paginatedBarcodes.length > 0) {
+              @for (barcode of paginatedBarcodes; track barcode.barCodeSettingId || $index) {
+                <tr>
+                  <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
+                  <td>{{ barcode?.totalLength || 'N/A' }}</td>
+                  <td>{{ barcode?.startsWith || 'N/A' }}</td>
+                  <td>{{ barcode?.sapStartPosition || '0' }}</td>
+                  <td>{{ barcode?.sapLength || 'N/A' }}</td>
+                  <td>{{ barcode?.quantityStartPosition || 'N/A' }}</td>
+                  <td>{{ barcode?.quantityLength || 'N/A' }}</td>
+                  <td>
+                    @if (barcode?.ignoreLastDigit) {
+                      <span class="badge bg-success">Yes</span>
+                    } @else {
+                      <span class="badge bg-secondary">No</span>
+                    }
+                  </td>
+                  <td>{{ barcode?.defaultUom || 'N/A' }}</td>
+
+                  <td class="text-center">
+                    <button cButton color="info" size="sm" class="me-2" (click)="onEditBarcode(barcode)">
+                      <svg cIcon name="cil-pencil"></svg>
+                    </button>
+                    <button cButton color="danger" size="sm" (click)="onDeleteBarcode(barcode)">
+                      <svg cIcon name="cil-trash"></svg>
+                    </button>
+                  </td>
+                </tr>
+              }
+            } @else {
+              <tr>
+                <td colspan="11" class="text-center py-4">
+                  <span class="text-body-secondary">No barcode settings found</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Pagination -->
+      @if (totalPages > 0) {
+        <div class="pagination-container p-3 border-top">
+          <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-2">
+              <li class="page-item" [class.disabled]="!hasPrevious">
+                <a class="page-link" (click)="onPreviousPage($event)"
+                  [attr.aria-label]="'Previous'" [attr.tabindex]="!hasPrevious ? -1 : null"
+                  [class.disabled]="!hasPrevious" href="#">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+              @for (page of getPageNumbers(); track page) {
+                <li class="page-item" [class.active]="page === currentPage">
+                  <a class="page-link" (click)="onPageChange(page, $event)" href="#">{{ page }}</a>
+                </li>
+              }
+              <li class="page-item" [class.disabled]="!hasNext">
+                <a class="page-link" (click)="onNextPage($event)"
+                  [attr.aria-label]="'Next'" [attr.tabindex]="!hasNext ? -1 : null"
+                  [class.disabled]="!hasNext" href="#">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+          <div class="text-body-secondary small text-center">
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }} of {{ totalItems }} barcode settings
+          </div>
+        </div>
+      }
+    </c-card-body>
+  </c-card>
+
+  <!-- Barcode Form Modal -->
+  <app-barcode-form-modal
+    [visible]="showBarcodeModal"
+    [barcode]="selectedBarcode"
+    [isEditMode]="isEditMode"
+    (visibleChange)="showBarcodeModal = $event"
+    (save)="onSaveBarcode($event)"
+    (cancel)="onCancelBarcodeModal()"
+  ></app-barcode-form-modal>
+</div>
+
