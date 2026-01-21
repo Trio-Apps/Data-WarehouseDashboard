@@ -24,8 +24,11 @@
     </c-header-nav>
 
     <c-header-nav class="d-none d-md-flex ms-auto ">
-     @if(!checkRole('manager')){
+     @if(!checkRole('super-admin')){
       <ng-container *ngTemplateOutlet="sapsDropdown" />
+ <div class="nav-item py-1">
+        <div class="vr h-100 mx-2 text-body text-opacity-75"></div>
+      </div>
      }
       
 
@@ -41,9 +44,7 @@
     </c-header-nav>
 
     <c-header-nav class="ms-auto ms-md-0">
-      <div class="nav-item py-1">
-        <div class="vr h-100 mx-2 text-body text-opacity-75"></div>
-      </div>
+     
       <ng-container *ngTemplateOutlet="themeDropdown" />
       <div class="nav-item py-1">
         <div class="vr h-100 mx-2 text-body text-opacity-75"></div>
@@ -162,6 +163,7 @@
         </a>
       </li>
     </ul>
+
   </c-dropdown>
 </ng-template>
 

@@ -255,10 +255,11 @@ export class DynamicBarcodesComponent implements OnInit, OnDestroy {
   onSaveDynamicBarcode(dynamicBarcodeData: AddDynamicBarCode | UpdateDynamicBarCode): void {
     this.modalLoading = true;
     this.cdr.detectChanges();
-
+     console.log('Saving dynamic barcode data:', dynamicBarcodeData);
     if (this.isEditMode && 'dynamicBarCodeId' in dynamicBarcodeData && dynamicBarcodeData.dynamicBarCodeId) {
       // Update existing dynamic barcode
       const updateData = dynamicBarcodeData as UpdateDynamicBarCode;
+
       this.dynamicBarcodeService.updateDynamicBarcode(updateData).subscribe({
         next: (res: any) => {
           console.log('Dynamic barcode updated:', res);

@@ -64,6 +64,7 @@ export class DefaultHeaderComponent extends HeaderComponent {
   checkRole(role: string): boolean {
     return this.authService.hasRole(role);
   }
+  
   sidebarId = input('sidebar1');
 
   public newMessages = [

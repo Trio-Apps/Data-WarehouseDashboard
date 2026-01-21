@@ -8,7 +8,7 @@
     <h5 cModalTitle>{{ isEditMode ? 'Edit User' : 'Add New User' }}</h5>
   </c-modal-header>
   <c-modal-body>
-    <div>{{userForm.value | json}}</div>
+    <!-- <div>{{userForm.value | json}}</div> -->
 
     <form [formGroup]="userForm" (ngSubmit)="onSave()">
       <c-row [gutter]="3">

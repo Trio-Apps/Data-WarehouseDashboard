@@ -75,6 +75,10 @@ export class DefaultLayoutComponent implements OnInit {
           return false;
         }
        
+           // Filter out Barcodes
+        if (item.name === 'Settings') {
+          return false;
+        }
         
         return true;
       });
@@ -92,7 +96,7 @@ export class DefaultLayoutComponent implements OnInit {
     else {
         this.navItems = navItems.filter(item => {
            // Filter out Barcodes
-        if (item.name === 'Users' || item.name === 'Roles' || item.name === 'Settings' || item.name === 'Companies') {
+        if (item.name === 'Roles' || item.name === 'Settings' || item.name === 'Companies') {
           return false;
         }
         return true;
