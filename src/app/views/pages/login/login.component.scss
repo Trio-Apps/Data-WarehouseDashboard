@@ -1,0 +1,260 @@
+/* ===== Emerald Mint Login Theme ===== */
+:host{
+  --gradient-main: linear-gradient(135deg, #286A61 0%, #00EBB5 100%);
+  --primary-brand: #286A61;
+  --accent-mint: #00EBB5;
+
+  --bg: #F0F7F5;
+  --surface: #FFFFFF;
+
+  --text-heading: #1B3D38;
+  --text-body: #3A524E;
+  --text-muted: #7A928E;
+
+  --card-radius: 24px;
+  --card-shadow: 0 16px 40px rgba(40, 106, 97, 0.12);
+  --card-border: 1px solid rgba(40, 106, 97, 0.06);
+
+  --btn-radius: 12px;
+
+  font-family:'Inter','Plus Jakarta Sans',sans-serif;
+}
+
+/* ===== Page background ===== */
+.bg-light.dark\:bg-transparent{
+  min-height: 100vh !important;
+  background: var(--bg) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* soft mint pattern */
+.bg-light.dark\:bg-transparent::before{
+  content:"";
+  position:absolute;
+  inset:-80px;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 18% 18%, rgba(0,235,181,0.06) 0 220px, transparent 221px),
+    radial-gradient(circle at 88% 22%, rgba(0,235,181,0.05) 0 260px, transparent 261px),
+    radial-gradient(circle at 72% 86%, rgba(0,235,181,0.05) 0 240px, transparent 241px);
+}
+
+/* center alignment spacing */
+.bg-light.dark\:bg-transparent .c-container,
+.bg-light.dark\:bg-transparent c-container{
+  position: relative;
+  z-index: 2;
+}
+
+/* ===== Card Group wrapper ===== */
+c-card-group{
+  border-radius: var(--card-radius);
+  overflow: hidden;
+  box-shadow: var(--card-shadow);
+  border: var(--card-border);
+  background: transparent;
+}
+
+/* ===== Left card (form) ===== */
+c-card.p-4{
+  background: rgba(255,255,255,0.82) !important;
+  backdrop-filter: blur(10px);
+  border: none !important;
+}
+
+c-card.p-4 c-card-body{
+  padding: 0 !important;
+}
+
+/* headings */
+h1{
+  color: var(--text-heading);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 6px;
+}
+
+p.text-body-secondary{
+  color: var(--text-muted) !important;
+  margin-bottom: 18px;
+}
+
+/* ===== Alert ===== */
+.alert.alert-danger{
+  border-radius: 14px;
+  border: 1px solid rgba(220,53,69,0.18);
+  background: rgba(220,53,69,0.08);
+  color: #8a1f2a;
+}
+
+/* ===== Input group ===== */
+c-input-group{
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 10px 22px rgba(40,106,97,0.08);
+  border: 1px solid rgba(40,106,97,0.10);
+  background: #fff;
+}
+
+/* prefix icon area */
+[cInputGroupText],
+c-input-group span[cInputGroupText]{
+  background: rgba(40,106,97,0.06) !important;
+  border: none !important;
+  color: var(--primary-brand) !important;
+  padding-left: 14px;
+  padding-right: 14px;
+}
+
+/* icon color */
+[cInputGroupText] svg{
+  color: var(--primary-brand);
+}
+
+/* inputs */
+c-input-group input[cFormControl],
+c-input-group input{
+  border: none !important;
+  outline: none !important;
+  padding: 0.95rem 0.9rem !important;
+  color: var(--text-body) !important;
+  background: #fff !important;
+}
+
+/* focus state: show mint ring on whole group */
+c-input-group:focus-within{
+  border-color: rgba(0,235,181,0.75);
+  box-shadow: 0 0 0 4px rgba(0,235,181,0.16), 0 12px 26px rgba(40,106,97,0.10);
+}
+
+/* invalid */
+.is-invalid{
+  box-shadow: none !important;
+}
+
+input.is-invalid{
+  border: none !important;
+}
+
+c-input-group:has(input.is-invalid){
+  border-color: rgba(220,53,69,0.55) !important;
+  box-shadow: 0 0 0 4px rgba(220,53,69,0.12), 0 12px 26px rgba(40,106,97,0.10) !important;
+}
+
+.invalid-feedback{
+  color: #dc3545 !important;
+  font-size: 0.875rem;
+  margin-top: 0.35rem;
+}
+
+/* ===== Buttons ===== */
+button[cButton][color="primary"],
+button[cButton].btn-primary{
+  border-radius: var(--btn-radius);
+  background: var(--gradient-main) !important;
+  border: none !important;
+  color: #fff !important;
+  font-weight: 800;
+  box-shadow: 0 14px 26px rgba(40,106,97,0.18);
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+
+button[cButton][color="primary"]:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 18px 34px rgba(40,106,97,0.22);
+  filter: saturate(1.06);
+}
+
+button[cButton][color="primary"]:active{
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+button[cButton][disabled]{
+  opacity: 0.65 !important;
+  box-shadow: none !important;
+  transform: none !important;
+}
+
+/* link button */
+button[cButton][color="link"]{
+  color: var(--primary-brand) !important;
+  font-weight: 700;
+  text-decoration: none !important;
+}
+
+button[cButton][color="link"]:hover{
+  color: #1B3D38 !important;
+  text-decoration: underline !important;
+}
+
+/* spinner */
+.spinner-border{
+  border-width: 0.18em;
+}
+
+/* ===== Right card (welcome panel) ===== */
+c-card.text-white.bg-primary.py-5{
+  background: var(--gradient-main) !important;
+  border: none !important;
+  position: relative;
+  overflow: hidden;
+}
+
+/* decorative shapes */
+c-card.text-white.bg-primary.py-5::before{
+  content:"";
+  position:absolute;
+  inset:-60px;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.22) 0 180px, transparent 181px),
+    radial-gradient(circle at 85% 25%, rgba(255,255,255,0.16) 0 220px, transparent 221px),
+    radial-gradient(circle at 70% 85%, rgba(255,255,255,0.12) 0 240px, transparent 241px);
+  pointer-events:none;
+}
+
+c-card.text-white.bg-primary.py-5 c-card-body{
+  position: relative;
+  z-index: 2;
+}
+
+c-card.text-white.bg-primary.py-5 h2{
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 10px;
+}
+
+c-card.text-white.bg-primary.py-5 p{
+  opacity: 0.95;
+  line-height: 1.6;
+}
+
+/* right panel button */
+c-card.text-white.bg-primary.py-5 button[cButton]{
+  border-radius: var(--btn-radius);
+  background: rgba(255,255,255,0.16) !important;
+  border: 1px solid rgba(255,255,255,0.30) !important;
+  color: #fff !important;
+  font-weight: 800;
+  padding: 0.85rem 1.1rem;
+  transition: transform .12s ease, background .12s ease, box-shadow .12s ease;
+}
+
+c-card.text-white.bg-primary.py-5 button[cButton]:hover{
+  background: rgba(255,255,255,0.22) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 16px 30px rgba(0,0,0,0.18);
+}
+
+/* ===== Responsive tweaks ===== */
+@media (max-width: 991px){
+  c-card-group{
+    box-shadow: none;
+    border: none;
+  }
+
+  c-card.text-white.bg-primary.py-5{
+    min-width: auto !important;
+  }
+}

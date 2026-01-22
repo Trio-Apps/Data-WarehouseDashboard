@@ -13,10 +13,63 @@
     min-height: 100%;
   }
 
-  //.sidebar-nav {
-  //  scrollbar-color: var(--cui-gray-500, #444) transparent;
-  //}
+  /* =========================================
+     SAFE MAIN BACKGROUND (NO z-index, NO fixed, NO overflow hidden)
+     Won't break modals
+     ========================================= */
+
+  .wrapper {
+    /* theme */
+    --bg: #F0F7F5;
+
+    background-color: var(--bg);
+
+    /* bubbles as layered BACKGROUNDS (safe) */
+    background-image:
+      radial-gradient(circle at 12% 18%, rgba(0,235,181,0.10) 0 140px, transparent 141px),
+      radial-gradient(circle at 88% 14%, rgba(0,235,181,0.07) 0 190px, transparent 191px),
+      radial-gradient(circle at 80% 80%, rgba(0,235,181,0.07) 0 170px, transparent 171px),
+      radial-gradient(circle at 22% 86%, rgba(0,235,181,0.09) 0 220px, transparent 221px),
+      radial-gradient(circle at 55% 45%, rgba(40,106,97,0.05) 0 260px, transparent 261px),
+      linear-gradient(180deg, rgba(255,255,255,0.40) 0%, rgba(255,255,255,0) 45%);
+
+    background-repeat: no-repeat;
+    background-attachment: scroll; /* مهم: مش fixed عشان المودال */
+    background-size: cover;
+  }
+
+  /* Header styling (safe) */
+  app-default-header.header {
+    background: rgba(255, 255, 255, 0.78) !important;
+    border-bottom: 1px solid rgba(40,106,97,0.08);
+    /* بدون backdrop-filter عشان ما يعملش stacking context */
+  }
+
+  /* body container panel (safe) */
+  .body c-container,
+  .body .c-container,
+  .body .container-fluid {
+    background: rgba(255,255,255,0.70);
+    border: 1px solid rgba(40,106,97,0.06);
+    border-radius: 18px;
+    box-shadow: 0 16px 34px rgba(40,106,97,0.10);
+    padding-top: 18px;
+    padding-bottom: 18px;
+  }
+
+  /* IMPORTANT: ensure modals/backdrops always on top (extra safety) */
+  .modal,
+  .c-modal,
+  .modal-backdrop,
+  .c-modal-backdrop {
+    z-index: 2000 !important;
+  }
 }
+
+/* ===============================
+   Sidebar header + brand (زي ما هو)
+   =============================== */
+
 c-sidebar-header.border-bottom {
   padding: 1rem;
   display: flex;
@@ -30,53 +83,41 @@ c-sidebar-brand {
   justify-content: center;
   cursor: pointer;
   text-decoration: none;
+
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.1);
 }
 
 c-sidebar-brand img {
-  /* تنسيق الصورة الأساسي */
-  max-height: 32px; /* نفس ارتفاع الـ SVG */
+  max-height: 32px;
   width: auto;
-  max-width: 150px; /* لتحديد العرض الأقصى */
-  object-fit: contain; /* للحفاظ على نسبة الأبعاد */
-  
-  /* تأثيرات عند التمرير */
+  max-width: 150px;
+  object-fit: contain;
   transition: all 0.3s ease;
 }
 
-/* عند توسيع الشريط الجانبي */
-.sidebar-brand-full {
-  display: block;
-}
+.sidebar-brand-full { display: block; }
+.sidebar-brand-narrow { display: none; }
 
-/* عند تصغير الشريط الجانبي */
-.sidebar-brand-narrow {
-  display: none;
-}
+c-sidebar-brand img + svg.sidebar-brand-narrow { display: none; }
 
-/* إذا كنت تريد إخفاء SVG عند وجود الصورة */
-c-sidebar-brand img + svg.sidebar-brand-narrow {
-  display: none;
-}
-
-/* تأثير عند المرور على الشعار */
 c-sidebar-brand:hover img {
   transform: scale(1.05);
   opacity: 0.9;
 }
 
-/* تنسيق للشاشات الصغيرة */
 @media (max-width: 768px) {
   c-sidebar-brand img {
     max-height: 28px;
     max-width: 120px;
   }
-  
+
   c-sidebar-header.border-bottom {
     padding: 0.75rem;
   }
 }
 
-/* إذا أردت الشعار دائري */
 c-sidebar-brand img.logo-circle {
   border-radius: 50%;
   height: 40px;
@@ -85,24 +126,3 @@ c-sidebar-brand img.logo-circle {
   border: 2px solid #fff;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
-
-/* إذا أردت إضافة خلفية للشعار */
-c-sidebar-brand {
-  padding: 8px 12px;
-  border-radius: 8px;
-  background: rgba(255, 255, 255, 0.1);
-}
-// ng-scrollbar css variables
-//.cui-scrollbar {
-//  --scrollbar-border-radius: 7px;
-//  --scrollbar-padding: 1px;
-//  --scrollbar-viewport-margin: 0;
-//  --scrollbar-track-color: transparent;
-//  --scrollbar-wrapper-color: transparent;
-//  --scrollbar-thumb-color: rgba(0, 0, 0, 0.2);
-//  --scrollbar-thumb-hover-color: var(--scrollbar-thumb-color);
-//  --scrollbar-size: 5px;
-//  --scrollbar-hover-size: var(--scrollbar-size);
-//  --scrollbar-thumb-transition: height ease-out 150ms, width ease-out 150ms;
-//  --scrollbar-track-transition: height ease-out 150ms, width ease-out 150ms;
-//}

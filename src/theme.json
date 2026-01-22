@@ -1,0 +1,58 @@
+{
+  "theme_name": "Emerald Mint Mood Tracker",
+  "version": "2.1",
+  "styling_rules": {
+    "brand_identity": {
+      "main_gradient": "linear-gradient(135deg, #286A61 0%, #00EBB5 100%)",
+      "primary_brand": "#286A61",
+      "accent_mint": "#00EBB5"
+    },
+    "colors": {
+      "background": "#F0F7F5", 
+      "surface": "#FFFFFF",
+      "text": {
+        "heading": "#1B3D38", 
+        "body": "#3A524E",
+        "muted": "#7A928E"
+      },
+      "mood_palette_optimized": {
+        "very_happy": "#FFD271",
+        "happy": "#76D69B",
+        "neutral": "#7CC7E8",
+        "sad": "#9BA3DA",
+        "very_sad": "#E88A8A"
+      }
+    },
+    "typography": {
+      "font_family": "'Inter', 'Plus Jakarta Sans', sans-serif",
+      "headings": {
+        "font_weight": "700",
+        "color": "#1B3D38"
+      }
+    },
+    "components": {
+      "cards": {
+        "border_radius": "24px",
+        "shadow": "0 12px 30px rgba(40, 106, 97, 0.08)",
+        "border": "1px solid rgba(40, 106, 97, 0.05)"
+      },
+      "buttons": {
+        "background": "linear-gradient(135deg, #286A61 0%, #00EBB5 100%)",
+        "text_color": "#FFFFFF",
+        "border_radius": "12px"
+      }
+    },
+    "charts": {
+      "bar_gradient_top": "#00EBB5",
+      "bar_gradient_bottom": "#286A61",
+      "grid_lines": "#E2EAE8"
+    }
+  },
+  "ui_enhancements": [
+    "Apply the main gradient to primary action buttons and active navigation states.",
+    "Use the dark emerald (#1B3D38) for main headings to ensure high contrast.",
+    "Cards should have a very subtle mint-colored tint in the shadow to match the brand.",
+    "Background geometric patterns should use #00EBB5 at 5% opacity for a premium look.",
+    "Mood bars in the chart should use a vertical gradient from the mood color to the accent mint."
+  ]
+}

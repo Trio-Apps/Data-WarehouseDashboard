@@ -21,7 +21,7 @@ export const routes: Routes = [
       },
        {
         path: 'inquiries',
-                canMatch: [authGuard],
+        canMatch: [authGuard],
         loadChildren: () => import('./views/Inquiries/routes').then((m) => m.routes)
       },
       {

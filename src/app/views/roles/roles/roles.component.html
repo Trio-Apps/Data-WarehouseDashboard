@@ -9,26 +9,7 @@
     </c-card-header>
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
       <!-- Search Section -->
-      <div class="search-section p-3 border-bottom">
-        <form [formGroup]="form" (ngSubmit)="onSearch()">
-          <c-row [gutter]="3">
-            <c-col [md]="10">
-              <input
-                cFormControl
-                type="text"
-                formControlName="search"
-                placeholder="Search by role name or description..."
-                class="form-control"
-              />
-            </c-col>
-            <c-col [md]="2">
-              <button cButton color="primary" type="submit" class="w-100">
-                Search
-              </button>
-            </c-col>
-          </c-row>
-        </form>
-      </div>
+  
 
       <!-- Table Container with Scroll -->
       <div class="table-container">

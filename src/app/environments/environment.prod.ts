@@ -1,7 +1,7 @@
 export const environment = {
     production: true,
-    apiUrl: 'https://back.amtaraqar.com/api/',
-    apiUrl2: 'https://back.amtaraqar.com/api/',
+    apiUrl: 'https://datawareehouse-g3byg0hpbtd5fzg8.centralus-01.azurewebsites.net/api/',
+    apiUrl2: 'https://datawareehouse-g3byg0hpbtd5fzg8.centralus-01.azurewebsites.net/api/',
 
   };
   

@@ -20,8 +20,13 @@ export const navItems: INavData[] = [
     iconComponent: { name: 'cil-drop' },
     children: [
       {
-        name: 'Item Inquiry',
+        name: 'Barcodes Inquiry',
         url: '/inquiries/items-inquiry',
+        icon: 'nav-icon-bullet'
+      },
+       {
+        name: 'Processes Inquiry',
+        url: '/inquiries/processes-inquiry',
         icon: 'nav-icon-bullet'
       }
     ]

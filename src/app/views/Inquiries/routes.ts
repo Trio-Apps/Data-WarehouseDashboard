@@ -12,6 +12,7 @@ export const routes: Routes = [
       path: '',
       redirectTo: 'items-inquiry',
       pathMatch: 'full'
+
     },
     {
       path: 'items-inquiry',
@@ -27,8 +28,25 @@ export const routes: Routes = [
           title: 'Items-Inquiry'
         },
     }
+    ,
+    {
+      path: 'processes-inquiry',
+      loadComponent: () => import('./processes-inquiries/processes-inquiries.component')
+        .then(m => m.ProcessesInquiriesComponent), data: {
+          title: 'Processes-Inquiry'
+        },
+    },
+    {
+      path: 'show-processes/:warehouseId',
+      loadComponent: () => import('./processes-inquiries/show-processes/show-processes.component')
+        .then(m => m.ShowProcessesComponent), data: {
+          title: 'Processes-Inquiry'
+        },
+    }
   ]
 }
+
+
 
 ];
 

@@ -2,20 +2,17 @@
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0 header-title">Item Barcodes - Item ID: {{ itemId }}</h4>
+
       <button cButton color="primary" class="header-button" (click)="onAddBarcode()">
         <svg cIcon name="cil-plus" class="me-2"></svg>
         Add Barcode
       </button>
     </c-card-header>
+
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
       <!-- Table Container with Scroll -->
       <div class="table-container">
-        <table
-          [hover]="true"
-          [striped]="true"
-          cTable
-          class="mb-0"
-        >
+        <table [hover]="true" [striped]="true" cTable class="mb-0">
           <thead class="table-header">
             <tr>
               <th scope="col" class="bg-body-tertiary">#</th>
@@ -26,6 +23,7 @@
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             @if (loading) {
               <tr>
@@ -41,15 +39,24 @@
                   <td>{{ barcode?.unitName || 'N/A' }}</td>
                   <td>{{ barcode?.freeText || 'N/A' }}</td>
                   <td>
-                      <span class="badge bg-secondary">Static</span>
+                    <span class="badge bg-secondary">Static</span>
                   </td>
                   <td class="text-center">
-                    <button cButton color="success" size="sm" class="me-2" (click)="onViewDynamicBarcodes(barcode)" title="View Dynamic Barcodes">
+                    <button
+                      cButton
+                      color="success"
+                      size="sm"
+                      class="me-2"
+                      (click)="onViewDynamicBarcodes(barcode)"
+                      title="View Dynamic Barcodes"
+                    >
                       <svg cIcon name="cil-list"></svg>
                     </button>
+
                     <button cButton color="info" size="sm" class="me-2" (click)="onEditBarcode(barcode)">
                       <svg cIcon name="cil-pencil"></svg>
                     </button>
+
                     <button cButton color="danger" size="sm" (click)="onDeleteBarcode(barcode)">
                       <svg cIcon name="cil-trash"></svg>
                     </button>
@@ -73,28 +80,42 @@
           <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center mb-2">
               <li class="page-item" [class.disabled]="!hasPrevious">
-                <a class="page-link" (click)="onPreviousPage($event)"
-                  [attr.aria-label]="'Previous'" [attr.tabindex]="!hasPrevious ? -1 : null"
-                  [class.disabled]="!hasPrevious" href="#">
+                <a
+                  class="page-link"
+                  (click)="onPreviousPage($event)"
+                  [attr.aria-label]="'Previous'"
+                  [attr.tabindex]="!hasPrevious ? -1 : null"
+                  [class.disabled]="!hasPrevious"
+                  href="#"
+                >
                   <span aria-hidden="true">&laquo;</span>
                 </a>
               </li>
+
               @for (page of getPageNumbers(); track page) {
                 <li class="page-item" [class.active]="page === currentPage">
                   <a class="page-link" (click)="onPageChange(page, $event)" href="#">{{ page }}</a>
                 </li>
               }
+
               <li class="page-item" [class.disabled]="!hasNext">
-                <a class="page-link" (click)="onNextPage($event)"
-                  [attr.aria-label]="'Next'" [attr.tabindex]="!hasNext ? -1 : null"
-                  [class.disabled]="!hasNext" href="#">
+                <a
+                  class="page-link"
+                  (click)="onNextPage($event)"
+                  [attr.aria-label]="'Next'"
+                  [attr.tabindex]="!hasNext ? -1 : null"
+                  [class.disabled]="!hasNext"
+                  href="#"
+                >
                   <span aria-hidden="true">&raquo;</span>
                 </a>
               </li>
             </ul>
           </nav>
+
           <div class="text-body-secondary small text-center">
-            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }} of {{ totalItems }} barcodes
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }} of
+            {{ totalItems }} barcodes
           </div>
         </div>
       }
@@ -103,7 +124,6 @@
       <div class="form-section p-3 border-top">
         <form [formGroup]="form" (ngSubmit)="onSearch()">
           <c-row [gutter]="3">
-            <!-- Barcode Search -->
             <c-col [md]="10">
               <label class="form-label">Barcode</label>
               <input
@@ -115,21 +135,6 @@
               />
             </c-col>
 
-            <!-- Type Select -->
-            <!-- <c-col [md]="5">
-              <label class="form-label">Type</label>
-              <select
-                cFormControl
-                formControlName="searchType"
-                class="form-select"
-              >
-                <option value="">-- All Types --</option>
-                <option value="dynamic">Dynamic</option>
-                <option value="static">Static</option>
-              </select>
-            </c-col> -->
-
-            <!-- Submit Button -->
             <c-col [md]="2" class="d-flex align-items-end">
               <button cButton color="primary" type="submit" class="w-100">
                 Search

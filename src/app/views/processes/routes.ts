@@ -8,7 +8,7 @@ export const routes: Routes = [
     },
     children: [
       {
-        path: 'item-processes/:itemId',
+        path: 'item-processes/:warehouseId',
         loadComponent: () => import('./item-processes/item-processes.component').then(m => m.ItemProcessesComponent),
         data: {
           title: 'Item Processes'

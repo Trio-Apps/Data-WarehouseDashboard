@@ -1,8 +1,9 @@
-<div class="container-fluid h-100 d-flex flex-column p-0">
-  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+<div class="container-fluid h-100 d-flex flex-column p-0 emerald-theme">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card app-card">
     <c-card-header class="custom-header">
       <h4 class="mb-0 header-title">Items List - Warehouse {{ warehouseId }}</h4>
     </c-card-header>
+
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
       <!-- Table Container with Scroll -->
       <div class="table-container">
@@ -10,18 +11,18 @@
           [hover]="true"
           [striped]="true"
           cTable
-          class="mb-0"
+          class="mb-0 theme-table"
         >
           <thead class="table-header">
             <tr>
               <th scope="col" class="bg-body-tertiary">#</th>
               <th scope="col" class="bg-body-tertiary">Item Name</th>
-              <!-- <th scope="col" class="bg-body-tertiary">Warehouse</th> -->
               <th scope="col" class="bg-body-tertiary">Quantity</th>
               <th scope="col" class="bg-body-tertiary">Price</th>
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             @if (loading) {
               <tr>
@@ -34,13 +35,12 @@
                 <tr>
                   <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
                   <td>{{ item?.itemName|| 'N/A' }}</td>
-                  <!-- <td>{{ item.warehouseName }}</td> -->
                   <td>{{ item?.inStock  || 'N/A' }}</td>
                   <td>{{ item?.salesPrice || 'N/A' }}</td>
                   <td class="text-center">
-                    <button cButton color="info" size="sm" (click)="onDetails(item.itemId)">
-                      <svg cIcon name="cil-info" class="me-1"></svg>
-                      Details
+                    <button cButton color="info" size="sm" class="btn-soft" (click)="onDetails(item.itemId)">
+                      <!-- <svg cIcon name="cil-info" class="me-1"></svg> -->
+                      Barcodes
                     </button>
                   </td>
                 </tr>
@@ -60,28 +60,34 @@
       @if (totalPages > 0) {
         <div class="pagination-container p-3 border-top">
           <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center mb-2">
+            <ul class="pagination justify-content-center mb-2 theme-pagination">
               <li class="page-item" [class.disabled]="!hasPrevious">
                 <a class="page-link" (click)="onPreviousPage($event)"
-                 [attr.aria-label]="'Previous'" [attr.tabindex]="!hasPrevious ? -1 : null" 
-                 [class.disabled]="!hasPrevious" href="#">
+                   [attr.aria-label]="'Previous'" [attr.tabindex]="!hasPrevious ? -1 : null"
+                   [class.disabled]="!hasPrevious" href="#">
                   <span aria-hidden="true">&laquo;</span>
                 </a>
               </li>
+
               @for (page of getPageNumbers(); track page) {
                 <li class="page-item" [class.active]="page === currentPage">
                   <a class="page-link" (click)="onPageChange(page, $event)" href="#">{{ page }}</a>
                 </li>
               }
+
               <li class="page-item" [class.disabled]="!hasNext">
-                <a class="page-link" (click)="onNextPage($event)" [attr.aria-label]="'Next'" [attr.tabindex]="!hasNext ? -1 : null" [class.disabled]="!hasNext" href="#">
+                <a class="page-link" (click)="onNextPage($event)"
+                   [attr.aria-label]="'Next'" [attr.tabindex]="!hasNext ? -1 : null"
+                   [class.disabled]="!hasNext" href="#">
                   <span aria-hidden="true">&raquo;</span>
                 </a>
               </li>
             </ul>
           </nav>
+
           <div class="text-body-secondary small text-center">
-            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }} of {{ totalItems }} items
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
+            {{ Math.min(currentPage * itemsPerPage, totalItems) }} of {{ totalItems }} items
           </div>
         </div>
       }
@@ -98,9 +104,10 @@
               type="text"
               formControlName="itemName1"
               placeholder="Enter Item Code"
-              class="form-control"
+              class="form-control theme-input"
             />
           </c-col>
+
           <c-col [md]="5">
             <label class="form-label">Item Name </label>
             <input
@@ -108,11 +115,12 @@
               type="text"
               formControlName="itemName2"
               placeholder="Enter Item Name"
-              class="form-control"
+              class="form-control theme-input"
             />
           </c-col>
+
           <c-col [md]="2" class="d-flex align-items-end">
-            <button cButton color="primary" type="submit" class="w-100">
+            <button cButton color="primary" type="submit" class="w-100 btn-primary-gradient">
               Submit
             </button>
           </c-col>

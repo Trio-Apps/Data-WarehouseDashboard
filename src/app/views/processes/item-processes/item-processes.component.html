@@ -3,40 +3,101 @@
     <c-card-header class="custom-header">
       <h4 class="mb-0 header-title">Item Processes - Item ID: {{ itemId }}</h4>
     </c-card-header>
+
     <c-card-body class="flex-grow-1 d-flex flex-column p-4">
-      <c-row [gutter]="3">
-        <!-- Barcodes Card -->
-        <c-col [xs]="12" [md]="4">
-          <c-card class="h-100" style="cursor: pointer;" (click)="onCardClick('barcodes')">
+      <c-row [gutter]="3" class="process-grid">
+
+        <!-- Purchase Order -->
+        <c-col [xs]="12" [md]="3">
+          <c-card class="process-card h-100" (click)="onCardClick('purchase_order')">
             <c-card-body class="text-center">
-              <svg cIcon name="cil-barcode" size="3xl" class="mb-3 text-primary"></svg>
-              <h5 class="card-title">Barcodes</h5>
-              <p class="card-text text-body-secondary">Manage item barcodes</p>
+              <div class="icon-wrap icon-emerald">
+                <svg cIcon name="cil-cart" size="3xl" class="process-icon"></svg>
+              </div>
+              <h5 class="card-title">Purchase Order</h5>
+              <p class="card-text">Create & view purchase orders</p>
             </c-card-body>
           </c-card>
         </c-col>
 
-        <!-- Purchases Card -->
-        <c-col [xs]="12" [md]="4">
-          <c-card class="h-100" style="cursor: pointer;" (click)="onCardClick('purchases')">
+        <!-- Receipt Order -->
+        <c-col [xs]="12" [md]="3">
+          <c-card class="process-card h-100" (click)="onCardClick('receipt_order')">
             <c-card-body class="text-center">
-              <svg cIcon name="cil-cart" size="3xl" class="mb-3 text-success"></svg>
-              <h5 class="card-title">Purchases</h5>
-              <p class="card-text text-body-secondary">View purchase history</p>
+              <div class="icon-wrap icon-green">
+                <svg cIcon name="cil-inbox" size="3xl" class="process-icon"></svg>
+              </div>
+              <h5 class="card-title">Receipt Order</h5>
+              <p class="card-text">Goods receiving</p>
             </c-card-body>
           </c-card>
         </c-col>
 
-        <!-- Sales Card -->
-        <c-col [xs]="12" [md]="4">
-          <c-card class="h-100" style="cursor: pointer;" (click)="onCardClick('sales')">
+        <!-- Sales Order -->
+        <c-col [xs]="12" [md]="3">
+          <c-card class="process-card h-100" (click)="onCardClick('sales_order')">
             <c-card-body class="text-center">
-              <svg cIcon name="cil-dollar" size="3xl" class="mb-3 text-info"></svg>
-              <h5 class="card-title">Sales</h5>
-              <p class="card-text text-body-secondary">View sales history</p>
+              <div class="icon-wrap icon-blue">
+                <svg cIcon name="cil-dollar" size="3xl" class="process-icon"></svg>
+              </div>
+              <h5 class="card-title">Sales Order</h5>
+              <p class="card-text">Customer orders</p>
             </c-card-body>
           </c-card>
         </c-col>
+
+        <!-- Sales Return -->
+        <c-col [xs]="12" [md]="3">
+          <c-card class="process-card h-100" (click)="onCardClick('sales_return')">
+            <c-card-body class="text-center">
+              <div class="icon-wrap icon-red">
+                <svg cIcon name="cil-loop-circular" size="3xl" class="process-icon"></svg>
+              </div>
+              <h5 class="card-title">Sales Return</h5>
+              <p class="card-text">Returned sales items</p>
+            </c-card-body>
+          </c-card>
+        </c-col>
+
+        <!-- Transferred -->
+        <c-col [xs]="12" [md]="3">
+          <c-card class="process-card h-100" (click)="onCardClick('transferred')">
+            <c-card-body class="text-center">
+              <div class="icon-wrap icon-purple">
+                <svg cIcon name="cil-transfer" size="3xl" class="process-icon"></svg>
+              </div>
+              <h5 class="card-title">Transferred</h5>
+              <p class="card-text">Stock transfers</p>
+            </c-card-body>
+          </c-card>
+        </c-col>
+
+        <!-- Received -->
+        <c-col [xs]="12" [md]="3">
+          <c-card class="process-card h-100" (click)="onCardClick('received')">
+            <c-card-body class="text-center">
+              <div class="icon-wrap icon-mint">
+                <svg cIcon name="cil-cloud-download" size="3xl" class="process-icon"></svg>
+              </div>
+              <h5 class="card-title">Received</h5>
+              <p class="card-text">Stock received</p>
+            </c-card-body>
+          </c-card>
+        </c-col>
+
+        <!-- Production -->
+        <c-col [xs]="12" [md]="3">
+          <c-card class="process-card h-100" (click)="onCardClick('production')">
+            <c-card-body class="text-center">
+              <div class="icon-wrap icon-orange">
+                <svg cIcon name="cil-industry" size="3xl" class="process-icon"></svg>
+              </div>
+              <h5 class="card-title">Production</h5>
+              <p class="card-text">Manufacturing process</p>
+            </c-card-body>
+          </c-card>
+        </c-col>
+
       </c-row>
     </c-card-body>
   </c-card>
