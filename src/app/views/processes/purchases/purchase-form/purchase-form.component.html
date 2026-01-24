@@ -1,0 +1,111 @@
+<div class="container-fluid">
+  <div class="row justify-content-center">
+    <div class="col-md-8">
+      <c-card class="mb-4">
+        <c-card-header>
+          <div class="d-flex justify-content-between align-items-center">
+            <strong>{{ isEditMode ? 'Edit' : 'Create' }} Purchase - Warehouse #{{ warehouseId }}</strong>
+          </div>
+        </c-card-header>
+        <c-card-body>
+          <!-- Loading State -->
+          <div *ngIf="loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading...</p>
+          </div>
+
+          <!-- Form -->
+          <form *ngIf="!loading" [formGroup]="form" (ngSubmit)="onSubmit()">
+            <div class="row g-3">
+              <!-- Posting Date -->
+              <div class="col-md-6">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Posting Date *</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="postingDatePicker"
+                    formControlName="postingDate"
+                    required>
+                  <mat-datepicker-toggle matSuffix [for]="postingDatePicker"></mat-datepicker-toggle>
+                  <mat-datepicker #postingDatePicker></mat-datepicker>
+                </mat-form-field>
+              </div>
+
+              <!-- Due Date -->
+              <div class="col-md-6">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Due Date *</mat-label>
+                  <input
+                    matInput
+                    [matDatepicker]="dueDatePicker"
+                    formControlName="dueDate"
+                    required>
+                  <mat-datepicker-toggle matSuffix [for]="dueDatePicker"></mat-datepicker-toggle>
+                  <mat-datepicker #dueDatePicker></mat-datepicker>
+                </mat-form-field>
+              </div>
+
+              <!-- Supplier -->
+              <div class="col-md-12">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Supplier *</mat-label>
+                  <mat-select formControlName="supplierId" required>
+                    <mat-option *ngFor="let supplier of suppliers" [value]="supplier.supplierId">
+                      {{ supplier.supplierName }}
+                      <span *ngIf="supplier.supplierCode"> ({{ supplier.supplierCode }})</span>
+                    </mat-option>
+                  </mat-select>
+                </mat-form-field>
+              </div>
+
+              <!-- Comment -->
+              <div class="col-md-12">
+                <mat-form-field appearance="outline" class="w-100">
+                  <mat-label>Comment</mat-label>
+                  <textarea
+                    matInput
+                    formControlName="comment"
+                    rows="3"
+                    placeholder="Enter any comments for this purchase">
+                  </textarea>
+                </mat-form-field>
+              </div>
+
+              <!-- Is Draft -->
+              <div class="col-md-12">
+                <mat-checkbox formControlName="isDraft">
+                  Save as Draft
+                </mat-checkbox>
+                <small class="text-muted d-block mt-1">
+                  Draft purchases can be modified later. Final purchases cannot be edited.
+                </small>
+              </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="d-flex justify-content-end gap-2 mt-4">
+              <button
+                cButton
+                color="secondary"
+                type="button"
+                (click)="onCancel()"
+                [disabled]="saving">
+                Cancel
+              </button>
+              <button
+                cButton
+                color="primary"
+                type="submit"
+                [disabled]="form.invalid || saving">
+                <span *ngIf="saving" class="spinner-border spinner-border-sm me-2" role="status"></span>
+                {{ saving ? 'Saving...' : (isEditMode ? 'Update Purchase' : 'Create Purchase') }}
+              </button>
+            </div>
+          </form>
+        </c-card-body>
+      </c-card>
+    </div>
+  </div>
+</div>

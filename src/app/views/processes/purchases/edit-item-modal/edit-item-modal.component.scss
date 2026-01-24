@@ -1,0 +1,21 @@
+// Custom styles for edit item modal component
+.mat-mdc-form-field {
+  width: 100%;
+}
+
+.spinner-border-sm {
+  width: 1rem;
+  height: 1rem;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+}
+
+.mat-hint {
+  color: #6c757d;
+}
+
+.gap-2 {
+  gap: 0.5rem;
+}

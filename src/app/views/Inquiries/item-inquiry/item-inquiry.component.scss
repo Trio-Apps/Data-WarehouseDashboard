@@ -4,47 +4,41 @@
   height:100%;
   width:100%;
   overflow:hidden;
-
   --gradient-main: linear-gradient(135deg, #286A61 0%, #00EBB5 100%);
   --primary-brand: #286A61;
   --accent-mint: #00EBB5;
-
-  --bg: #F0F7F5;
+  --bg: #f0740eb9;
   --surface: #FFFFFF;
-
   --text-heading: #1B3D38;
   --text-body: #3A524E;
   --text-muted: #7A928E;
-
   --card-radius: 24px;
   --card-shadow: 0 12px 30px rgba(40, 106, 97, 0.08);
   --card-border: 1px solid rgba(40, 106, 97, 0.05);
-
   --btn-radius: 12px;
-
   font-family:'Inter','Plus Jakarta Sans',sans-serif;
 }
 
 /* ===== Background (عادي) ===== */
 .container-fluid{
+  background: var(--bg);
   height:calc(100vh - 60px);
   overflow:hidden;
   padding:0 !important;
-  background: var(--bg);
   position:relative;
 }
 
 /* subtle premium pattern mint 5% (اختياري: امسحه لو عايز سادة) */
-.container-fluid::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  background:
-    radial-gradient(circle at 14% 20%, rgba(0,235,181,0.05) 0 140px, transparent 141px),
-    radial-gradient(circle at 88% 18%, rgba(0,235,181,0.05) 0 180px, transparent 181px),
-    radial-gradient(circle at 75% 82%, rgba(0,235,181,0.05) 0 160px, transparent 161px);
-}
+// .container-fluid::before{
+//   content:"";
+//   position:absolute;
+//   inset:0;
+//   pointer-events:none;
+//   background:
+//     radial-gradient(circle at 14% 20%, rgba(0,235,181,0.05) 0 140px, transparent 141px),
+//     radial-gradient(circle at 88% 18%, rgba(0,235,181,0.05) 0 180px, transparent 181px),
+//     radial-gradient(circle at 75% 82%, rgba(0,235,181,0.05) 0 160px, transparent 161px);
+// }
 
 /* ===== Card ===== */
 c-card{

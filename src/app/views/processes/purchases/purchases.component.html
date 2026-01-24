@@ -1,0 +1,128 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-12">
+      <c-card class="mb-4">
+        <c-card-header>
+          <div class="d-flex justify-content-between align-items-center">
+            <strong>Purchases - Warehouse #{{ warehouseId }}</strong>
+            <button cButton color="primary" (click)="onAddPurchase()">
+              <svg cIcon name="cilPlus" class="me-2"></svg>
+              Add Purchase
+            </button>
+          </div>
+        </c-card-header>
+        <c-card-body>
+          <!-- Loading State -->
+          <div *ngIf="loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading purchases...</p>
+          </div>
+
+          <!-- Purchases Table -->
+          <div *ngIf="!loading && purchases.length > 0">
+            <table cTable hover responsive>
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Supplier</th>
+                  <th>Posting Date</th>
+                  <th>Due Date</th>
+                  <th>Status</th>
+                  <th>Comment</th>
+                  <th>Items Count</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let purchase of paginatedPurchases">
+                  <td>{{ purchase.purchaseOrderId }}</td>
+                  <td>{{ purchase.supplier?.supplierName || 'N/A' }}</td>
+                  <td>{{ purchase.postingDate | date:'short' }}</td>
+                  <td>{{ purchase.dueDate | date:'short' }}</td>
+                  <td>
+                    <span [class]="getStatusBadgeClass(purchase)">
+                      {{ getStatusText(purchase) }}
+                    </span>
+                  </td>
+                  <td>{{ purchase.comment || 'No comment' }}</td>
+                  <td>{{ purchase.items?.length || 0 }}</td>
+                  <td>
+                    <div class="btn-group" role="group">
+                      <button
+                        cButton
+                        color="info"
+                        size="sm"
+                        (click)="onViewPurchaseItems(purchase)"
+                        title="View Items">
+                        <svg cIcon name="cilList" size="sm"></svg>
+                      </button>
+                      <button
+                        *ngIf="purchase.status=='Draft'"
+                        cButton
+                        color="warning"
+                        size="sm"
+                        (click)="onEditPurchase(purchase)"
+                        title="Edit">
+                        <svg cIcon name="cilPencil" size="sm"></svg>
+                      </button>
+                      <button
+                        *ngIf="purchase.status == 'Draft' "
+                        cButton
+                        color="danger"
+                        size="sm"
+                        (click)="onDeletePurchase(purchase)"
+                        title="Delete">
+                        <svg cIcon name="cilTrash" size="sm"></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+
+            <!-- Pagination -->
+            <nav *ngIf="totalPages > 1" aria-label="Purchases pagination" class="mt-3">
+              <ul class="pagination justify-content-center">
+                <li class="page-item" [class.disabled]="!hasPrevious">
+                  <a class="page-link" href="#" (click)="onPreviousPage($event)" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                </li>
+                <li
+                  *ngFor="let page of getPageNumbers()"
+                  class="page-item"
+                  [class.active]="page === currentPage">
+                  <a class="page-link" href="#" (click)="onPageChange(page, $event)">{{ page }}</a>
+                </li>
+                <li class="page-item" [class.disabled]="!hasNext">
+                  <a class="page-link" href="#" (click)="onNextPage($event)" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+
+            <!-- Pagination Info -->
+            <div class="text-center mt-2 text-muted">
+              Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
+              {{ Math.min(currentPage * itemsPerPage, totalItems) }} of {{ totalItems }} entries
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!loading && purchases.length === 0" class="text-center py-5">
+            <svg cIcon name="cilCart" size="3xl" class="text-muted mb-3"></svg>
+            <h5 class="text-muted">No purchases found</h5>
+            <p class="text-muted">There are no purchases for this warehouse yet.</p>
+            <button cButton color="primary" (click)="onAddPurchase()">
+              <svg cIcon name="cilPlus" class="me-2"></svg>
+              Create First Purchase
+            </button>
+          </div>
+        </c-card-body>
+      </c-card>
+    </div>
+  </div>
+</div>

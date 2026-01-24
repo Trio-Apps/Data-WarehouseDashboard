@@ -1,0 +1,165 @@
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-md-12">
+      <c-card class="mb-4">
+        <c-card-header>
+          <div class="d-flex justify-content-between align-items-center">
+            <div>
+              <strong>Purchase Items - #{{ purchaseOrderId }}</strong>
+              <div class="text-muted small mt-1" *ngIf="purchase">
+                Supplier: {{ purchase.supplierName || 'N/A' }} |
+                Status: <span [class]="purchase.status">
+                  {{ purchase.status }}
+                </span>
+              </div>
+            </div>
+            <div class="btn-group">
+              <button cButton color="secondary" (click)="onBackToPurchases()">
+                <svg cIcon name="cilArrowLeft" class="me-2"></svg>
+                Back to Purchases
+              </button>
+              <button
+                *ngIf="purchase?.status && items.length > 0"
+                cButton
+                color="success"
+                (click)="onFinalizePurchase()">
+                <svg cIcon name="cilCheck" class="me-2"></svg>
+                Finalize Purchase
+              </button>
+            </div>
+          </div>
+        </c-card-header>
+        <c-card-body>
+          <!-- Loading State -->
+          <div *ngIf="loading" class="text-center py-4">
+            <div class="spinner-border text-primary" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-2">Loading purchase items...</p>
+          </div>
+
+          <!-- Purchase Summary -->
+          <div *ngIf="!loading && purchase" class="row mb-4">
+            <div class="col-md-3">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <h5 class="card-title">Total Items</h5>
+                  <h2 class="text-primary">{{ items.length }}</h2>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <h5 class="card-title">Total Quantity</h5>
+                  <h2 class="text-info">{{ getTotalQuantity() }}</h2>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <h5 class="card-title">Total Value</h5>
+                  <h2 class="text-success">${{ getTotalValue() | number:'1.2-2' }}</h2>
+                </div>
+              </div>
+            </div>
+            <div class="col-md-3">
+              <div class="card h-100">
+                <div class="card-body text-center">
+                  <button
+                    cButton
+                    color="primary"
+                    class="w-100 h-100 d-flex align-items-center justify-content-center"
+                    (click)="onAddItem()"
+                    [disabled]="!isDraft">
+                    <div>
+                      <svg cIcon name="cilPlus" size="2xl" class="mb-2"></svg>
+                      <div>Add Item</div>
+                    </div>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+
+          <!-- Items Table -->
+          <div *ngIf="!loading && items.length > 0">
+            <table cTable hover responsive>
+              <thead>
+                <tr>
+                  <th>Item Code</th>
+                  <th>Item Name</th>
+                  <th>Barcode</th>
+                  <th>Quantity</th>
+                  <th>Unit</th>
+                  <th>Purchase Order</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr *ngFor="let item of items">
+                  <td>{{ item.itemCode }}</td>
+                  <td>{{ item.itemName }}</td>
+                  <td>{{ item.barCode || 'N/A' }}</td>
+                  <td>{{ item.quantity }}</td>
+                  <td>{{ item.unitName || 'N/A' }}</td>
+                  <td>{{ item.purchaseOrderId }}</td>
+                  <td>
+                    <div class="btn-group" role="group">
+                      <button
+                        *ngIf="isDraft"
+                        cButton
+                        color="warning"
+                        size="sm"
+                        (click)="onEditItem(item)"
+                        title="Edit Item"
+                        class="me-1">
+                        <svg cIcon name="cilPencil" size="sm"></svg>
+                      </button>
+                      <button
+                        *ngIf="isDraft"
+                        cButton
+                        color="danger"
+                        size="sm"
+                        (click)="onRemoveItem(item)"
+                        title="Remove Item">
+                        <svg cIcon name="cilTrash" size="sm"></svg>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Empty State -->
+          <div *ngIf="!loading && items.length === 0" class="text-center py-5">
+            <svg cIcon name="cilCart" size="3xl" class="text-muted mb-3"></svg>
+            <h5 class="text-muted">No items in this purchase</h5>
+            <p class="text-muted">Add items to this purchase using the button above.</p>
+            <button
+              cButton
+              color="primary"
+              (click)="onAddItem()"
+              >
+              <svg cIcon name="cilPlus" class="me-2"></svg>
+              Add First Item
+            </button>
+          </div>
+
+        </c-card-body>
+      </c-card>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Item Modal -->
+<app-edit-item-modal
+  [visible]="showEditItemModal"
+  [item]="selectedItem"
+  (visibleChange)="showEditItemModal = $event"
+  (itemUpdated)="onItemUpdated()">
+</app-edit-item-modal>
+

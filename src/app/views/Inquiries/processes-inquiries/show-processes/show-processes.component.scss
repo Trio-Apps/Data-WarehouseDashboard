@@ -1,0 +1,117 @@
+/* ===== Theme ===== */
+:host{
+  --gradient-main: linear-gradient(135deg, #286A61 0%, #00EBB5 100%);
+  --bg: #F0F7F5;
+  --surface: #FFFFFF;
+  --text-heading: #1B3D38;
+  --text-body: #3A524E;
+  --text-muted: #7A928E;
+
+  --card-radius: 24px;
+  --card-shadow: 0 12px 30px rgba(40, 106, 97, 0.08);
+  --card-border: 1px solid rgba(40, 106, 97, 0.05);
+
+  font-family:'Inter','Plus Jakarta Sans',sans-serif;
+}
+
+/* ===== Background ===== */
+.container-fluid{
+  height:calc(100vh - 60px);
+  background: var(--bg);
+  padding:0 !important;
+  position:relative;
+}
+
+/* ===== Main Card ===== */
+c-card{
+  height:100%;
+  background:var(--surface);
+  border-radius:var(--card-radius);
+  border:var(--card-border);
+  box-shadow:var(--card-shadow);
+}
+
+/* ===== Header ===== */
+.custom-header{
+  background:var(--gradient-main);
+  padding:1.25rem 1.5rem;
+  color:#fff;
+  border-top-left-radius:var(--card-radius);
+  border-top-right-radius:var(--card-radius);
+}
+
+.header-title{
+  color:#fff;
+  font-weight:800;
+}
+
+/* ===== Grid ===== */
+.process-grid{
+  row-gap: 22px;
+}
+
+/* ===== Process Cards ===== */
+.process-card{
+  cursor:pointer;
+  border-radius:20px;
+  background: rgba(255,255,255,0.85);
+  border:1px solid rgba(40,106,97,0.08);
+  box-shadow: 0 14px 30px rgba(40,106,97,0.10);
+  transition: all .2s ease;
+  position:relative;
+  overflow:hidden;
+}
+
+.process-card::before{
+  content:"";
+  position:absolute;
+  left:16px;
+  right:16px;
+  top:0;
+  height:3px;
+  background: var(--gradient-main);
+  border-radius: 999px;
+  opacity: .5;
+}
+
+.process-card:hover{
+  transform: translateY(-6px);
+  box-shadow: 0 26px 50px rgba(40,106,97,0.18);
+}
+
+/* ===== Icon bubble ===== */
+.icon-wrap{
+  width:74px;
+  height:74px;
+  border-radius:20px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  margin: 8px auto 14px;
+  box-shadow: 0 10px 22px rgba(40,106,97,0.12);
+  border:1px solid rgba(40,106,97,0.08);
+}
+
+.icon-emerald{ background: rgba(0,235,181,0.15); }
+.icon-green{ background: rgba(118,214,155,0.18); }
+.icon-blue{ background: rgba(124,199,232,0.20); }
+.icon-red{ background: rgba(232,138,138,0.22); }
+.icon-purple{ background: rgba(155,163,218,0.22); }
+.icon-mint{ background: rgba(0,235,181,0.22); }
+.icon-orange{ background: rgba(255,210,113,0.25); }
+
+.process-icon{
+  color:#286A61;
+}
+
+/* ===== Text ===== */
+.process-card .card-title{
+  font-weight:800;
+  color: var(--text-heading);
+  margin-bottom:6px;
+}
+
+.process-card .card-text{
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}

@@ -134,7 +134,7 @@ submit() {
   
   if (selectedWarehouse) {
     this.toastr.success(`Loading items for ${selectedWarehouse.warehouseName}...`, 'Success');
-    this.router.navigate(['processes/item-processes', warehouseId]);
+    this.router.navigate(['inquiries/show-processes', warehouseId]);
   } else {
     this.toastr.error('Invalid warehouse selected', 'Error');
   }

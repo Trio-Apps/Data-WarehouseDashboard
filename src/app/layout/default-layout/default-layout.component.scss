@@ -49,10 +49,10 @@
   .body c-container,
   .body .c-container,
   .body .container-fluid {
-    background: rgba(255,255,255,0.70);
-    border: 1px solid rgba(40,106,97,0.06);
+    background: rgba(255, 255, 255, 0);
+   // border: 1px solid rgba(40, 106, 97, 0);
     border-radius: 18px;
-    box-shadow: 0 16px 34px rgba(40,106,97,0.10);
+    box-shadow: 0 16px 34px rgba(40, 106, 97, 0);
     padding-top: 18px;
     padding-bottom: 18px;
   }
