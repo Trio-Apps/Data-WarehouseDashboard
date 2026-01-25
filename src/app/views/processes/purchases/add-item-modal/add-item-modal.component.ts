@@ -15,6 +15,7 @@ import { MatTabsModule } from '@angular/material/tabs';
 import { PurchaseService } from '../Services/purchase.service';
 import { Item } from '../Models/purchase.model';
 import { ToastrService } from 'ngx-toastr';
+import { UoMGroup } from '../../barcodes/Models/item-barcode.model';
 
 @Component({
   selector: 'app-add-item-modal',
@@ -44,8 +45,10 @@ export class AddItemModalComponent implements OnInit {
   barcodeForm!: FormGroup;
   manualForm!: FormGroup;
   items: Item[] = [];
+  uomGroups: UoMGroup[] = [];
   loading: boolean = false;
   saving: boolean = false;
+  loadingUomGroups: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -67,8 +70,18 @@ export class AddItemModalComponent implements OnInit {
 
     this.manualForm = this.fb.group({
       itemId: ['', Validators.required],
-      uoMEntry: [-1, [Validators.required, Validators.min(-1)]],
+      uoMEntry: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(0.01)]],
+    });
+
+    // Listen to item selection changes
+    this.manualForm.get('itemId')?.valueChanges.subscribe((itemId) => {
+      if (itemId) {
+        this.loadUomGroups(itemId);
+      } else {
+        this.uomGroups = [];
+        this.manualForm.patchValue({ uoMEntry: '' });
+      }
     });
   }
 
@@ -106,16 +119,44 @@ export class AddItemModalComponent implements OnInit {
     this.resetForms();
   }
 
+  loadUomGroups(itemId: number): void {
+    this.loadingUomGroups = true;
+    this.uomGroups = [];
+    this.manualForm.patchValue({ uoMEntry: '' });
+
+    this.purchaseService.getUoMGroupByItemId(itemId).subscribe({
+      next: (res: any) => {
+        if (res.success && res.data) {
+          this.uomGroups = res.data;
+          // Auto-select first UoM if available
+          if (this.uomGroups.length > 0) {
+            this.manualForm.patchValue({ uoMEntry: this.uomGroups[0].uomEntry });
+          }
+        } else {
+          this.uomGroups = [];
+        }
+        this.loadingUomGroups = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading UoM groups:', err);
+        this.uomGroups = [];
+        this.loadingUomGroups = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
   resetForms(): void {
     this.barcodeForm.reset({
       barCode: ''
     });
     this.manualForm.reset({
       itemId: '',
-      uoMEntry: -1,
-      quantity: 1,
-      purchaseOrderId: 3
+      uoMEntry: '',
+      quantity: 1
     });
+    this.uomGroups = [];
   }
 
   onAddByBarcode(): void {

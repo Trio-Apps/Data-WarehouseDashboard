@@ -6,17 +6,18 @@ import {
   FormModule,
   CardModule,
   GridModule,
-  UtilitiesModule
+  UtilitiesModule,
+  GutterDirective,
+  FormCheckComponent,
+  FormCheckInputDirective,
+  FormCheckLabelDirective
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatTabsModule } from '@angular/material/tabs';
 import { PurchaseService } from '../Services/purchase.service';
 import { Item } from '../Models/purchase.model';
 import { ToastrService } from 'ngx-toastr';
+import { UoMGroup } from '../../barcodes/Models/item-barcode.model';
 
 @Component({
   selector: 'app-add-item',
@@ -28,10 +29,10 @@ import { ToastrService } from 'ngx-toastr';
     GridModule,
     UtilitiesModule,
     ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatTabsModule,
+    GutterDirective,
+    FormCheckComponent,
+    FormCheckInputDirective,
+    FormCheckLabelDirective,
     IconDirective
   ],
   templateUrl: './add-item.component.html',
@@ -44,8 +45,11 @@ export class AddItemComponent implements OnInit {
   barcodeForm!: FormGroup;
   manualForm!: FormGroup;
   items: Item[] = [];
+  uomGroups: UoMGroup[] = [];
   loading: boolean = false;
   saving: boolean = false;
+  loadingUomGroups: boolean = false;
+  activeTab: 'barcode' | 'manual' = 'barcode';
 
   constructor(
     private route: ActivatedRoute,
@@ -71,8 +75,18 @@ export class AddItemComponent implements OnInit {
 
     this.manualForm = this.fb.group({
       itemId: ['', Validators.required],
-      uoMEntry: [-1, [Validators.required, Validators.min(-1)]],
+      uoMEntry: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(0.01)]],
+    });
+
+    // Listen to item selection changes
+    this.manualForm.get('itemId')?.valueChanges.subscribe((itemId) => {
+      if (itemId) {
+        this.loadUomGroups(itemId);
+      } else {
+        this.uomGroups = [];
+        this.manualForm.patchValue({ uoMEntry: '' });
+      }
     });
   }
 
@@ -96,6 +110,34 @@ export class AddItemComponent implements OnInit {
         console.error('Error loading items:', err);
         this.loading = false;
         this.toastr.error('Failed to load items. Please try again.', 'Error');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  loadUomGroups(itemId: number): void {
+    this.loadingUomGroups = true;
+    this.uomGroups = [];
+    this.manualForm.patchValue({ uoMEntry: '' });
+
+    this.purchaseService.getUoMGroupByItemId(itemId).subscribe({
+      next: (res: any) => {
+        if (res.success && res.data) {
+          this.uomGroups = res.data;
+          // Auto-select first UoM if available
+          if (this.uomGroups.length > 0) {
+            this.manualForm.patchValue({ uoMEntry: this.uomGroups[0].uomEntry });
+          }
+        } else {
+          this.uomGroups = [];
+        }
+        this.loadingUomGroups = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading UoM groups:', err);
+        this.uomGroups = [];
+        this.loadingUomGroups = false;
         this.cdr.detectChanges();
       }
     });

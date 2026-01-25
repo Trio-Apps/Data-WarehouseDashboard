@@ -1,158 +1,128 @@
-<div class="container-fluid">
-  <div class="row">
-    <div class="col-md-12">
-      <c-card class="mb-4">
-        <c-card-header>
-          <div class="d-flex justify-content-between align-items-center">
-            <div>
-              <strong>Purchase Items - #{{ purchaseOrderId }}</strong>
-              <div class="text-muted small mt-1" *ngIf="purchase">
-                Supplier: {{ purchase.supplierName || 'N/A' }} |
-                Status: <span [class]="purchase.status">
-                  {{ purchase.status }}
-                </span>
-              </div>
-            </div>
-            <div class="btn-group">
-              <button cButton color="secondary" (click)="onBackToPurchases()">
-                <svg cIcon name="cilArrowLeft" class="me-2"></svg>
-                Back to Purchases
-              </button>
-              <button
-                *ngIf="purchase?.status && items.length > 0"
-                cButton
-                color="success"
-                (click)="onFinalizePurchase()">
-                <svg cIcon name="cilCheck" class="me-2"></svg>
-                Finalize Purchase
-              </button>
-            </div>
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <div>
+        <h4 class="mb-0 header-title">Purchase Items - #{{ purchaseOrderId }}</h4>
+        @if (purchase) {
+          <div class="mt-2 d-flex align-items-center gap-3" style="font-size: 0.875rem; opacity: 0.9;">
+            <span>Supplier: {{ purchase.supplierName || 'N/A' }}</span>
+            <span>|</span>
+            <span>
+              Status: <span [ngClass]="getStatusBadgeClass(purchase)">{{ purchase.status }}</span>
+            </span>
           </div>
-        </c-card-header>
-        <c-card-body>
-          <!-- Loading State -->
-          <div *ngIf="loading" class="text-center py-4">
-            <div class="spinner-border text-primary" role="status">
-              <span class="visually-hidden">Loading...</span>
-            </div>
-            <p class="mt-2">Loading purchase items...</p>
-          </div>
+        }
+      </div>
+      <div class="d-flex gap-2">
+        <button cButton color="secondary" class="header-button" (click)="onBackToPurchases()">
+          <svg cIcon name="cilArrowLeft" class="me-2"></svg>
+          Back
+        </button>
+        @if (isDraft) {
+          <button cButton color="primary" class="header-button" (click)="onAddItem()">
+            <svg cIcon name="cilPlus" class="me-2"></svg>
+            Add Item
+          </button>
+        }
+        @if (purchase?.status && items.length > 0 && isDraft) {
+          <button cButton color="success" class="header-button" (click)="onFinalizePurchase()">
+            <svg cIcon name="cilCheck" class="me-2"></svg>
+            Finalize
+          </button>
+        }
+      </div>
+    </c-card-header>
 
-          <!-- Purchase Summary -->
-          <div *ngIf="!loading && purchase" class="row mb-4">
-            <div class="col-md-3">
-              <div class="card h-100">
+    <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
+      <!-- Purchase Summary Cards -->
+      @if (!loading && purchase) {
+        <div class="p-3 border-bottom">
+          <c-row [gutter]="3">
+            <c-col [md]="4">
+              <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body text-center">
-                  <h5 class="card-title">Total Items</h5>
-                  <h2 class="text-primary">{{ items.length }}</h2>
+                  <h6 class="card-title text-muted mb-2">Total Items</h6>
+                  <h3 class="mb-0" style="color: var(--primary-brand);">{{ items.length }}</h3>
                 </div>
               </div>
-            </div>
-            <div class="col-md-3">
-              <div class="card h-100">
+            </c-col>
+            <c-col [md]="4">
+              <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body text-center">
-                  <h5 class="card-title">Total Quantity</h5>
-                  <h2 class="text-info">{{ getTotalQuantity() }}</h2>
+                  <h6 class="card-title text-muted mb-2">Total Quantity</h6>
+                  <h3 class="mb-0" style="color: var(--accent-mint);">{{ getTotalQuantity() }}</h3>
                 </div>
               </div>
-            </div>
-            <div class="col-md-3">
-              <div class="card h-100">
+            </c-col>
+            <c-col [md]="4">
+              <div class="card h-100 border-0 shadow-sm">
                 <div class="card-body text-center">
-                  <h5 class="card-title">Total Value</h5>
-                  <h2 class="text-success">${{ getTotalValue() | number:'1.2-2' }}</h2>
+                  <h6 class="card-title text-muted mb-2">Total Value</h6>
+                  <h3 class="mb-0" style="color: var(--primary-brand);">${{ getTotalValue() | number:'1.2-2' }}</h3>
                 </div>
               </div>
-            </div>
-            <div class="col-md-3">
-              <div class="card h-100">
-                <div class="card-body text-center">
-                  <button
-                    cButton
-                    color="primary"
-                    class="w-100 h-100 d-flex align-items-center justify-content-center"
-                    (click)="onAddItem()"
-                    [disabled]="!isDraft">
-                    <div>
-                      <svg cIcon name="cilPlus" size="2xl" class="mb-2"></svg>
-                      <div>Add Item</div>
-                    </div>
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+            </c-col>
+          </c-row>
+        </div>
+      }
 
+      <!-- Table Container with Scroll -->
+      <div class="table-container">
+        <table [hover]="true" [striped]="true" cTable class="mb-0">
+          <thead class="table-header">
+            <tr>
+              <th scope="col" class="bg-body-tertiary">#</th>
+              <th scope="col" class="bg-body-tertiary">Item Code</th>
+              <th scope="col" class="bg-body-tertiary">Item Name</th>
+              <th scope="col" class="bg-body-tertiary">Barcode</th>
+              <th scope="col" class="bg-body-tertiary">Quantity</th>
+              <th scope="col" class="bg-body-tertiary">Unit</th>
+              @if (isDraft) {
+                <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+              }
+            </tr>
+          </thead>
 
-          <!-- Items Table -->
-          <div *ngIf="!loading && items.length > 0">
-            <table cTable hover responsive>
-              <thead>
+          <tbody>
+            @if (loading) {
+              <tr>
+                <td [attr.colspan]="isDraft ? 7 : 6" class="text-center py-4">
+                  <span class="text-body-secondary">Loading...</span>
+                </td>
+              </tr>
+            } @else if (items.length > 0) {
+              @for (item of items; track item.purchaseItemId || $index) {
                 <tr>
-                  <th>Item Code</th>
-                  <th>Item Name</th>
-                  <th>Barcode</th>
-                  <th>Quantity</th>
-                  <th>Unit</th>
-                  <th>Purchase Order</th>
-                  <th>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr *ngFor="let item of items">
+                  <td>{{ $index + 1 }}</td>
                   <td>{{ item.itemCode }}</td>
                   <td>{{ item.itemName }}</td>
                   <td>{{ item.barCode || 'N/A' }}</td>
                   <td>{{ item.quantity }}</td>
                   <td>{{ item.unitName || 'N/A' }}</td>
-                  <td>{{ item.purchaseOrderId }}</td>
-                  <td>
-                    <div class="btn-group" role="group">
-                      <button
-                        *ngIf="isDraft"
-                        cButton
-                        color="warning"
-                        size="sm"
-                        (click)="onEditItem(item)"
-                        title="Edit Item"
-                        class="me-1">
-                        <svg cIcon name="cilPencil" size="sm"></svg>
+                  @if (isDraft) {
+                    <td class="text-center">
+                      <button cButton color="info" size="sm" class="me-2" (click)="onEditItem(item)">
+                        <svg cIcon name="cil-pencil"></svg>
                       </button>
-                      <button
-                        *ngIf="isDraft"
-                        cButton
-                        color="danger"
-                        size="sm"
-                        (click)="onRemoveItem(item)"
-                        title="Remove Item">
-                        <svg cIcon name="cilTrash" size="sm"></svg>
+                      <button cButton color="danger" size="sm" (click)="onRemoveItem(item)">
+                        <svg cIcon name="cil-trash"></svg>
                       </button>
-                    </div>
-                  </td>
+                    </td>
+                  }
                 </tr>
-              </tbody>
-            </table>
-          </div>
-
-          <!-- Empty State -->
-          <div *ngIf="!loading && items.length === 0" class="text-center py-5">
-            <svg cIcon name="cilCart" size="3xl" class="text-muted mb-3"></svg>
-            <h5 class="text-muted">No items in this purchase</h5>
-            <p class="text-muted">Add items to this purchase using the button above.</p>
-            <button
-              cButton
-              color="primary"
-              (click)="onAddItem()"
-              >
-              <svg cIcon name="cilPlus" class="me-2"></svg>
-              Add First Item
-            </button>
-          </div>
-
-        </c-card-body>
-      </c-card>
-    </div>
-  </div>
+              }
+            } @else {
+              <tr>
+                <td [attr.colspan]="isDraft ? 7 : 6" class="text-center py-4">
+                  <span class="text-body-secondary">No items in this purchase</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </c-card-body>
+  </c-card>
 </div>
 
 <!-- Edit Item Modal -->
@@ -162,4 +132,3 @@
   (visibleChange)="showEditItemModal = $event"
   (itemUpdated)="onItemUpdated()">
 </app-edit-item-modal>
-

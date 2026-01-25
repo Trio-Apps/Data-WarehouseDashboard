@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { Purchase, Supplier, PurchaseResponse, AddItemRequest, Item } from '../Models/purchase.model';
 import { AuthService } from '../../../pages/Services/auth.service';
+import { UoMGroupResponse } from '../../barcodes/Models/item-barcode.model';
 
 @Injectable({
   providedIn: 'root'
@@ -38,6 +39,37 @@ export class PurchaseService {
     const url = `${this.baseUrl}PurchaseOrder/warehouse/${warehouseId}/${pageNumber}/${pageSize}`;
     return this.http.get<PurchaseResponse>(url, this.headerOption);
   }
+
+getPurchasesWithFilterationByWarehouse(
+  pageNumber: number,
+  pageSize: number,
+  warehouseId: number,
+  status?: string,
+  postingDate?: string,
+  dueDate?: string
+): Observable<PurchaseResponse> {
+  const baseUrl = `${this.baseUrl}PurchaseOrder/dashboard/warehouse/status/posting-date/due-date/${warehouseId}/${pageNumber}/${pageSize}`;
+
+  // إعداد الـ query parameters
+  let params = new HttpParams();
+
+
+  if (status) {
+    params = params.set('status', status);
+  }
+  if (postingDate) {
+    params = params.set('postingDate', postingDate);
+  }
+  if (dueDate) {
+    params = params.set('dueDate', dueDate);
+  }
+
+  return this.http.get<PurchaseResponse>(baseUrl, {
+    headers: this.headerOption.headers,
+    params: params
+  });
+}
+
 
   /**
    * Get purchase by ID with items
@@ -88,6 +120,10 @@ export class PurchaseService {
    */
   getItemsByWarehouse(warehouseId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}FinishedGoodPurchaseOrder/warehouse/${warehouseId}`, this.headerOption);
+  }
+
+  getUoMGroupByItemId(itemId: number): Observable<UoMGroupResponse> {
+    return this.http.get<UoMGroupResponse>(`${this.baseUrl}Barcode/item-uom-group/${itemId}`, this.headerOption);
   }
 
   /**

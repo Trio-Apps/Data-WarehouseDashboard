@@ -50,6 +50,14 @@ export class PurchasesComponent implements OnInit, OnDestroy {
   hasNext: boolean = false;
   hasPrevious: boolean = false;
 
+  // Filter fields
+  filterStatus: string = '';
+  filterPostingDate: Date | null = null;
+  filterDueDate: Date | null = null;
+  
+  // Flag to prevent double loading
+  private isSearching: boolean = false;
+
   // Expose Math to template
   Math = Math;
 
@@ -64,19 +72,41 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {
-    this.form = this.fb.group({});
+    this.form = this.fb.group({
+      status: [''],
+      postingDate: [null],
+      dueDate: [null]
+    });
   }
 
   ngOnInit(): void {
     this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
 
-    // Read pagination from URL query params
+    // Read pagination and filters from URL query params
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
+      // Skip loading if we're in the middle of a search operation
+      if (this.isSearching) {
+        return;
+      }
+
       const page = params['page'] ? +params['page'] : 1;
       const pageSize = params['pageSize'] ? +params['pageSize'] : 10;
+      const status = params['status'] || '';
+      const postingDate = params['postingDate'] || '';
+      const dueDate = params['dueDate'] || '';
 
       this.currentPage = page >= 1 ? page : 1;
       this.itemsPerPage = pageSize >= 1 ? pageSize : 10;
+      this.filterStatus = status;
+      this.filterPostingDate = postingDate ? new Date(postingDate) : null;
+      this.filterDueDate = dueDate ? new Date(dueDate) : null;
+
+      // Update form values (for date inputs, use YYYY-MM-DD format)
+      this.form.patchValue({
+        status: status,
+        postingDate: postingDate || null,
+        dueDate: dueDate || null
+      });
 
       if (this.warehouseId) {
         this.loadPurchases();
@@ -96,20 +126,28 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.cdr.detectChanges();
 
-    this.purchaseService.getPurchasesByWarehouse(
-      this.warehouseId,
+    // Get form values for dates (input type="date" returns YYYY-MM-DD string)
+    const formValue = this.form.value;
+    const postingDateStr = formValue.postingDate || undefined;
+    const dueDateStr = formValue.dueDate || undefined;
+
+    this.purchaseService.getPurchasesWithFilterationByWarehouse(
       this.currentPage,
-      this.itemsPerPage
+      this.itemsPerPage,
+      this.warehouseId,
+      this.filterStatus || undefined,
+      postingDateStr,
+      dueDateStr
     ).subscribe({
       next: (res: any) => {
-        console.log(res);
+        //console.log(res);
 
         // Extract data from response
         if (res.data) {
+          //console.log(res.data);
           this.purchases = res.data.data || [];
           this.filteredPurchases = this.purchases;
-          console.log(this.purchases)
-          console.log(this.purchases[0].status);
+          //console.log(this.purchases)
           // Get pagination info from backend
           this.currentPage = res.data.pageNumber || this.currentPage;
           this.itemsPerPage = res.data.pageSize || this.itemsPerPage;
@@ -141,6 +179,16 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     });
   }
 
+  /**
+   * Format date to ISO string for API
+   */
+  private formatDateToISOString(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
   get paginatedPurchases(): Purchase[] {
     return this.filteredPurchases;
   }
@@ -157,16 +205,65 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     if (page > this.totalPages) page = this.totalPages;
 
     if (page !== this.currentPage) {
-      // Update URL with new page - this will trigger queryParams subscription and loadPurchases
-      this.router.navigate([], {
-        relativeTo: this.route,
-        queryParams: {
-          page: page,
-          pageSize: this.itemsPerPage
-        },
-        queryParamsHandling: 'merge'
-      });
+      // Update URL with new page and filters - this will trigger queryParams subscription and loadPurchases
+      this.updateUrlWithFilters(page, this.itemsPerPage);
     }
+  }
+
+  onSearch(): void {
+    // Set flag to prevent queryParams subscription from loading
+    this.isSearching = true;
+
+    // Get form values
+    const formValue = this.form.value;
+    
+    // Update search filters
+    this.filterStatus = formValue.status || '';
+    this.filterPostingDate = formValue.postingDate ? new Date(formValue.postingDate) : null;
+    this.filterDueDate = formValue.dueDate ? new Date(formValue.dueDate) : null;
+
+    // Reset to first page when searching
+    this.currentPage = 1;
+
+    // Update URL with filters
+    this.updateUrlWithFilters(1, this.itemsPerPage);
+    
+    // Load purchases directly (like users component)
+    this.loadPurchases();
+    
+    // Reset flag after a short delay to allow URL update
+    setTimeout(() => {
+      this.isSearching = false;
+    }, 100);
+  }
+
+  
+
+  private updateUrlWithFilters(page: number, pageSize: number): void {
+    const formValue = this.form.value;
+    const queryParams: any = {
+      page: page,
+      pageSize: pageSize
+    };
+
+    // Only add filters if they have values (empty filters should be removed from URL)
+    if (formValue.status) {
+      queryParams.status = formValue.status;
+    }
+    // input type="date" already returns YYYY-MM-DD format
+    if (formValue.postingDate) {
+      queryParams.postingDate = formValue.postingDate;
+    }
+    if (formValue.dueDate) {
+      queryParams.dueDate = formValue.dueDate;
+    }
+
+    // Use replace instead of merge to remove empty filters from URL
+    this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: queryParams,
+      replaceUrl: true
+    });
   }
 
   onNextPage(event?: Event): void {
@@ -209,7 +306,7 @@ export class PurchasesComponent implements OnInit, OnDestroy {
   }
 
   onEditPurchase(purchase: Purchase): void {
-    console.log(purchase.purchaseOrderId);
+    //console.log(purchase.purchaseOrderId);
     if (purchase.purchaseOrderId) {
       this.router.navigate(['/processes/purchase-form', this.warehouseId, purchase.purchaseOrderId]);
     }
@@ -220,7 +317,7 @@ export class PurchasesComponent implements OnInit, OnDestroy {
       if (purchase.purchaseOrderId) {
         this.purchaseService.deletePurchase(purchase.purchaseOrderId).subscribe({
           next: () => {
-            console.log('Purchase deleted');
+            //console.log('Purchase deleted');
             this.toastr.success(`Purchase deleted successfully`, 'Success');
             this.loadPurchases();
             this.cdr.detectChanges();

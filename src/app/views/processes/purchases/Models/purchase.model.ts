@@ -5,7 +5,7 @@ export interface Purchase {
   comment: string;
   supplierId: number;
   warehouseId: number;
-
+  itemCount?:number;
   isDraft: boolean;
   status: string;
   createdAt?: string;
@@ -44,6 +44,7 @@ export interface PurchaseItem {
   itemCode: string;
   perantStatus?: string;
   unitName?: string;
+  comment?: string;
 }
 
 export interface Item {

@@ -74,6 +74,7 @@ export class PurchaseItemsComponent implements OnInit {
       next: (res: any) => {
         if (res.data) {
           this.purchase = res.data;
+          console.log(res.data);
           this.items = res.data.data || [];
           console.log(this.items );
 
@@ -82,9 +83,11 @@ export class PurchaseItemsComponent implements OnInit {
             this.warehouseId = res.data.warehouseId;
           }
 
-          if (this.items[0]?.perantStatus == 'Draft') {
+          if (res.meta == 'Draft') {
             this.isDraft = true;
           }
+
+          this.loadPurchase();
           this.toastr.success(`Loaded purchase with ${this.items.length} items`, 'Success');         
         }
         this.loading = false;
@@ -105,12 +108,12 @@ export class PurchaseItemsComponent implements OnInit {
       next: (res: any) => {
         if (res.data) {
           this.purchase = res.data;
-          // حفظ warehouseId في متغير منفصل
+     
           if (res.data.warehouseId) {
             this.warehouseId = res.data.warehouseId;
           }
+           this.cdr.detectChanges();
           console.log("by id",this.purchase?.warehouseId);
-          this.cdr.detectChanges();
           this.toastr.success(`Loaded purchase with ${this.items.length} items`, 'Success');         
         }
       },
@@ -206,5 +209,20 @@ export class PurchaseItemsComponent implements OnInit {
     // This would need pricing information from the API
     // For now, return 0
     return 0;
+  }
+
+  getStatusBadgeClass(purchase: Purchase): string {
+    if (!purchase || !purchase.status) return 'badge bg-secondary';
+    
+    const status = purchase.status.toLowerCase();
+    if (status === 'draft' || status.includes('draft')) {
+      return 'badge bg-warning';
+    } else if (status === 'finalized' || status.includes('final')) {
+      return 'badge bg-success';
+    } else if (status === 'pending' || status.includes('pending')) {
+      return 'badge bg-info';
+    } else {
+      return 'badge bg-secondary';
+    }
   }
 }

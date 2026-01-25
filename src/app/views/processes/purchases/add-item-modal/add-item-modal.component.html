@@ -60,13 +60,22 @@
               <div class="col-md-6">
                 <mat-form-field appearance="outline" class="w-100">
                   <mat-label>UoM Entry *</mat-label>
-                  <input
-                    matInput
-                    type="number"
-                    formControlName="uoMEntry"
-                    placeholder="-1"
-                    required>
-                  <mat-hint>Unit of Measure entry</mat-hint>
+                  <mat-select formControlName="uoMEntry" required [disabled]="loadingUomGroups || !manualForm.get('itemId')?.value">
+                    <mat-option *ngIf="loadingUomGroups" disabled>
+                      <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+                      Loading units...
+                    </mat-option>
+                    <mat-option *ngFor="let uom of uomGroups" [value]="uom.uomEntry">
+                      {{ uom.uomCode }} (Entry: {{ uom.uomEntry }}, Base Qty: {{ uom.baseQty }})
+                    </mat-option>
+                    <mat-option *ngIf="!loadingUomGroups && uomGroups.length === 0 && manualForm.get('itemId')?.value" disabled>
+                      No units available
+                    </mat-option>
+                    <mat-option *ngIf="!manualForm.get('itemId')?.value" disabled>
+                      Please select an item first
+                    </mat-option>
+                  </mat-select>
+                  <mat-hint>Select unit of measure</mat-hint>
                 </mat-form-field>
               </div>
 
