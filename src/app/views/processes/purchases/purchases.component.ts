@@ -338,6 +338,14 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     }
   }
 
+  onViewReceiptOrder(purchase: Purchase): void {
+    if (purchase.purchaseOrderId) {
+      this.router.navigate(['/processes/receipt-order', purchase.purchaseOrderId]);
+    }
+  }
+
+
+
 //type PurchaseStatus = 'Draft' | 'Processing' | 'Final';
 
 getStatusBadgeClass(purchase: Purchase): string {

@@ -1,0 +1,184 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <h4 class="mb-0 header-title">Receipt Order - Purchase #{{ purchaseOrderId }}</h4>
+      <button cButton color="secondary" class="header-button" (click)="onBackToPurchases()">
+        <svg cIcon name="cilArrowLeft" class="me-2"></svg>
+        Back
+      </button>
+    </c-card-header>
+
+    <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
+      <!-- الجزء العلوي: Receipt Order -->
+      <div class="p-3 border-bottom">
+        <h5 class="mb-3">Receipt Order</h5>
+        @if (loading) {
+          <div class="text-center py-4">
+            <span class="text-body-secondary">Loading...</span>
+          </div>
+        } @else if (!receipt) {
+          <!-- لا يوجد receipt - زر إضافة -->
+          <div class="card border-2 border-dashed">
+            <div class="card-body text-center py-5">
+              <p class="text-muted mb-3">No receipt order found for this purchase</p>
+              <button cButton color="primary" (click)="onAddReceipt()">
+                <svg cIcon name="cilPlus" class="me-2"></svg>
+                Add Receipt Order
+              </button>
+            </div>
+          </div>
+        } @else {
+          <!-- يوجد receipt - عرضه مع إمكانية التعديل -->
+          <div class="card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <h6 class="card-title">Receipt Order #{{ receipt.receiptPurchaseOrderId }}</h6>
+                  <p class="text-muted mb-0 small">Purchase Order ID: {{ receipt.purchaseOrderId }}</p>
+                </div>
+                @if (receipt.status == 'Draft') { 
+                  <button cButton color="warning" size="sm" (click)="onEditReceipt()">
+                  <svg cIcon name="cil-pencil" class="me-2"></svg>
+                  Edit
+                </button>}
+               
+              </div>
+              <c-row [gutter]="3">
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Posting Date</label>
+                    <p class="mb-0">{{ receipt.postingDate | date:'short' }}</p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Due Date</label>
+                    <p class="mb-0">{{ receipt.dueDate | date:'short' }}</p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Status</label>
+                    <p class="mb-0">
+                     
+                      <span [class]="getStatusBadgeClass(receipt)">
+                          {{ getStatusText(receipt) }}
+                    </span>
+                    </p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Comment</label>
+                    <p class="mb-0">{{ receipt.comment || 'No comment' }}</p>
+                  </div>
+                </c-col>
+              </c-row>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- الجزء السفلي: Receipt Items -->
+      <div class="flex-grow-1 d-flex flex-column p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">Receipt Items</h5>
+          @if (receipt && receipt.status == 'Draft') {
+            <button cButton color="primary" size="sm" (click)="onAddItem()">
+              <svg cIcon name="cilPlus" class="me-2"></svg>
+              Add Item
+            </button>
+          }
+        </div>
+
+        <!-- Table Container with Scroll -->
+        <div class="table-container flex-grow-1">
+          <table [hover]="true" [striped]="true" cTable class="mb-0">
+            <thead class="table-header">
+              <tr>
+                <th scope="col" class="bg-body-tertiary">#</th>
+                <th scope="col" class="bg-body-tertiary">Item Code</th>
+                <th scope="col" class="bg-body-tertiary">Item Name</th>
+                <th scope="col" class="bg-body-tertiary">Barcode</th>
+                <th scope="col" class="bg-body-tertiary">Quantity</th>
+                <th scope="col" class="bg-body-tertiary">Unit</th>
+                <th scope="col" class="bg-body-tertiary text-center">Batches</th>
+                @if (receipt && receipt.status == 'Draft') {
+                  <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+                }
+              </tr>
+            </thead>
+
+            <tbody>
+              @if (loading) {
+                <tr>
+                  <td [attr.colspan]="receipt && receipt.status == 'Draft' ? 8 : 7" class="text-center py-4">
+                    <span class="text-body-secondary">Loading...</span>
+                  </td>
+                </tr>
+              } @else if (!receipt) {
+                <tr>
+                  <td [attr.colspan]="7" class="text-center py-4">
+                    <span class="text-body-secondary">Please create receipt order first</span>
+                  </td>
+                </tr>
+              } @else if (receiptItems.length > 0) {
+                @for (item of receiptItems; track item.receiptPurchaseOrderItemId || $index) {
+                  
+                  <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ item.itemCode || 'N/A' }}</td>
+                    <td>{{ item.itemName || 'N/A' }}</td>
+                    <td>{{ item.barCode || 'N/A' }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.unitName || 'N/A' }}</td>
+                    <td class="text-center">
+                      <button cButton color="success" size="sm" (click)="onViewBatches(item)" title="View Batches">
+                        <svg cIcon name="cil-layers"></svg>
+                      </button>
+                    </td>
+                    @if (receipt.status == 'Draft') {<td class="text-center">
+                      <button cButton color="info" size="sm" class="me-2" (click)="onEditItem(item)" title="Edit">
+                        <svg cIcon name="cil-pencil"></svg>
+                      </button>
+                      <button cButton color="danger" size="sm" (click)="onRemoveItem(item)" title="Remove">
+                        <svg cIcon name="cil-trash"></svg>
+                      </button>
+                    </td> }  
+                  </tr>
+
+                }
+              } @else {
+                <tr>
+                  <td [attr.colspan]="receipt && receipt.status == 'Draft' ? 8 : 7" class="text-center py-4">
+                    <span class="text-body-secondary">No items in this receipt</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Summary -->
+        @if (receipt && receiptItems.length > 0) {
+          <div class="mt-3 pt-3 border-top">
+            <div class="d-flex justify-content-end">
+              <div class="text-end">
+                <p class="mb-0"><strong>Total Items:</strong> {{ receiptItems.length }}</p>
+                <p class="mb-0"><strong>Total Quantity:</strong> {{ getTotalQuantity() }}</p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </c-card-body>
+  </c-card>
+</div>
+
+<!-- Edit Receipt Item Modal -->
+<app-edit-receipt-item-modal
+  [visible]="showEditItemModal"
+  [item]="selectedItem"
+  (visibleChange)="showEditItemModal = $event"
+  (itemUpdated)="onItemUpdated()">
+</app-edit-receipt-item-modal>

@@ -23,13 +23,15 @@
               <th scope="col" class="bg-body-tertiary">Comment</th>
               <th scope="col" class="bg-body-tertiary">Items Count</th>
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+
+              <th scope="col" class="bg-body-tertiary text-center">Receipt</th>
             </tr>
           </thead>
 
           <tbody>
             @if (loading) {
               <tr>
-                <td colspan="9" class="text-center py-4">
+                <td colspan="10" class="text-center py-4">
                   <span class="text-body-secondary">Loading...</span>
                 </td>
               </tr>
@@ -52,6 +54,7 @@
                     <button cButton color="info" size="sm" class="me-2" (click)="onViewPurchaseItems(purchase)" title="View Items">
                       <svg cIcon name="cil-list"></svg>
                     </button>
+                  
                     @if (purchase.status == 'Draft') {
                       <button cButton color="warning" size="sm" class="me-2" (click)="onEditPurchase(purchase)" title="Edit">
                         <svg cIcon name="cil-pencil"></svg>
@@ -60,12 +63,22 @@
                         <svg cIcon name="cil-trash"></svg>
                       </button>
                     }
+
                   </td>
+                   <td class="text-center">
+                     @if(purchase.status !== 'Draft'){
+                      <button cButton color="success" size="sm" class="me-2" (click)="onViewReceiptOrder(purchase)" title="View Receipt">
+                      <svg cIcon name="cil-receipt"></svg>
+                       </button>
+                     }
+                   
+                  
+                   </td>
                 </tr>
               }
             } @else {
               <tr>
-                <td colspan="9" class="text-center py-4">
+                <td colspan="10" class="text-center py-4">
                   <span class="text-body-secondary">No purchases found</span>
                 </td>
               </tr>

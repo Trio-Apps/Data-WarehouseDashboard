@@ -1,0 +1,110 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <h4 class="mb-0 header-title">{{ isEditMode ? 'Edit' : 'Create' }} Receipt Order - Purchase #{{ purchaseOrderId }}</h4>
+    </c-card-header>
+
+    <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
+      @if (loading) {
+        <div class="text-center py-5">
+          <span class="text-body-secondary">Loading...</span>
+        </div>
+      } @else {
+        <div class="p-4">
+          <form [formGroup]="form" (ngSubmit)="onSubmit()">
+            <c-row [gutter]="3">
+              <!-- Posting Date -->
+              <c-col [md]="6">
+                <label class="form-label">
+                  Posting Date <span class="text-danger">*</span>
+                </label>
+                <input
+                  cFormControl
+                  type="date"
+                  formControlName="postingDate"
+                  class="form-control"
+                  [class.is-invalid]="form.get('postingDate')?.invalid && form.get('postingDate')?.touched"
+                  required>
+                @if (form.get('postingDate')?.invalid && form.get('postingDate')?.touched) {
+                  <div class="invalid-feedback d-block">
+                    Posting date is required
+                  </div>
+                }
+              </c-col>
+
+              <!-- Due Date -->
+              <c-col [md]="6">
+                <label class="form-label">
+                  Due Date <span class="text-danger">*</span>
+                </label>
+                <input
+                  cFormControl
+                  type="date"
+                  formControlName="dueDate"
+                  class="form-control"
+                  [class.is-invalid]="form.get('dueDate')?.invalid && form.get('dueDate')?.touched"
+                  required>
+                @if (form.get('dueDate')?.invalid && form.get('dueDate')?.touched) {
+                  <div class="invalid-feedback d-block">
+                    Due date is required
+                  </div>
+                }
+              </c-col>
+
+              <!-- Comment -->
+              <c-col [md]="12">
+                <label class="form-label">Comment</label>
+                <textarea
+                  cFormControl
+                  formControlName="comment"
+                  rows="3"
+                  placeholder="Enter any comments for this receipt"
+                  class="form-control">
+                </textarea>
+              </c-col>
+
+              <!-- Is Draft -->
+              <c-col [md]="12">
+                <div class="form-check">
+                  <input
+                    cFormCheckInput
+                    type="checkbox"
+                    formControlName="isDraft"
+                    id="isDraft">
+                  <label cFormCheckLabel for="isDraft">
+                    Save as Draft
+                  </label>
+                </div>
+                <small class="form-text text-muted d-block mt-1">
+                  Draft receipts can be modified later. Final receipts cannot be edited.
+                </small>
+              </c-col>
+            </c-row>
+          </form>
+        </div>
+      }
+    </c-card-body>
+
+    <c-card-footer class="d-flex justify-content-end gap-2 p-3 border-top">
+      <button
+        cButton
+        color="secondary"
+        type="button"
+        (click)="onCancel()"
+        [disabled]="saving">
+        Cancel
+      </button>
+      <button
+        cButton
+        color="primary"
+        type="button"
+        (click)="onSubmit()"
+        [disabled]="form.invalid || saving">
+        @if (saving) {
+          <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+        }
+        {{ saving ? 'Saving...' : (isEditMode ? 'Update Receipt' : 'Create Receipt') }}
+      </button>
+    </c-card-footer>
+  </c-card>
+</div>

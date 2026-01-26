@@ -56,6 +56,41 @@ export const routes: Routes = [
         data: {
           title: 'Add Item'
         }
+      },
+      {
+        path: 'receipt-order/:purchaseOrderId',
+        loadComponent: () => import('./purchases/receipt-order/receipt-order.component').then(m => m.ReceiptOrderComponent),
+        data: {
+          title: 'Receipt Order'
+        }
+      },
+      {
+        path: 'receipt-form/:purchaseOrderId',
+        loadComponent: () => import('./purchases/receipt-form/receipt-form.component').then(m => m.ReceiptFormComponent),
+        data: {
+          title: 'Create Receipt'
+        }
+      },
+      {
+        path: 'receipt-form/:purchaseOrderId/:receiptId',
+        loadComponent: () => import('./purchases/receipt-form/receipt-form.component').then(m => m.ReceiptFormComponent),
+        data: {
+          title: 'Edit Receipt'
+        }
+      },
+      {
+        path: 'add-receipt-item/:receiptId/:purchaseOrderId',
+        loadComponent: () => import('./purchases/add-receipt-item/add-receipt-item.component').then(m => m.AddReceiptItemComponent),
+        data: {
+          title: 'Add Receipt Item'
+        }
+      },
+      {
+        path: 'receipt-batches/:receiptPurchaseOrderItemId/:purchaseOrderId/:itemQuentity',
+        loadComponent: () => import('./purchases/receipt-batches/receipt-batches.component').then(m => m.ReceiptBatchesComponent),
+        data: {
+          title: 'Receipt Batches'
+        }
       }
     ]
   }

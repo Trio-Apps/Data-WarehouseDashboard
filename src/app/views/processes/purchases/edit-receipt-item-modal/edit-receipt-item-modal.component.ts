@@ -1,0 +1,172 @@
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import {
+  ModalModule,
+  ButtonModule,
+  FormModule,
+  CardModule,
+  UtilitiesModule,
+  GridModule,
+  GutterDirective
+} from '@coreui/angular';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ToastrService } from 'ngx-toastr';
+import { UoMGroup } from '../../barcodes/Models/item-barcode.model';
+import { ReceiptService } from '../Services/receipt.service';
+import { PurchaseService } from '../Services/purchase.service';
+import { ReceiptItem, UpdateReceiptItemRequest } from '../Models/receipt';
+
+@Component({
+  selector: 'app-edit-receipt-item-modal',
+  imports: [
+    CommonModule,
+    ModalModule,
+    ButtonModule,
+    FormModule,
+    CardModule,
+    UtilitiesModule,
+    GridModule,
+    GutterDirective,
+    ReactiveFormsModule
+  ],
+  templateUrl: './edit-receipt-item-modal.component.html',
+  styleUrl: './edit-receipt-item-modal.component.scss',
+})
+export class EditReceiptItemModalComponent implements OnInit, OnChanges {
+  @Input() visible: boolean = false;
+  @Input() item: ReceiptItem | null = null;
+  @Output() visibleChange = new EventEmitter<boolean>();
+  @Output() itemUpdated = new EventEmitter<void>();
+
+  editForm!: FormGroup;
+  uomGroups: UoMGroup[] = [];
+  saving: boolean = false;
+  loadingUomGroups: boolean = false;
+
+  constructor(
+    private fb: FormBuilder,
+    private receiptService: ReceiptService,
+    private purchaseService: PurchaseService,
+    private cdr: ChangeDetectorRef,
+    private toastr: ToastrService
+  ) {}
+
+  ngOnInit(): void {
+    this.initializeForm();
+  }
+
+  ngOnChanges(): void {
+    if (this.item && this.visible) {
+      this.initializeForm();
+      this.populateForm();
+    }
+  }
+
+  initializeForm(): void {
+    this.editForm = this.fb.group({
+      receiptPurchaseOrderItemId: [0, Validators.required],
+      quantity: [0.01, [Validators.required, Validators.min(0.01)]],
+      uoMEntry: ['', [Validators.required]]
+    });
+  }
+
+  populateForm(): void {
+    if (this.item) {
+      const itemId = this.item.receiptPurchaseOrderItemId || 0;
+      const currentUoMEntry = this.item.uoMEntry || 0;
+      
+      this.editForm.patchValue({
+        receiptPurchaseOrderItemId: itemId,
+        quantity: this.item.quantity || 0.01,
+        uoMEntry: currentUoMEntry
+      });
+
+      // Load UoM groups for this item
+      if (this.item.itemId) {
+        this.loadUomGroups(this.item.itemId, currentUoMEntry);
+      }
+    }
+  }
+
+  loadUomGroups(itemId: number, selectedUoMEntry?: number): void {
+    this.loadingUomGroups = true;
+    this.uomGroups = [];
+
+    this.purchaseService.getUoMGroupByItemId(itemId).subscribe({
+      next: (res: any) => {
+        if (res.success && res.data) {
+          this.uomGroups = res.data;
+          // If selected UoM entry is provided, ensure it's set in the form
+          if (selectedUoMEntry !== undefined) {
+            const uomExists = this.uomGroups.some(uom => uom.uomEntry === selectedUoMEntry);
+            if (uomExists) {
+              this.editForm.patchValue({ uoMEntry: selectedUoMEntry });
+            } else if (this.uomGroups.length > 0) {
+              // If selected UoM doesn't exist in available groups, select first one
+              this.editForm.patchValue({ uoMEntry: this.uomGroups[0].uomEntry });
+            }
+          }
+        } else {
+          this.uomGroups = [];
+        }
+        this.loadingUomGroups = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading UoM groups:', err);
+        this.uomGroups = [];
+        this.loadingUomGroups = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  onClose(): void {
+    this.visible = false;
+    this.visibleChange.emit(false);
+    this.resetForm();
+  }
+
+  resetForm(): void {
+    this.editForm.reset({
+      receiptPurchaseOrderItemId: 0,
+      quantity: 0.01,
+      uoMEntry: ''
+    });
+    this.uomGroups = [];
+  }
+
+  onUpdate(): void {
+    if (this.editForm.invalid) {
+      this.toastr.error('Please fill in all required fields correctly', 'Validation Error');
+      return;
+    }
+
+    this.saving = true;
+    const formValue = this.editForm.value;
+
+    const itemData: UpdateReceiptItemRequest = {
+      receiptPurchaseOrderItemId: formValue.receiptPurchaseOrderItemId,
+      quantity: formValue.quantity,
+      uoMEntry: formValue.uoMEntry
+    };
+     console.log("updating item data",itemData);
+    this.receiptService.updateReceiptItem(itemData.receiptPurchaseOrderItemId, itemData).subscribe({
+      next: (res: any) => {
+        console.log('Receipt item updated:', res);
+        this.saving = false;
+        this.toastr.success('Item updated successfully', 'Success');
+        this.itemUpdated.emit();
+        this.onClose();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error updating receipt item:', err);
+        this.saving = false;
+        const errorMessage = err.error?.message || 'Error updating item. Please try again.';
+        this.toastr.error(errorMessage, 'Error');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+}
