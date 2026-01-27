@@ -85,11 +85,26 @@ export const routes: Routes = [
           title: 'Add Receipt Item'
         }
       },
+       {
+        path: 'goods-return-order/:receiptId/:purchaseOrderId',
+        loadComponent: () => import('./purchases/goods-return/goods-return.component').then(m => m.GoodsReturnComponent),
+        data: {
+          title: 'Goods Return Order'
+        }
+      },
       {
         path: 'receipt-batches/:receiptPurchaseOrderItemId/:purchaseOrderId/:itemQuentity',
         loadComponent: () => import('./purchases/receipt-batches/receipt-batches.component').then(m => m.ReceiptBatchesComponent),
         data: {
           title: 'Receipt Batches'
+        }
+      }
+      ,
+      {
+        path: 'return-batches/:returnOrderItemId/:receiptOrderId/:purchaseOrderId/:itemQuentity',
+        loadComponent: () => import('./purchases/goods-return/batches/batches.component').then(m => m.BatchesComponent),
+        data: {
+          title: 'Return Batches'
         }
       }
     ]

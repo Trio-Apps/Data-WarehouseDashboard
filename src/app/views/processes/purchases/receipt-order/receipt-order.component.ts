@@ -15,6 +15,7 @@ import { EditReceiptItemModalComponent } from '../edit-receipt-item-modal/edit-r
 import { ToastrService } from 'ngx-toastr';
 import { ReceiptService } from '../Services/receipt.service';
 import { Receipt, ReceiptItem } from '../Models/receipt';
+import { AddReturnItemModalComponent } from '../goods-return/add-return-item-modal/add-return-item-modal.component';
 
 @Component({
   selector: 'app-receipt-order',
@@ -28,7 +29,8 @@ import { Receipt, ReceiptItem } from '../Models/receipt';
     UtilitiesModule,
     IconDirective,
     DatePipe,
-    EditReceiptItemModalComponent
+    EditReceiptItemModalComponent,
+    AddReturnItemModalComponent
   ],
   templateUrl: './receipt-order.component.html',
   styleUrl: './receipt-order.component.scss',
@@ -40,7 +42,9 @@ export class ReceiptOrderComponent implements OnInit {
   loading: boolean = true;
   warehouseId: number = 0;
   showEditItemModal: boolean = false;
+  showAddReturnItemModal: boolean = false;
   selectedItem: ReceiptItem | null = null;
+  selectedItemForReturn: {item: ReceiptItem,receiptId: number} | null = null;
 
   constructor(
     private route: ActivatedRoute,
@@ -143,6 +147,14 @@ export class ReceiptOrderComponent implements OnInit {
     }
   }
 
+   onGoReturn(): void {
+      console.log("outside")
+    if (this.receipt?.receiptPurchaseOrderId) {
+      console.log("inside")
+      this.router.navigate(['/processes/goods-return-order',this.receipt.receiptPurchaseOrderId, this.purchaseOrderId]);
+    }
+  }
+
   onAddItem(): void {
     if (this.receipt?.receiptPurchaseOrderId) {
       // receiptPurchaseOrderId هو الـ receipt ID، و purchaseOrderId هو receiptPurchaseOrderId
@@ -157,6 +169,10 @@ export class ReceiptOrderComponent implements OnInit {
     this.showEditItemModal = true;
   }
 
+    onAddReturnItem(item: ReceiptItem): void {
+    this.selectedItemForReturn = {item: {...item}, receiptId: this.receipt?.receiptPurchaseOrderId || 0};
+    this.showAddReturnItemModal = true;
+  }
   onItemUpdated(): void {
     if (this.receipt?.receiptPurchaseOrderId) {
       this.loadReceiptItems(this.receipt.receiptPurchaseOrderId);
