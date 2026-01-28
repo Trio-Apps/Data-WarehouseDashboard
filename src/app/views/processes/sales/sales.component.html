@@ -1,10 +1,10 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">Purchases - Warehouse #{{ warehouseId }}</h4>
-      <button cButton color="primary" class="header-button" (click)="onAddPurchase()">
+      <h4 class="mb-0 header-title">Sales - Warehouse #{{ warehouseId }}</h4>
+      <button cButton color="primary" class="header-button" (click)="onAddSale()">
         <svg cIcon name="cil-plus" class="me-2"></svg>
-        Add Purchase
+        Add Sale Order
       </button>
     </c-card-header>
 
@@ -16,7 +16,7 @@
             <tr>
               <th scope="col" class="bg-body-tertiary">#</th>
               <th scope="col" class="bg-body-tertiary">ID</th>
-              <th scope="col" class="bg-body-tertiary">Supplier</th>
+              <th scope="col" class="bg-body-tertiary">customer</th>
               <th scope="col" class="bg-body-tertiary">Posting Date</th>
               <th scope="col" class="bg-body-tertiary">Due Date</th>
               <th scope="col" class="bg-body-tertiary">Status</th>
@@ -35,40 +35,40 @@
                 <span class="text-body-secondary">Loading...</span>
               </td>
             </tr>
-            } @else if (paginatedPurchases.length > 0) {
-            @for (purchase of paginatedPurchases; track purchase.purchaseOrderId || $index) {
+            } @else if (paginatedSales.length > 0) {
+            @for (sale of paginatedSales; track sale.salesOrderId || $index) {
             <tr>
               <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
-              <td>{{ purchase.purchaseOrderId }}</td>
-              <td>{{ purchase.supplier?.supplierName || 'N/A' }}</td>
-              <td>{{ purchase.postingDate | date:'short' }}</td>
-              <td>{{ purchase.dueDate | date:'short' }}</td>
+              <td>{{ sale.salesOrderId }}</td>
+              <td>{{ sale.customer?.customerName || 'N/A' }}</td>
+              <td>{{ sale.postingDate | date:'short' }}</td>
+              <td>{{ sale.dueDate | date:'short' }}</td>
               <td>
-                <span [class]="getStatusBadgeClass(purchase)">
-                  {{ getStatusText(purchase) }}
+                <span [class]="getStatusBadgeClass(sale)">
+                  {{ getStatusText(sale) }}
                 </span>
               </td>
-              <td>{{ purchase.comment || 'No comment' }}</td>
-              <td>{{ purchase.itemCount}}</td>
+              <td>{{ sale.comment || 'No comment' }}</td>
+              <td>{{ sale.itemCount }}</td>
               <td class="text-center">
-                <button cButton color="info" size="sm" class="me-2" (click)="onViewPurchaseItems(purchase)"
+                <button cButton color="info" size="sm" class="me-2" (click)="onViewSaleItems(sale)"
                   title="View Items">
                   <svg cIcon name="cil-list"></svg>
                 </button>
 
-                @if (purchase.status == 'Draft') {
-                <button cButton color="warning" size="sm" class="me-2" (click)="onEditPurchase(purchase)" title="Edit">
+                @if (sale.status == 'Draft') {
+                <button cButton color="warning" size="sm" class="me-2" (click)="onEditSale(sale)" title="Edit">
                   <svg cIcon name="cil-pencil"></svg>
                 </button>
-                <button cButton color="danger" size="sm" (click)="onDeletePurchase(purchase)" title="Delete">
+                <button cButton color="danger" size="sm" (click)="onDeleteSale(sale)" title="Delete">
                   <svg cIcon name="cil-trash"></svg>
                 </button>
                 }
 
               </td>
               <td class="text-center">
-                @if(purchase.status !== 'Draft'){
-                <button cButton color="success" size="sm" class="me-2" (click)="onViewReceiptOrder(purchase)"
+                @if(sale.status !== 'Draft'){
+                <button cButton color="success" size="sm" class="me-2" (click)="onViewReceiptOrder(sale)"
                   title="View Receipt">
                   <svg cIcon name="cil-receipt"></svg>
                 </button>
@@ -81,7 +81,7 @@
             } @else {
             <tr>
               <td colspan="10" class="text-center py-4">
-                <span class="text-body-secondary">No purchases found</span>
+                <span class="text-body-secondary">No Sales found</span>
               </td>
             </tr>
             }
@@ -119,7 +119,7 @@
         <div class="text-body-secondary small text-center">
           Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }}
           of
-          {{ totalItems }} purchases
+          {{ totalItems }} Sales
         </div>
       </div>
       }

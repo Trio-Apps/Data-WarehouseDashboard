@@ -4,18 +4,18 @@
   size="lg"
   alignment="center">
   <c-modal-header>
-    <h5 cModalTitle>Add Item To Retrun Order</h5>
+    <h5 cModalTitle>Edit Item</h5>
   </c-modal-header>
   <c-modal-body>
     @if (item) {
       <div class="mb-3 p-2 bg-light rounded">
-        <strong>Item:</strong> {{ item.item.itemName || 'N/A' }} ({{ item.item.itemCode || 'N/A' }})
+        <strong>Item:</strong> {{ item.itemName }} ({{ item.itemCode }})
       </div>
     }
     <form [formGroup]="editForm" (ngSubmit)="onUpdate()">
       <c-row [gutter]="3">
-        <!-- Receipt Item ID (Hidden) -->
-        <input type="hidden" formControlName="receiptItemId">
+        <!-- Purchase Order Item ID (Hidden) -->
+        <input type="hidden" formControlName="purchaseOrderItemId">
 
         <!-- Quantity -->
         <c-col [md]="6">
@@ -36,20 +36,41 @@
               Quantity is required and must be greater than 0
             </div>
           }
-          <small class="form-text text-muted">Quantity to add</small>
+          <small class="form-text text-muted">Quantity to purchase</small>
         </c-col>
 
-        
         <!-- UoM Entry -->
         <c-col [md]="6">
-          <label class="form-label">Comment</label>
-                <textarea
-                  cFormControl
-                  formControlName="comment"
-                  rows="1"
-                  placeholder="Enter any comments for this return item"
-                  class="form-control">
-                </textarea>
+          <label class="form-label">
+            UoM Entry <span class="text-danger">*</span>
+          </label>
+          @if (loadingUomGroups) {
+            <div class="text-body-secondary">Loading units...</div>
+          } @else {
+            <select
+              cFormControl
+              formControlName="uoMEntry"
+              class="form-select"
+              [class.is-invalid]="editForm.get('uoMEntry')?.invalid && editForm.get('uoMEntry')?.touched"
+              [disabled]="loadingUomGroups"
+              required>
+              <option value="">-- Select Unit --</option>
+              @for (uom of uomGroups; track uom.uomEntry) {
+                <option [value]="uom.uomEntry">
+                  {{ uom.uomCode }} (Entry: {{ uom.uomEntry }}, Base Qty: {{ uom.baseQty }})
+                </option>
+              }
+              @if (uomGroups.length === 0) {
+                <option disabled>No units available</option>
+              }
+            </select>
+            @if (editForm.get('uoMEntry')?.invalid && editForm.get('uoMEntry')?.touched) {
+              <div class="invalid-feedback d-block">
+                Unit of measure is required
+              </div>
+            }
+          }
+          <small class="form-text text-muted">Select unit of measure</small>
         </c-col>
       </c-row>
     </form>
@@ -72,7 +93,7 @@
       @if (saving) {
         <span class="spinner-border spinner-border-sm me-2" role="status"></span>
       }
-      {{ saving ? 'Adding...' : 'Add Item' }}
+      {{ saving ? 'Updating...' : 'Update Item' }}
     </button>
   </c-modal-footer>
 </c-modal>

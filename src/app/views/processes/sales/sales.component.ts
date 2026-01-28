@@ -1,8 +1,11 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule, DatePipe } from '@angular/common';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
 import { Subscription } from 'rxjs';
+import { ActivatedRoute, Router } from '@angular/router';
+import { SalesService } from './Services/sales.service';
+import { ToastrService } from 'ngx-toastr';
+import { Sales } from './Models/sales-model';
+import { CommonModule, DatePipe } from '@angular/common';
 import {
   TableModule,
   CardModule,
@@ -13,13 +16,9 @@ import {
   UtilitiesModule
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
-import { PurchaseService } from './Services/purchase.service';
-import { Purchase } from './Models/purchase.model';
-import { ToastrService } from 'ngx-toastr';
-
 @Component({
-  selector: 'app-purchases',
-  imports: [
+  selector: 'app-sales',
+   imports: [
     CommonModule,
     ReactiveFormsModule,
     TableModule,
@@ -32,13 +31,13 @@ import { ToastrService } from 'ngx-toastr';
     IconDirective,
     DatePipe
   ],
-  templateUrl: './purchases.component.html',
-  styleUrl: './purchases.component.scss',
+  templateUrl: './sales.component.html',
+  styleUrl: './sales.component.scss',
 })
-export class PurchasesComponent implements OnInit, OnDestroy {
+export class SalesComponent implements OnInit, OnDestroy {
   form!: FormGroup;
-  purchases: Purchase[] = [];
-  filteredPurchases: Purchase[] = [];
+  Sales: Sales[] = [];
+  filteredSales: Sales[] = [];
   warehouseId: number = 0;
 
   // Pagination
@@ -68,7 +67,7 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
-    private purchaseService: PurchaseService,
+    private saleService: SalesService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {
@@ -114,7 +113,7 @@ export class PurchasesComponent implements OnInit, OnDestroy {
       });
 
       if (this.warehouseId) {
-        this.loadPurchases();
+        this.loadSales();
       }
     });
   }
@@ -125,7 +124,7 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     }
   }
 
-  loadPurchases(): void {
+  loadSales(): void {
     if (!this.warehouseId) return;
 
     this.loading = true;
@@ -135,11 +134,11 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     const formValue = this.form.value;
     const postingDateStr = formValue.postingDate || undefined;
     const dueDateStr = formValue.dueDate || undefined;
-   console.log('Loading purchases with filters:', {
+   console.log('Loading Sales with filters:', {
 
       liveStatus: this.filterLiveStatus
     });
-    this.purchaseService.getPurchasesWithFilterationByWarehouse(
+    this.saleService.getSalesWithFilterationByWarehouse(
       this.currentPage,
       this.itemsPerPage,
       this.warehouseId,
@@ -154,9 +153,9 @@ export class PurchasesComponent implements OnInit, OnDestroy {
         // Extract data from response
         if (res.data) {
           console.log(res.data);
-          this.purchases = res.data.data || [];
-          this.filteredPurchases = this.purchases;
-          //console.log(this.purchases)
+          this.Sales = res.data.data || [];
+          this.filteredSales = this.Sales;
+          //console.log(this.Sales)
           // Get pagination info from backend
           this.currentPage = res.data.pageNumber || this.currentPage;
           this.itemsPerPage = res.data.pageSize || this.itemsPerPage;
@@ -165,8 +164,8 @@ export class PurchasesComponent implements OnInit, OnDestroy {
           this.hasNext = res.data.hasNext || false;
           this.hasPrevious = res.data.hasPrevious || false;
 
-          if (this.purchases.length > 0) {
-            this.toastr.success(`Loaded ${this.purchases.length} purchase(s) successfully`, 'Success');
+          if (this.Sales.length > 0) {
+            this.toastr.success(`Loaded ${this.Sales.length} Sale(s) successfully`, 'Success');
           }
         }
 
@@ -174,15 +173,15 @@ export class PurchasesComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error loading purchases:', err);
+        console.error('Error loading Sales:', err);
         this.loading = false;
-        this.purchases = [];
-        this.filteredPurchases = [];
+        this.Sales = [];
+        this.filteredSales = [];
         this.totalItems = 0;
         this.totalPages = 0;
         this.hasNext = false;
         this.hasPrevious = false;
-        this.toastr.error('Failed to load purchases. Please try again.', 'Error');
+        this.toastr.error('Failed to load Sales. Please try again.', 'Error');
         this.cdr.detectChanges();
       }
     });
@@ -198,8 +197,8 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     return `${year}-${month}-${day}`;
   }
 
-  get paginatedPurchases(): Purchase[] {
-    return this.filteredPurchases;
+  get paginatedSales(): Sales[] {
+    return this.filteredSales;
   }
 
   onPageChange(page: number, event?: Event): void {
@@ -214,7 +213,7 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     if (page > this.totalPages) page = this.totalPages;
 
     if (page !== this.currentPage) {
-      // Update URL with new page and filters - this will trigger queryParams subscription and loadPurchases
+      // Update URL with new page and filters - this will trigger queryParams subscription and loadSales
       this.updateUrlWithFilters(page, this.itemsPerPage);
     }
   }
@@ -240,8 +239,8 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     // Update URL with filters
     this.updateUrlWithFilters(1, this.itemsPerPage);
     
-    // Load purchases directly (like users component)
-    this.loadPurchases();
+    // Load Sales directly (like users component)
+    this.loadSales();
     
     // Reset flag after a short delay to allow URL update
     setTimeout(() => {
@@ -318,30 +317,30 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     return pages;
   }
 
-  onAddPurchase(): void {
-    this.router.navigate(['/processes/purchase-form', this.warehouseId]);
+  onAddSale(): void {
+    this.router.navigate(['/processes/Sale-form', this.warehouseId]);
   }
 
-  onEditPurchase(purchase: Purchase): void {
-    //console.log(purchase.purchaseOrderId);
-    if (purchase.purchaseOrderId) {
-      this.router.navigate(['/processes/purchase-form', this.warehouseId, purchase.purchaseOrderId]);
+  onEditSale(Sale: Sales): void {
+    //console.log(Sale.salesOrderId);
+    if (Sale.salesOrderId) {
+      this.router.navigate(['/processes/Sale-form', this.warehouseId, Sale.salesOrderId]);
     }
   }
 
-  onDeletePurchase(purchase: Purchase): void {
-    if (confirm(`Are you sure you want to delete purchase #${purchase.purchaseOrderId}?`)) {
-      if (purchase.purchaseOrderId) {
-        this.purchaseService.deletePurchase(purchase.purchaseOrderId).subscribe({
+  onDeleteSale(Sale: Sales): void {
+    if (confirm(`Are you sure you want to delete Sale #${Sale.salesOrderId}?`)) {
+      if (Sale.salesOrderId) {
+        this.saleService.deleteSales(Sale.salesOrderId).subscribe({
           next: () => {
-            //console.log('Purchase deleted');
-            this.toastr.success(`Purchase deleted successfully`, 'Success');
-            this.loadPurchases();
+            //console.log('Sale deleted');
+            this.toastr.success(`Sale deleted successfully`, 'Success');
+            this.loadSales();
             this.cdr.detectChanges();
           },
           error: (err) => {
-            console.error('Error deleting purchase:', err);
-            const errorMessage = err.error?.message || 'Error deleting purchase. Please try again.';
+            console.error('Error deleting Sale:', err);
+            const errorMessage = err.error?.message || 'Error deleting Sale. Please try again.';
             this.toastr.error(errorMessage, 'Error');
           }
         });
@@ -349,24 +348,24 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     }
   }
 
-  onViewPurchaseItems(purchase: Purchase): void {
-    if (purchase.purchaseOrderId) {
-      this.router.navigate(['/processes/purchase-items', purchase.purchaseOrderId]);
+  onViewSaleItems(Sale: Sales): void {
+    if (Sale.salesOrderId) {
+      this.router.navigate(['/processes/Sale-items', Sale.salesOrderId]);
     }
   }
 
-  onViewReceiptOrder(purchase: Purchase): void {
-    if (purchase.purchaseOrderId) {
-      this.router.navigate(['/processes/receipt-order', purchase.purchaseOrderId]);
+  onViewReceiptOrder(Sale: Sales): void {
+    if (Sale.salesOrderId) {
+      this.router.navigate(['/processes/receipt-order', Sale.salesOrderId]);
     }
   }
 
 
 
-//type PurchaseStatus = 'Draft' | 'Processing' | 'Final';
+//type SaleStatus = 'Draft' | 'Processing' | 'Final';
 
-getStatusBadgeClass(purchase: Purchase): string {
-  switch (purchase.status) {
+getStatusBadgeClass(Sale: Sales): string {
+  switch (Sale.status) {
     case 'Draft':
       return 'badge bg-warning';
     case 'Processing':
@@ -378,8 +377,9 @@ getStatusBadgeClass(purchase: Purchase): string {
   }
 }
 
-getStatusText(purchase: Purchase): string {
-  return purchase.status;
+getStatusText(Sale: Sales): string {
+  return Sale.status;
 }
 
 }
+

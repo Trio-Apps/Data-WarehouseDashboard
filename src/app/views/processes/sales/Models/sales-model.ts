@@ -1,0 +1,87 @@
+export interface Sales {
+  salesOrderId?: number;
+  postingDate: string;
+  dueDate: string;
+  comment: string;
+  customerId: number;
+  warehouseId: number;
+  itemCount?:number;
+  isDraft: boolean;
+  status: string;
+  createdAt?: string;
+  updatedAt?: string;
+  customer?: Customer;
+  customerName?:string;
+  items?: SalesItem[];
+}
+
+export interface AddSales {
+  postingDate: string;
+  dueDate: string;
+  comment: string;
+  customerId: number;
+  warehouseId: number;
+
+  isDraft: boolean;
+  
+}
+
+export interface Customer {
+  customerId: number;
+  customerName: string;
+  customerCode?: string;
+}
+
+export interface SalesItem {
+  salesItemId?: number;
+  salesId?: number;
+  itemId: number;
+  uoMEntry: number;
+  quantity: number;
+  salesOrderId?: number;
+  barCode?: string;
+  itemName: string;
+  itemCode: string;
+  perantStatus?: string;
+  unitName?: string;
+  comment?: string;
+}
+
+export interface Item {
+  itemId: number;
+  itemName: string;
+  itemCode: string;
+}
+
+export interface SalesResponse {
+  success: boolean;
+  message: string;
+  data: {
+    data: Sales[];
+    hasNext: boolean;
+    hasPrevious: boolean;
+    pageNumber: number;
+    pageSize: number;
+    totalPages: number;
+    totalRecords: number;
+  };
+  errors: any;
+}
+
+export interface AddItemRequest {
+  barcode?: {
+    barCode: string;
+  };
+  item?: {
+    uoMEntry: number;
+    quantity: number;
+    salesOrderId: number;
+    itemId: number;
+  };
+}
+
+export interface UpdateItemRequest {
+  SalesOrderItemId: number;
+  quantity: number;
+  uoMEntry: number;
+}

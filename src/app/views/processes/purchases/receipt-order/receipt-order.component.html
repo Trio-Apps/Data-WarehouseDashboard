@@ -38,19 +38,21 @@
                   <p class="text-muted mb-0 small">Purchase Order ID: {{ receipt.purchaseOrderId }}</p>
                 </div>
                 <div>
-              @if (receipt.status == 'Draft') { 
+               @if (receipt.status == 'Draft') { 
                   <button cButton class="me-2" color="warning" size="sm" (click)="onEditReceipt()">
                   <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
                   Edit
-                </button>
+                 </button>
+   }
 
-                  <button  cButton color="danger" size="sm" (click)="onGoReturn()">
+   @else{
+     <button  cButton color="danger" size="sm" (click)="onGoReturn()">
                   <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
                   Return
                 </button>
-
-              
-              }
+  }
+                 
+           
                
                 </div>
                
@@ -119,7 +121,9 @@
                 @if (receipt && receipt.status == 'Draft') {
                   <th scope="col" class="bg-body-tertiary text-center">Actions</th>
                 }
+                @else{
                <th scope="col" class="bg-body-tertiary text-center">Return Item</th>
+                }
 
               </tr>
             </thead>
@@ -161,12 +165,13 @@
                         <svg cIcon name="cil-trash"></svg>
                       </button>
                     </td> }  
-
+                    @else {
                      <td class="text-center">
                       <button cButton color="danger" size="sm" (click)="onAddReturnItem(item)" title="Return Item">
                         <svg cIcon name="cil-item"></svg>
                       </button>
-                    </td>
+
+                    </td>}
                   </tr>
 
                 }

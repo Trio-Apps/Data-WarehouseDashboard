@@ -2,7 +2,6 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { Warehouse } from '../Models/warehouse.model';
 import { Item } from '../Models/item.model';
 import { AuthService } from '../../pages/Services/auth.service';
 

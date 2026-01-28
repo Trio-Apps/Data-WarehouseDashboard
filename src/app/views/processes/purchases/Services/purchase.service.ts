@@ -44,6 +44,7 @@ getPurchasesWithFilterationByWarehouse(
   pageNumber: number,
   pageSize: number,
   warehouseId: number,
+  liveStatus?:string,
   status?: string,
   postingDate?: string,
   dueDate?: string
@@ -63,7 +64,11 @@ getPurchasesWithFilterationByWarehouse(
   if (dueDate) {
     params = params.set('dueDate', dueDate);
   }
-
+   
+   
+ if (liveStatus) {
+    params = params.set('liveStatus', liveStatus);
+  }
   return this.http.get<PurchaseResponse>(baseUrl, {
     headers: this.headerOption.headers,
     params: params

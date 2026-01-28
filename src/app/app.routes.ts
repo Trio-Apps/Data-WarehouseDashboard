@@ -62,6 +62,12 @@ export const routes: Routes = [
         canMatch: [authGuard],
         loadChildren: () => import('./views/processes/routes').then((m) => m.routes)
       },
+
+      {
+        path: 'processes',
+        canMatch: [authGuard],
+        loadChildren: () => import('./views/processes/sales/routes').then((m) => m.routes)
+      },
      
       {
         path: 'icons',
