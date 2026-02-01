@@ -23,8 +23,6 @@
               <th scope="col" class="bg-body-tertiary">Comment</th>
               <th scope="col" class="bg-body-tertiary">Items Count</th>
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
-
-              <th scope="col" class="bg-body-tertiary text-center">Receipt</th>
             </tr>
           </thead>
 
@@ -66,16 +64,7 @@
                 }
 
               </td>
-              <td class="text-center">
-                @if(sale.status !== 'Draft'){
-                <button cButton color="success" size="sm" class="me-2" (click)="onViewReceiptOrder(sale)"
-                  title="View Receipt">
-                  <svg cIcon name="cil-receipt"></svg>
-                </button>
-                }
-
-
-              </td>
+            
             </tr>
             }
             } @else {
@@ -159,9 +148,7 @@
             <select id="liveStatus" class="form-select" formControlName="liveStatus" cFormControl>
 
               <option value="">-- All Live Status --</option>
-              <option value="receipt">Receipt</option>
               <option value="return">Return</option>
-
             </select>
           </c-col>
 

@@ -207,7 +207,7 @@ export class PurchaseFormComponent implements OnInit {
 
         // If creating new purchase, navigate to items page
         if (!this.isEditMode && res.data?.purchaseOrderId) {
-          this.router.navigate(['/processes/purchase-items', res.data.purchaseOrderId]);
+          this.router.navigate(['/processes/purchases/purchase-items', res.data.purchaseOrderId]);
         } else {
           // If editing, go back to purchases list
           this.router.navigate(['/processes/purchases', this.warehouseId]);

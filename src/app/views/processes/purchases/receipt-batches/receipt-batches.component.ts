@@ -256,7 +256,7 @@ export class ReceiptBatchesComponent implements OnInit {
   }
 
   onBack(): void {
-    this.router.navigate(['/processes/receipt-order', this.purchaseOrderId]);
+    this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId]);
   }
 
   getTotalQuantity(): number {

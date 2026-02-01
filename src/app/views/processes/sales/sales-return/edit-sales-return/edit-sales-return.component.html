@@ -1,0 +1,74 @@
+<c-modal
+  [visible]="visible"
+  (visibleChange)="visibleChange.emit($event)"
+  size="lg"
+  alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>Edit Return Item</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <!-- @if (item) {
+      <div class="mb-3 p-2 bg-light rounded">
+        <strong>Item:</strong> {{ item.itemName || 'N/A' }} ({{ item.itemCode || 'N/A' }})
+      </div>
+    } -->
+    <form [formGroup]="editForm" (ngSubmit)="onUpdate()">
+      <c-row [gutter]="3">
+        <!-- Receipt Item ID (Hidden) -->
+        <input type="hidden" formControlName="salesReturnOrderId">
+
+      
+
+        <!-- UoM Entry -->
+        <c-col [md]="12">
+        <label class="form-label">Comment</label>
+                <textarea
+                  cFormControl
+                  formControlName="comment"
+                  rows="1"
+                  placeholder="Enter any comments for this return item"
+                  class="form-control">
+                </textarea>
+        </c-col>
+
+         <!-- Is Draft -->
+              <c-col [md]="12">
+                <div class="form-check">
+                  <input
+                    cFormCheckInput
+                    type="checkbox"
+                    formControlName="isDraft"
+                    id="isDraft">
+                  <label cFormCheckLabel for="isDraft">
+                    Save as Draft
+                  </label>
+                </div>
+                <small class="form-text text-muted d-block mt-1">
+                  Draft purchases can be modified later. Final purchases cannot be edited.
+                </small>
+              </c-col>
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button
+      cButton
+      color="secondary"
+      type="button"
+      (click)="onClose()"
+      [disabled]="saving">
+      Cancel
+    </button>
+    <button
+      cButton
+      color="primary"
+      type="button"
+      (click)="onUpdate()"
+      [disabled]="editForm.invalid || saving">
+      @if (saving) {
+        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+      }
+      {{ saving ? 'Updating...' : 'Update Item' }}
+    </button>
+  </c-modal-footer>
+</c-modal>

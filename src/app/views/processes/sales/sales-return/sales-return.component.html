@@ -1,7 +1,7 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">Sale Order - Purchase #{{ salesOrderId }}</h4>
+      <h4 class="mb-0 header-title">return Order - sales #{{ salesOrderId }}</h4>
       <button cButton color="secondary" class="header-button" (click)="onBackToSales()">
         <svg cIcon name="cilArrowLeft" class="me-2"></svg>
         Back
@@ -9,38 +9,29 @@
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
-      <!-- الجزء العلوي: Sale Order -->
+      <!-- الجزء العلوي: return Order -->
       <div class="p-3 border-bottom">
-        <h5 class="mb-3">Sale Order</h5>
+        <h5 class="mb-3">Return Order</h5>
         @if (loading) {
           <div class="text-center py-4">
             <span class="text-body-secondary">Loading...</span>
           </div>
-        }
+        } 
          @else {
-          <!-- يوجد Sale - عرضه مع إمكانية التعديل -->
+          <!-- يوجد return - عرضه مع إمكانية التعديل -->
           <div class="card">
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
-                  <h6 class="card-title">Sale Order #{{ Sale?.salesOrderId }}</h6>
+                  <h6 class="card-title">Return Order #{{ return?.salesReturnOrderId }}</h6>
                 </div>
                 <div>
-               @if (Sale?.status == 'Draft') { 
-                  <button cButton class="me-2" color="warning" size="sm" (click)="onEditSale()">
+               @if (return?.status == 'Draft') {
+                  <button cButton class="me-2" color="warning" size="sm" (click)="onEditReturn()">
                   <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
                   Edit
-               </button>
-   }
-
-   @else{
-     <button  cButton color="danger" size="sm" (click)="onGoReturn()">
-                  <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
-                  Return
                 </button>
-  }
-                 
-           
+                }
                
                 </div>
                
@@ -49,13 +40,13 @@
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Posting Date</label>
-                    <p class="mb-0">{{ Sale?.postingDate | date:'short' }}</p>
+                    <p class="mb-0">{{ return?.postingDate | date:'short' }}</p>
                   </div>
                 </c-col>
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Due Date</label>
-                    <p class="mb-0">{{ Sale?.dueDate | date:'short' }}</p>
+                    <p class="mb-0">{{ return?.dueDate | date:'short' }}</p>
                   </div>
                 </c-col>
                 <c-col [md]="3">
@@ -63,8 +54,8 @@
                     <label class="form-label small text-muted">Status</label>
                     <p class="mb-0">
                      
-                      <span [class]="getStatusBadgeClass(Sale)">
-                          {{ getStatusText(Sale) }}
+                      <span [class]="getStatusBadgeClass(return)">
+                          {{ getStatusText(return) }}
                     </span>
                     </p>
                   </div>
@@ -72,7 +63,7 @@
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Comment</label>
-                    <p class="mb-0">{{ Sale?.comment || 'No comment' }}</p>
+                    <p class="mb-0">{{ return?.comment || 'No comment' }}</p>
                   </div>
                 </c-col>
               </c-row>
@@ -82,16 +73,16 @@
         }
       </div>
 
-      <!-- الجزء السفلي: Sale Items -->
+      <!-- الجزء السفلي: return Items -->
       <div class="flex-grow-1 d-flex flex-column p-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
-          <h5 class="mb-0">Sale Items</h5>
-          @if (Sale && Sale?.status == 'Draft') {
+          <h5 class="mb-0">return Items</h5>
+          <!-- @if (return && return?.status == 'Draft') {
             <button cButton color="primary" size="sm" (click)="onAddItem()">
               <svg cIcon name="cilPlus" class="me-2"></svg>
               Add Item
             </button>
-          }
+          } -->
         </div>
 
         <!-- Table Container with Scroll -->
@@ -106,31 +97,28 @@
                 <th scope="col" class="bg-body-tertiary">Quantity</th>
                 <th scope="col" class="bg-body-tertiary">Unit</th>
                 <th scope="col" class="bg-body-tertiary text-center">Batches</th>
-                @if (Sale && Sale?.status == 'Draft') {
+               @if (return && return?.status == 'Draft') { 
                   <th scope="col" class="bg-body-tertiary text-center">Actions</th>
                 }
-                @else{
-                 <th scope="col" class="bg-body-tertiary text-center">Return Item</th>
-                }
-
               </tr>
             </thead>
 
             <tbody>
               @if (loading) {
                 <tr>
-                  <td [attr.colspan]="Sale && Sale?.status == 'Draft' ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="return && return?.status == 'Draft' ? 8 : 7" class="text-center py-4">
                     <span class="text-body-secondary">Loading...</span>
                   </td>
                 </tr>
-              } @else if (!Sale) {
+              } @else if (!return) {
                 <tr>
                   <td [attr.colspan]="7" class="text-center py-4">
-                    <span class="text-body-secondary">Please create Sale order first</span>
+                    <span class="text-body-secondary">Please create return order first</span>
                   </td>
                 </tr>
-              } @else if (SaleItems.length > 0) {
-                @for (item of SaleItems; track item.salesOrderItemId || $index) {  
+              } @else if (returnItems.length > 0) {
+                @for (item of returnItems; track item.salesReturnOrderItemId || $index) {
+                  
                   <tr>
                     <td>{{ $index + 1 }}</td>
                     <td>{{ item.itemCode || 'N/A' }}</td>
@@ -143,7 +131,7 @@
                         <svg cIcon name="cil-layers"></svg>
                       </button>
                     </td>
-                    @if (Sale?.status == 'Draft') {
+                    @if (return?.status == 'Draft') {
                       <td class="text-center">
                       <button cButton color="info" size="sm" class="me-2" (click)="onEditItem(item)" title="Edit">
                         <svg cIcon name="cil-pencil"></svg>
@@ -151,20 +139,15 @@
                       <button cButton color="danger" size="sm" (click)="onRemoveItem(item)" title="Remove">
                         <svg cIcon name="cil-trash"></svg>
                       </button>
-                    </td> }  
-                    @else {
-                     <td class="text-center">
-                      <button cButton color="danger" size="sm" (click)="onAddReturnItem(item)" title="Return Item">
-                        <svg cIcon name="cil-item"></svg>
-                      </button>
-
-                    </td>}
+                    </td> 
+                    } 
                   </tr>
+
                 }
               } @else {
                 <tr>
-                  <td [attr.colspan]="Sale && Sale?.status == 'Draft' ? 8 : 7" class="text-center py-4">
-                    <span class="text-body-secondary">No items in this Sale</span>
+                  <td [attr.colspan]="return && return?.status == 'Draft' ? 8 : 7" class="text-center py-4">
+                    <span class="text-body-secondary">No items in this return</span>
                   </td>
                 </tr>
               }
@@ -173,11 +156,11 @@
         </div>
 
         <!-- Summary -->
-        @if (Sale && SaleItems.length > 0) {
+        @if (return && returnItems.length > 0) {
           <div class="mt-3 pt-3 border-top">
             <div class="d-flex justify-content-end">
               <div class="text-end">
-                <p class="mb-0"><strong>Total Items:</strong> {{ SaleItems.length }}</p>
+                <p class="mb-0"><strong>Total Items:</strong> {{ returnItems.length }}</p>
                 <p class="mb-0"><strong>Total Quantity:</strong> {{ getTotalQuantity() }}</p>
               </div>
             </div>
@@ -187,20 +170,21 @@
     </c-card-body>
   </c-card>
 </div>
-<!-- Edit Sale Item Modal -->
- <app-add-return-item-modal
-  [visible]="showAddReturnItemModal"
-  [item]="selectedItemForReturn"
-  (visibleChange)="showAddReturnItemModal = $event"
-  (itemUpdated)="onItemUpdated()">
-</app-add-return-item-modal>
+<!-- Edit return  Modal -->
 
+<app-edit-sales-return
+  [visible]="showEditReturnModal"
+  [item]="selectedReturn"
+  (visibleChange)="showEditReturnModal = $event"
+  (itemUpdated)="onReturnUpdated()">
+</app-edit-sales-return>
 
+<!-- Edit return Item Modal -->
 
-<!-- Edit Sale Item Modal -->
-<app-edit-item-modal
+<app-edit-return-item-modal
   [visible]="showEditItemModal"
   [item]="selectedItem"
   (visibleChange)="showEditItemModal = $event"
   (itemUpdated)="onItemUpdated()">
-</app-edit-item-modal>
+</app-edit-return-item-modal>
+

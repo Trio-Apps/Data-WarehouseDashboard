@@ -319,13 +319,13 @@ export class PurchasesComponent implements OnInit, OnDestroy {
   }
 
   onAddPurchase(): void {
-    this.router.navigate(['/processes/purchase-form', this.warehouseId]);
+    this.router.navigate(['/processes/purchases/purchase-form', this.warehouseId]);
   }
 
   onEditPurchase(purchase: Purchase): void {
     //console.log(purchase.purchaseOrderId);
     if (purchase.purchaseOrderId) {
-      this.router.navigate(['/processes/purchase-form', this.warehouseId, purchase.purchaseOrderId]);
+      this.router.navigate(['/processes/purchases/purchase-form', this.warehouseId, purchase.purchaseOrderId]);
     }
   }
 
@@ -351,13 +351,13 @@ export class PurchasesComponent implements OnInit, OnDestroy {
 
   onViewPurchaseItems(purchase: Purchase): void {
     if (purchase.purchaseOrderId) {
-      this.router.navigate(['/processes/purchase-items', purchase.purchaseOrderId]);
+      this.router.navigate(['/processes/purchases/purchase-items', purchase.purchaseOrderId]);
     }
   }
 
   onViewReceiptOrder(purchase: Purchase): void {
     if (purchase.purchaseOrderId) {
-      this.router.navigate(['/processes/receipt-order', purchase.purchaseOrderId]);
+      this.router.navigate(['/processes/purchases/receipt-order', purchase.purchaseOrderId]);
     }
   }
 

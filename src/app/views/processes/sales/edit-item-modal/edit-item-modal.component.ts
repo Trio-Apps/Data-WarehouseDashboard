@@ -10,10 +10,11 @@ import {
   GutterDirective
 } from '@coreui/angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PurchaseService } from '../Services/purchase.service';
-import { PurchaseItem, UpdateItemRequest } from '../Models/purchase.model';
+
 import { ToastrService } from 'ngx-toastr';
 import { UoMGroup } from '../../barcodes/Models/item-barcode.model';
+import { Sales, SalesItem, UpdateItemRequest } from '../Models/sales-model';
+import { SalesService } from '../Services/sales.service';
 
 @Component({
   selector: 'app-edit-item-modal',
@@ -33,7 +34,7 @@ import { UoMGroup } from '../../barcodes/Models/item-barcode.model';
 })
 export class EditItemModalComponent implements OnInit, OnChanges {
   @Input() visible: boolean = false;
-  @Input() item: PurchaseItem | null = null;
+  @Input() item: SalesItem | null = null;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() itemUpdated = new EventEmitter<void>();
 
@@ -44,7 +45,7 @@ export class EditItemModalComponent implements OnInit, OnChanges {
 
   constructor(
     private fb: FormBuilder,
-    private purchaseService: PurchaseService,
+    private salesService: SalesService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {}
@@ -62,7 +63,7 @@ export class EditItemModalComponent implements OnInit, OnChanges {
 
   initializeForm(): void {
     this.editForm = this.fb.group({
-      purchaseOrderItemId: [0, Validators.required],
+      saleOrderItemId: [0, Validators.required],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
       uoMEntry: ['', [Validators.required]]
     });
@@ -70,12 +71,12 @@ export class EditItemModalComponent implements OnInit, OnChanges {
 
   populateForm(): void {
     if (this.item) {
-      // استخدام purchaseItemId أو purchaseOrderItemId حسب ما هو متوفر
-      const itemId = (this.item as any).purchaseOrderItemId || this.item.purchaseItemId || 0;
+      // استخدام salesOrderItemId  حسب ما هو متوفر
+      const itemId = (this.item as any).salesOrderItemId || this.item.salesOrderItemId || 0;
       const currentUoMEntry = this.item.uoMEntry || 0;
       
       this.editForm.patchValue({
-        purchaseOrderItemId: itemId,
+        saleOrderItemId: itemId,
         quantity: this.item.quantity || 0.01,
         uoMEntry: currentUoMEntry
       });
@@ -91,7 +92,7 @@ export class EditItemModalComponent implements OnInit, OnChanges {
     this.loadingUomGroups = true;
     this.uomGroups = [];
 
-    this.purchaseService.getUoMGroupByItemId(itemId).subscribe({
+    this.salesService.getUoMGroupByItemId(itemId).subscribe({
       next: (res: any) => {
         if (res.success && res.data) {
           this.uomGroups = res.data;
@@ -128,7 +129,7 @@ export class EditItemModalComponent implements OnInit, OnChanges {
 
   resetForm(): void {
     this.editForm.reset({
-      purchaseOrderItemId: 0,
+      saleOrderItemId: 0,
       quantity: 0.01,
       uoMEntry: ''
     });
@@ -145,12 +146,12 @@ export class EditItemModalComponent implements OnInit, OnChanges {
     const formValue = this.editForm.value;
 
     const itemData: UpdateItemRequest = {
-      purchaseOrderItemId: formValue.purchaseOrderItemId,
+      SalesOrderItemId: formValue.saleOrderItemId,
       quantity: formValue.quantity,
       uoMEntry: formValue.uoMEntry
     };
 
-    this.purchaseService.updatePurchaseItem(itemData).subscribe({
+    this.salesService.updateSalesItem(itemData).subscribe({
       next: (res: any) => {
         console.log('Item updated:', res);
         this.saving = false;

@@ -157,7 +157,7 @@ export class ReceiptFormComponent implements OnInit {
         this.toastr.success(message, 'Success');
 
         // العودة لصفحة receipt order
-        this.router.navigate(['/processes/receipt-order', this.purchaseOrderId]);
+        this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId]);
 
         this.cdr.detectChanges();
       },
@@ -172,6 +172,6 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/processes/receipt-order', this.purchaseOrderId]);
+    this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId]);
   }
 }

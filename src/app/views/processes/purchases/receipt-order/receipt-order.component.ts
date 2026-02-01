@@ -136,14 +136,14 @@ export class ReceiptOrderComponent implements OnInit {
   }
 
   onAddReceipt(): void {
-    this.router.navigate(['/processes/receipt-form', this.purchaseOrderId]);
+    this.router.navigate(['/processes/purchases/receipt-form', this.purchaseOrderId]);
   }
 
   onEditReceipt(): void {
       console.log("outside")
     if (this.receipt?.receiptPurchaseOrderId) {
       console.log("inside")
-      this.router.navigate(['/processes/receipt-form', this.purchaseOrderId, this.receipt.receiptPurchaseOrderId]);
+      this.router.navigate(['/processes/purchases/receipt-form', this.purchaseOrderId, this.receipt.receiptPurchaseOrderId]);
     }
   }
 
@@ -151,14 +151,14 @@ export class ReceiptOrderComponent implements OnInit {
       console.log("outside")
     if (this.receipt?.receiptPurchaseOrderId) {
       console.log("inside")
-      this.router.navigate(['/processes/goods-return-order',this.receipt.receiptPurchaseOrderId, this.purchaseOrderId]);
+      this.router.navigate(['/processes/purchases/goods-return-order',this.receipt.receiptPurchaseOrderId, this.purchaseOrderId]);
     }
   }
 
   onAddItem(): void {
     if (this.receipt?.receiptPurchaseOrderId) {
       // receiptPurchaseOrderId هو الـ receipt ID، و purchaseOrderId هو receiptPurchaseOrderId
-      this.router.navigate(['/processes/add-receipt-item', this.receipt.receiptPurchaseOrderId, this.purchaseOrderId]);
+      this.router.navigate(['/processes/purchases/add-receipt-item', this.receipt.receiptPurchaseOrderId, this.purchaseOrderId]);
     } else {
       this.toastr.warning('Please create receipt first', 'Warning');
     }
@@ -181,7 +181,7 @@ export class ReceiptOrderComponent implements OnInit {
 
   onViewBatches(item: ReceiptItem): void {
     if (item.receiptPurchaseOrderItemId) {
-      this.router.navigate(['/processes/receipt-batches', item.receiptPurchaseOrderItemId, this.purchaseOrderId,item.quantity]);
+      this.router.navigate(['/processes/purchases/receipt-batches', item.receiptPurchaseOrderItemId, this.purchaseOrderId,item.quantity]);
     }
   }
 
@@ -218,11 +218,11 @@ export class ReceiptOrderComponent implements OnInit {
         next: (res: any) => {
           if (res.data?.warehouseId) {
             this.warehouseId = res.data.warehouseId;
-            this.router.navigate(['/processes/purchases', this.warehouseId]);
+            this.router.navigate(['/processes/purchases/purchases', this.warehouseId]);
           }
         },
         error: () => {
-          this.router.navigate(['/processes/purchases']);
+          this.router.navigate(['/processes/purchases/purchases']);
         }
       });
     }

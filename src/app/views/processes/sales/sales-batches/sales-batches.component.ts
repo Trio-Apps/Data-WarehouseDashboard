@@ -13,14 +13,12 @@ import {
 import { IconDirective } from '@coreui/icons-angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { AddReceiptBatchRequest, ReceiptBatch, ReceiptItem, UpdateReceiptBatchRequest } from '../../Models/receipt';
-import { ReceiptService } from '../../Services/receipt.service';
-import { GoodsReturnService } from '../../Services/goods-return.service';
-import { ReturnBatch, UpdateReturnBatchRequest } from '../../Models/retrun-model';
+import { AddSalesBatchRequest, SalesBatch, SalesItem, UpdateSalesBatchRequest } from '../Models/sales-model';
+import { SalesService } from '../Services/sales.service';
 
 @Component({
-  selector: 'app-batches',
-    imports: [
+  selector: 'app-sales-batches',
+  imports: [
     CommonModule,
     TableModule,
     CardModule,
@@ -33,24 +31,24 @@ import { ReturnBatch, UpdateReturnBatchRequest } from '../../Models/retrun-model
     IconDirective,
     DatePipe
   ],
-  templateUrl: './batches.component.html',
-  styleUrl: './batches.component.scss',
+  templateUrl: './sales-batches.component.html',
+  styleUrl: './sales-batches.component.scss',
 })
-export class BatchesComponent implements OnInit {
-  receiptPurchaseOrderItemId: number = 0;
+export class SalesBatchesComponent implements OnInit {
+  salesOrderId: number = 0;
+  salesOrderItemId: number = 0;
   purchaseOrderId: number = 0;
-  returnOrderItemId: number = 0;
   quantity: number = 0;
-  receiptItem: ReceiptItem | null = null;
-  batches: ReturnBatch[] = [];
+  receiptItem: SalesItem | null = null;
+  batches: SalesBatch[] = [];
   loading: boolean = true;
   saving: boolean = false;
-  
+
   // Modal states
   showAddModal: boolean = false;
   showEditModal: boolean = false;
-  selectedBatch: ReturnBatch | null = null;
-  
+  selectedBatch: SalesBatch | null = null;
+
   // Forms
   addForm!: FormGroup;
   editForm!: FormGroup;
@@ -58,18 +56,17 @@ export class BatchesComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private returnService: GoodsReturnService,
+    private salesService: SalesService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    this.receiptPurchaseOrderItemId = +this.route.snapshot.paramMap.get('receiptOrderId')!;
-    this.purchaseOrderId = +this.route.snapshot.paramMap.get('purchaseOrderId')!;
-    this.returnOrderItemId = +this.route.snapshot.paramMap.get('returnOrderItemId')!;
-    this.quantity = +this.route.snapshot.paramMap.get('itemQuentity')!;
-    
+    this.salesOrderId = +this.route.snapshot.paramMap.get('salesOrderId')!;
+    this.salesOrderItemId = +this.route.snapshot.paramMap.get('salesOrderItemId')!;
+    this.quantity = +this.route.snapshot.paramMap.get('itemQuantity')!;
+
     this.initializeForms();
     this.loadBatches();
   }
@@ -91,12 +88,13 @@ export class BatchesComponent implements OnInit {
 
   loadBatches(): void {
     this.loading = true;
-    this.returnService.getReturnBatchesByItemId(this.returnOrderItemId).subscribe({
+    this.salesService.getSalesBatchesByItemId(this.salesOrderItemId).subscribe({
       next: (res: any) => {
         if (res.data) {
+          console.log("Batches",res.data);
           this.batches = Array.isArray(res.data) ? res.data : [];
           // Get receipt item info from first batch if available
-          if (this.batches.length > 0 && this.batches[0].ReturnReceiptOrderBatchId) {
+          if (this.batches.length > 0 && this.batches[0].salesOrderItemId) {
             // You can load item details here if needed
           }
         } else {
@@ -115,6 +113,7 @@ export class BatchesComponent implements OnInit {
     });
   }
 
+
   onAddBatch(): void {
     this.showAddModal = true;
     this.addForm.reset({
@@ -124,27 +123,25 @@ export class BatchesComponent implements OnInit {
     });
   }
 
-  onEditBatch(batch: ReturnBatch): void {
+  onEditBatch(batch: SalesBatch): void {
     this.selectedBatch = { ...batch };
     this.showEditModal = true;
-    
     // Format date for input type="date" (YYYY-MM-DD format)
-    const expiryDateStr = batch.expiryDate 
-      ? new Date(batch.expiryDate).toISOString().split('T')[0] 
+    const expiryDateStr = batch.expiryDate
+      ? new Date(batch.expiryDate).toISOString().split('T')[0]
       : '';
-    
     this.editForm.patchValue({
-      receiptPurchaseOrderBatchId: batch.ReturnReceiptOrderBatchId || 0,
+      salesOrderBatchId: batch.salesOrderBatchId || 0,
       quantity: batch.quantity,
       comment: batch.comment || '',
       expiryDate: expiryDateStr
     });
   }
 
-  onDeleteBatch(batch: ReturnBatch): void {
+  onDeleteBatch(batch: SalesBatch): void {
     if (confirm(`Are you sure you want to delete this batch?`)) {
-      if (batch.ReturnReceiptOrderBatchId) {
-        this.returnService.deleteReturnBatch(batch.ReturnReceiptOrderBatchId).subscribe({
+      if (batch.salesOrderBatchId) {
+        this.salesService.deleteSalesBatch(batch.salesOrderBatchId).subscribe({
           next: () => {
             this.toastr.success('Batch deleted successfully', 'Success');
             this.loadBatches();
@@ -160,44 +157,44 @@ export class BatchesComponent implements OnInit {
     }
   }
 
-  // onSubmitAdd(): void {
-  //   if (this.addForm.invalid) {
-  //     this.toastr.error('Please fill in all required fields', 'Validation Error');
-  //     return;
-  //   }
+  onSubmitAdd(): void {
+    if (this.addForm.invalid) {
+      this.toastr.error('Please fill in all required fields', 'Validation Error');
+      return;
+    }
+    console.log("Adding batch",this.salesOrderItemId);
+    this.saving = true;
+    const formValue = this.addForm.value;
 
-  //   this.saving = true;
-  //   const formValue = this.addForm.value;
-    
-  //   // Format date to ISO string
-  //   const expiryDateISO = formValue.expiryDate 
-  //     ? `${formValue.expiryDate}T00:00:00.000Z`
-  //     : '';
+    // Format date to ISO string
+    const expiryDateISO = formValue.expiryDate
+      ? `${formValue.expiryDate}T00:00:00.000Z`
+      : '';
 
-  //   const batchData: AddReceiptBatchRequest = {
-  //     receiptPurchaseOrderItemId: this.receiptPurchaseOrderItemId,
-  //     quantity: formValue.quantity,
-  //     comment: formValue.comment || '',
-  //     expiryDate: expiryDateISO
-  //   };
+    const batchData: AddSalesBatchRequest = {
+      salesOrderItemId: this.salesOrderItemId,
+      quantity: formValue.quantity,
+      comment: formValue.comment || '',
+      expiryDate: expiryDateISO
+    };
 
-  //   this.returnService.(this.returnOrderItemId,batchData).subscribe({
-  //     next: (res: any) => {
-  //       this.saving = false;
-  //       this.toastr.success('Batch added successfully', 'Success');
-  //       this.showAddModal = false;
-  //       this.loadBatches();
-  //       this.cdr.detectChanges();
-  //     },
-  //     error: (err) => {
-  //       console.error('Error adding batch:', err);
-  //       this.saving = false;
-  //       const errorMessage = err.error?.message || 'Error adding batch. Please try again.';
-  //       this.toastr.error(errorMessage, 'Error');
-  //       this.cdr.detectChanges();
-  //     }
-  //   });
-  // }
+    this.salesService.addSalesBatch(this.salesOrderItemId, batchData).subscribe({
+      next: (res: any) => {
+        this.saving = false;
+        this.toastr.success('Batch added successfully', 'Success');
+        this.showAddModal = false;
+        this.loadBatches();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error adding batch:', err);
+        this.saving = false;
+        const errorMessage = err.error?.message || 'Error adding batch. Please try again.';
+        this.toastr.error(errorMessage, 'Error');
+        this.cdr.detectChanges();
+      }
+    });
+  }
 
   onSubmitEdit(): void {
     if (this.editForm.invalid) {
@@ -207,20 +204,20 @@ export class BatchesComponent implements OnInit {
 
     this.saving = true;
     const formValue = this.editForm.value;
-    
+
     // Format date to ISO string
-    const expiryDateISO = formValue.expiryDate 
+    const expiryDateISO = formValue.expiryDate
       ? `${formValue.expiryDate}T00:00:00.000Z`
       : '';
 
-    const batchData: UpdateReturnBatchRequest = {
-      goodsReturnOrderBatchId: formValue.receiptPurchaseOrderBatchId,
+    const batchData: UpdateSalesBatchRequest = {
+      salesOrderBatchId: formValue.salesOrderBatchId,
       quantity: formValue.quantity,
       comment: formValue.comment || '',
-      //expiryDate: expiryDateISO
+      expiryDate: expiryDateISO
     };
 
-    this.returnService.updateReturnBatch(batchData.goodsReturnOrderBatchId, batchData).subscribe({
+    this.salesService.updateSalesBatch(batchData.salesOrderBatchId, batchData).subscribe({
       next: (res: any) => {
         this.saving = false;
         this.toastr.success('Batch updated successfully', 'Success');
@@ -260,7 +257,7 @@ export class BatchesComponent implements OnInit {
   }
 
   onBack(): void {
-    this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId]);
+    this.router.navigate(['/processes/sales/sales-items', this.salesOrderId]);
   }
 
   getTotalQuantity(): number {

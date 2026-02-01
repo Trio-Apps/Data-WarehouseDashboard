@@ -305,15 +305,12 @@ export class SalesComponent implements OnInit, OnDestroy {
     const maxVisible = 5;
     let start = Math.max(1, this.currentPage - Math.floor(maxVisible / 2));
     let end = Math.min(this.totalPages, start + maxVisible - 1);
-
     if (end - start < maxVisible - 1) {
       start = Math.max(1, end - maxVisible + 1);
     }
-
     for (let i = start; i <= end; i++) {
       pages.push(i);
     }
-
     return pages;
   }
 
@@ -350,7 +347,7 @@ export class SalesComponent implements OnInit, OnDestroy {
 
   onViewSaleItems(Sale: Sales): void {
     if (Sale.salesOrderId) {
-      this.router.navigate(['/processes/Sale-items', Sale.salesOrderId]);
+      this.router.navigate(['/processes/sales/sales-items', Sale.salesOrderId]);
     }
   }
 

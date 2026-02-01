@@ -14,10 +14,11 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PurchaseService } from '../Services/purchase.service';
-import { Item } from '../Models/purchase.model';
+
 import { ToastrService } from 'ngx-toastr';
 import { UoMGroup } from '../../barcodes/Models/item-barcode.model';
+import { Item } from '../Models/sales-model';
+import { SalesService } from '../Services/sales.service';
 
 @Component({
   selector: 'app-add-item',
@@ -39,7 +40,7 @@ import { UoMGroup } from '../../barcodes/Models/item-barcode.model';
   styleUrl: './add-item.component.scss',
 })
 export class AddItemComponent implements OnInit {
-  purchaseOrderId: number = 0;
+  salesOrderId: number = 0;
   warehouseId: number = 0;
 
   barcodeForm!: FormGroup;
@@ -55,17 +56,19 @@ export class AddItemComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
-    private purchaseService: PurchaseService,
+    private salesService: SalesService,
+
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
-  ) {}
+  ) { }
 
   ngOnInit(): void {
-    this.purchaseOrderId = +this.route.snapshot.paramMap.get('purchaseOrderId')!;
+    this.salesOrderId = +this.route.snapshot.paramMap.get('salesOrderId')!;
     this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
 
     this.initializeForms();
     this.loadItems();
+
   }
 
   initializeForms(): void {
@@ -94,8 +97,9 @@ export class AddItemComponent implements OnInit {
     if (!this.warehouseId) return;
 
     this.loading = true;
-    this.purchaseService.getItemsByWarehouse(this.warehouseId).subscribe({
+    this.salesService.getItemsbyWarehouseId(this.warehouseId).subscribe({
       next: (res: any) => {
+
         if (res.data) {
           this.items = res.data.map((item: any) => ({
             itemId: item.itemId,
@@ -120,7 +124,7 @@ export class AddItemComponent implements OnInit {
     this.uomGroups = [];
     this.manualForm.patchValue({ uoMEntry: '' });
 
-    this.purchaseService.getUoMGroupByItemId(itemId).subscribe({
+    this.salesService.getUoMGroupByItemId(itemId).subscribe({
       next: (res: any) => {
         if (res.success && res.data) {
           this.uomGroups = res.data;
@@ -144,7 +148,7 @@ export class AddItemComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/processes/purchase-items', this.purchaseOrderId]);
+    this.router.navigate(['/processes/sales/sales-items', this.salesOrderId]);
   }
 
   onAddByBarcode(): void {
@@ -156,13 +160,13 @@ export class AddItemComponent implements OnInit {
     this.saving = true;
     const barcode = this.barcodeForm.value.barCode;
 
-    this.purchaseService.addItemByBarcode(this.purchaseOrderId, barcode).subscribe({
+    this.salesService.addItemByBarcode(this.salesOrderId, barcode).subscribe({
       next: (res: any) => {
         console.log('Item added by barcode:', res);
         this.saving = false;
         this.toastr.success('Item added successfully by barcode', 'Success');
         // العودة لصفحة عرض العناصر
-        this.router.navigate(['/processes/purchase-items', this.purchaseOrderId]);
+        this.router.navigate(['/processes/purchase-items', this.salesOrderId]);
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -187,17 +191,17 @@ export class AddItemComponent implements OnInit {
     const itemData = {
       uoMEntry: formValue.uoMEntry,
       quantity: formValue.quantity,
-      purchaseOrderId: this.purchaseOrderId,
+      salesOrderId: this.salesOrderId,
       itemId: formValue.itemId
     };
 
-    this.purchaseService.addItemManually(this.purchaseOrderId, itemData).subscribe({
+    this.salesService.addItemManually(this.salesOrderId, itemData).subscribe({
       next: (res: any) => {
         console.log('Item added manually:', res);
         this.saving = false;
         this.toastr.success('Item added successfully', 'Success');
         // العودة لصفحة عرض العناصر
-        this.router.navigate(['/processes/purchase-items', this.purchaseOrderId]);
+        this.router.navigate(['/processes/sales/sales-items', this.salesOrderId]);
         this.cdr.detectChanges();
       },
       error: (err) => {

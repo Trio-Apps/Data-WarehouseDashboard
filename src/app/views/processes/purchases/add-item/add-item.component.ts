@@ -144,7 +144,7 @@ export class AddItemComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/processes/purchase-items', this.purchaseOrderId]);
+    this.router.navigate(['/processes/purchases/purchase-items', this.purchaseOrderId]);
   }
 
   onAddByBarcode(): void {
@@ -162,7 +162,7 @@ export class AddItemComponent implements OnInit {
         this.saving = false;
         this.toastr.success('Item added successfully by barcode', 'Success');
         // العودة لصفحة عرض العناصر
-        this.router.navigate(['/processes/purchase-items', this.purchaseOrderId]);
+        this.router.navigate(['/processes/purchases/purchase-items', this.purchaseOrderId]);
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -197,7 +197,7 @@ export class AddItemComponent implements OnInit {
         this.saving = false;
         this.toastr.success('Item added successfully', 'Success');
         // العودة لصفحة عرض العناصر
-        this.router.navigate(['/processes/purchase-items', this.purchaseOrderId]);
+        this.router.navigate(['/processes/purchases/purchase-items', this.purchaseOrderId]);
         this.cdr.detectChanges();
       },
       error: (err) => {

@@ -11,34 +11,34 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
-import { GoodsReturnService } from '../Services/goods-return.service';
-import { Return, ReturnItem } from '../Models/retrun-model';
+import { Return, ReturnItem } from '../Models/sales-return-model';
+import { SalesReturnService } from '../Services/sales-return.service';
+import { EditSalesReturnComponent } from './edit-sales-return/edit-sales-return.component';
+import { EditItemModalComponent } from '../edit-item-modal/edit-item-modal.component';
 import { EditReturnItemModalComponent } from './edit-return-item-modal/edit-return-item-modal.component';
-import { EditGoodReturnComponent } from './edit-good-return/edit-good-return.component';
 
 @Component({
-  selector: 'app-goods-return',
-    standalone: true,
- imports: [
-    CommonModule,
-    TableModule,
-    CardModule,
-    ButtonModule,
-    FormModule,
-    GridModule,
-    UtilitiesModule,
-    IconDirective,
-    DatePipe,
-    EditReturnItemModalComponent,
-    EditGoodReturnComponent
-    
-  ],
-  templateUrl: './goods-return.component.html',
-  styleUrl: './goods-return.component.scss',
+  selector: 'app-sales-return',
+   imports: [
+      CommonModule,
+      TableModule,
+      CardModule,
+      ButtonModule,
+      FormModule,
+      GridModule,
+      UtilitiesModule,
+      IconDirective,
+      DatePipe,
+      EditSalesReturnComponent,
+      EditReturnItemModalComponent
+
+      
+    ],
+  templateUrl: './sales-return.component.html',
+  styleUrl: './sales-return.component.scss',
 })
-export class GoodsReturnComponent implements OnInit {
-  receiptOrderId: number = 0;
-  purchaseOrderId: number = 0;
+export class SalesReturnComponent implements OnInit {
+  salesOrderId: number = 0;
   return: Return | null = null;
   returnItems: ReturnItem[] = [];
   loading: boolean = true;
@@ -51,43 +51,42 @@ export class GoodsReturnComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private returnService: GoodsReturnService,
+    private returnService: SalesReturnService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
-    this.receiptOrderId = +this.route.snapshot.paramMap.get('receiptId')!;
-    this.purchaseOrderId = +this.route.snapshot.paramMap.get('purchaseOrderId')!;
-    if (this.receiptOrderId) {
-      this.loadreturn();
+    this.salesOrderId = +this.route.snapshot.paramMap.get('salesOrderId')!;
+    if (this.salesOrderId) {
+      this.loadReturn();
     }
 
     // إعادة تحميل البيانات عند العودة من صفحة أخرى
     this.route.params.subscribe(params => {
-      const newreceiptOrderId = +params['receiptId'];
-      if (newreceiptOrderId && newreceiptOrderId === this.receiptOrderId) {
-        this.loadreturn();
+      const newsalesOrderId = +params['salesOrderId'];
+      if (newsalesOrderId && newsalesOrderId === this.salesOrderId) {
+        this.loadReturn();
       }
     });
   }
 
-  loadreturn(): void {
+  loadReturn(): void {
     this.loading = true;
-   // console.log("receipt id",this.receiptOrderId);
-    this.returnService.getReturnByReceiptId(this.receiptOrderId).subscribe({
+   // console.log("sales id",this.salesOrderId);
+    this.returnService.getReturnBySalesId(this.salesOrderId).subscribe({
       next: (res: any) => {
         if (res.data) {
           this.return = res.data;
-                    this.cdr.detectChanges();
-         // console.log("return",this.return);
+          this.cdr.detectChanges();
+          console.log("return",this.return);
           if (res.data.warehouseId) {
             this.warehouseId = res.data.warehouseId;
           }
           // تحميل عناصر الـ return
-          if (this.return?.goodsReturnOrderId) {
-           // console.log("return id",this.return.goodsReturnOrderId);
-            this.loadreturnItems(this.return.goodsReturnOrderId);
+          if (this.return?.salesReturnOrderId) {
+           // console.log("return id",this.return.salesReturnOrderId);
+            this.loadReturnItems(this.return.salesReturnOrderId);
           } else {
             this.returnItems = [];
             this.loading = false;
@@ -100,7 +99,7 @@ export class GoodsReturnComponent implements OnInit {
           this.cdr.detectChanges();
         }
       },
-      error: (err) => {
+      error: (err:any) => {
        // console.error('Error loading return:', err);
         // إذا لم يكن هناك return، هذا طبيعي
         if (err.status === 404) {
@@ -115,7 +114,7 @@ export class GoodsReturnComponent implements OnInit {
     });
   }
 
-  loadreturnItems(returnId: number): void {
+  loadReturnItems(returnId: number): void {
 
     this.returnService.getReturnItemsByReturnId(returnId).subscribe({
       next: (res: any) => {
@@ -128,7 +127,7 @@ export class GoodsReturnComponent implements OnInit {
         this.loading = false;
         this.cdr.detectChanges();
       },
-      error: (err) => {
+      error: (err:any) => {
        // console.error('Error loading return items:', err);
         this.returnItems = [];
         this.loading = false;
@@ -138,20 +137,18 @@ export class GoodsReturnComponent implements OnInit {
     });
   }
 
-  onAddReturn(): void {
-    this.router.navigate(['/processes/purchases/return-form', this.receiptOrderId]);
-  }
+  // onAddReturn(): void {
+  //   this.router.navigate(['/processes/purchases/return-form', this.salesOrderId]);
+  // }
 
-
-
-  onAddItem(): void {
-    if (this.return?.returnReceiptOrderId) {
-      // returnReceiptOrderId هو الـ return ID، و receiptOrderId هو returnReceiptOrderId
-      this.router.navigate(['/processes/purchases/add-return-item', this.return.returnReceiptOrderId, this.receiptOrderId]);
-    } else {
-      this.toastr.warning('Please create return first', 'Warning');
-    }
-  }
+  // onAddItem(): void {
+  //   if (this.return?.salesReturnOrderId) {
+  //     // returnsalesOrderId هو الـ return ID، و salesOrderId هو returnsalesOrderId
+  //     this.router.navigate(['/processes/purchases/add-return-item', this.return.salesReturnOrderId, this.salesOrderId]);
+  //   } else {
+  //     this.toastr.warning('Please create return first', 'Warning');
+  //   }
+  // }
 
   onEditItem(item: ReturnItem): void {
     this.selectedItem = { ...item };
@@ -170,9 +167,9 @@ console.log("editing return",this.return);
   onItemUpdated(): void {
     //  console.log("reloading items",this.return);
 
-    if (this.return?.goodsReturnOrderId) {
+    if (this.return?.salesReturnOrderId) {
       console.log("reloading items");
-      this.loadreturnItems(this.return.goodsReturnOrderId);
+      this.loadReturnItems(this.return.salesReturnOrderId);
     }
 
   }
@@ -181,35 +178,35 @@ console.log("editing return",this.return);
    onReturnUpdated(): void {
     //  console.log("reloading items",this.return);
 
-    if (this.receiptOrderId) {
-      console.log("reloading items");
-      this.loadreturn();
+    if (this.salesOrderId) {
+      console.log("reloading return");
+      this.loadReturn();
     }
 
   }
 
   onViewBatches(item: ReturnItem): void {
-    if (item.goodsReturnOrderItemId) {
+    if (item.salesReturnOrderItemId) {
       console.log("inside")
-      this.router.navigate(['/processes/purchases/return-batches',item.goodsReturnOrderItemId, this.receiptOrderId,this.purchaseOrderId, item.quantity]);
+      this.router.navigate(['/processes/sales/return-batches',item.salesReturnOrderItemId, this.salesOrderId, item.quantity]);
     }
   }
 
   onRemoveItem(item: ReturnItem): void {
     if (confirm(`Are you sure you want to remove "${item.itemName || 'this item'}" from the return?`)) {
-      if (item.goodsReturnOrderItemId) {
-        this.returnService.deleteReturnItem(item.goodsReturnOrderItemId||0).subscribe({
-          next: (res) => {
+      if (item.salesReturnOrderItemId) {
+        this.returnService.deleteReturnItem(item.salesReturnOrderItemId||0).subscribe({
+          next: (res:any) => {
             this.toastr.success('Item removed successfully', res);
              
-            if (item.goodsReturnOrderId) {
-              this.loadreturnItems(item.goodsReturnOrderId);
+            if (item.salesReturnOrderId) {
+              this.loadReturnItems(item.salesReturnOrderId);
               this.cdr.detectChanges();
             }
 
             this.cdr.detectChanges();
           },
-          error: (err) => {
+          error: (err:any) => {
            // console.error('Error removing item:', err);
             const errorMessage = err.error?.message || 'Error removing item. Please try again.';
             this.toastr.error(errorMessage, 'Error');
@@ -219,9 +216,9 @@ console.log("editing return",this.return);
     }
   }
 
-  onBackToReceipts(): void {
-    if (this.purchaseOrderId) {
-      this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId]);
+  onBackToSales(): void {
+    if (this.salesOrderId) {
+      this.router.navigate(['/processes/sales/sales-items', this.salesOrderId]);
     } 
   }
 

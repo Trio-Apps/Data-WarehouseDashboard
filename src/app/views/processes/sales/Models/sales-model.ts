@@ -33,8 +33,7 @@ export interface Customer {
 }
 
 export interface SalesItem {
-  salesItemId?: number;
-  salesId?: number;
+  salesOrderItemId: number;
   itemId: number;
   uoMEntry: number;
   quantity: number;
@@ -84,4 +83,27 @@ export interface UpdateItemRequest {
   SalesOrderItemId: number;
   quantity: number;
   uoMEntry: number;
+}
+
+export interface SalesBatch {
+  salesOrderBatchId?: number;
+  salesOrderItemId: number;
+  quantity: number;
+  comment?: string;
+  batchNumber?: string | null;
+  expiryDate: string;
+}
+
+export interface AddSalesBatchRequest {
+  salesOrderItemId: number;
+  quantity: number;
+  comment?: string;
+  expiryDate: string;
+}
+
+export interface UpdateSalesBatchRequest {
+  salesOrderBatchId: number;
+  quantity: number;
+  comment?: string;
+  expiryDate: string;
 }

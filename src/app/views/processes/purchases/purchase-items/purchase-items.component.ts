@@ -128,7 +128,7 @@ export class PurchaseItemsComponent implements OnInit {
       }
       if (this.warehouseId) {
         // الانتقال لصفحة إضافة العنصر
-        this.router.navigate(['/processes/add-item', this.purchaseOrderId, this.warehouseId]);
+        this.router.navigate(['/processes/purchases/add-item', this.purchaseOrderId, this.warehouseId]);
       } else {
         this.toastr.error('Warehouse ID is not available. Please refresh the page.', 'Error');
       }
@@ -194,10 +194,10 @@ export class PurchaseItemsComponent implements OnInit {
 
   onBackToPurchases(): void {
     if (this.warehouseId) {
-      this.router.navigate(['/processes/purchases', this.warehouseId]);
+      this.router.navigate(['/processes/purchases/purchases', this.warehouseId]);
     } else if (this.purchase?.warehouseId) {
       this.warehouseId = this.purchase.warehouseId;
-      this.router.navigate(['/processes/purchases', this.warehouseId]);
+      this.router.navigate(['/processes/purchases/purchases', this.warehouseId]);
     }
   }
             

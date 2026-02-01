@@ -1,15 +1,34 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 import { ActivatedRoute, Router } from '@angular/router';
 import { ToastrService } from 'ngx-toastr';
 import { Customer, Sales } from '../Models/sales-model';
 import { SalesService } from '../Services/sales.service';
-
+import {
+  FormModule,
+  CardModule,
+  ButtonModule,
+  GridModule,
+  GutterDirective,
+  FormCheckComponent,
+  FormCheckInputDirective,
+  FormCheckLabelDirective
+} from '@coreui/angular';
 
 @Component({
   selector: 'app-sales-form',
-  imports: [],
+      imports: [
+        FormModule,
+        CardModule,
+        ButtonModule,
+        GridModule,
+        GutterDirective,
+        FormCheckComponent,
+        FormCheckInputDirective,
+        FormCheckLabelDirective,
+        ReactiveFormsModule
+      ],
   templateUrl: './sales-form.component.html',
   styleUrl: './sales-form.component.scss',
 })
@@ -57,7 +76,7 @@ export class SalesFormComponent implements OnInit {
 
   loadCustomers(): void {
     this.loading = true;
-    this.salesService.getSuppliers().subscribe({
+    this.salesService.getCustomer().subscribe({
       next: (res: any) => {
         if (res.data) {
           this.customers = res.data.map((c: any) => ({
@@ -174,8 +193,8 @@ export class SalesFormComponent implements OnInit {
     };
 
     const operation = this.isEditMode
-      ? this.salesService.updatesales(sales)
-      : this.salesService.createsales(sales);
+      ? this.salesService.updateSales(sales)
+      : this.salesService.createSales(sales);
 
     operation.subscribe({
       next: (res: any) => {
@@ -186,13 +205,8 @@ export class SalesFormComponent implements OnInit {
         this.toastr.success(message, 'Success');
 
         // If creating new sales, navigate to items page
-        if (!this.isEditMode && res.data?.salesOrderId) {
-          this.router.navigate(['/processes/sales-items', res.data.salesOrderId]);
-        } else {
-          // If editing, go back to saless list
-          this.router.navigate(['/processes/saless', this.warehouseId]);
-        }
-
+      
+        this.router.navigate(['/processes/sales/sales-items', this.salesOrderId]);
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -206,7 +220,7 @@ export class SalesFormComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/processes/saless', this.warehouseId]);
+    this.router.navigate(['/processes/sales/sales-items', this.salesOrderId]);
   }
 
   displayCustomerName(customerId: number | null): string {

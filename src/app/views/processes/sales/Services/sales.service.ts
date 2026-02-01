@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
-import { AddItemRequest, Sales, SalesResponse } from '../Models/sales-model';
+import { AddItemRequest, AddSalesBatchRequest, Sales, SalesResponse, UpdateItemRequest, UpdateSalesBatchRequest } from '../Models/sales-model';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../pages/Services/auth.service';
@@ -82,6 +82,9 @@ getSalesWithFilterationByWarehouse(
   getItemsbySalesId(salesOrderId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}SalesOrderItem/status/sales-order/${salesOrderId}/1/1000`, this.headerOption);
   }
+   getItemsbyWarehouseId(warehouseId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}Warehouse/GetItemsByWarehouseId/${warehouseId}`, this.headerOption);
+  }
 
   getAllItemsbySalesId(salesOrderId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}SalesOrderItem/sales-order/${salesOrderId}`, this.headerOption);
@@ -90,7 +93,7 @@ getSalesWithFilterationByWarehouse(
    * Get sales by ID with items
    */
   getSalesById  (salesOrderId: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}SalesOrder/with-supplier/${salesOrderId}`, this.headerOption);
+    return this.http.get<any>(`${this.baseUrl}SalesOrder/with-customer/${salesOrderId}`, this.headerOption);
   }
 
 
@@ -116,10 +119,10 @@ getSalesWithFilterationByWarehouse(
   }
 
   /**
-   * Get all suppliers
+   * Get all customers
    */
-  getSuppliers(): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}Supplier`, this.headerOption);
+  getCustomer(): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}Customer`, this.headerOption);
   }
 
   /**
@@ -163,18 +166,14 @@ getSalesWithFilterationByWarehouse(
   /**
    * Remove item from sales
    */
-  removeItemFromSales(salesOrderId: number, salesItemId: number): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}sales/${salesOrderId}/items/${salesItemId}`, this.headerOption);
+  removeItemFromSales( salesItemId: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}sales/${salesItemId}`, this.headerOption);
   }
 
   /**
    * Update sales item
    */
-  updateSalesItem(itemData: {
-    salesOrderItemId: number;
-    quantity: number;
-    uoMEntry: number;
-  }): Observable<any> {
+  updateSalesItem(itemData: UpdateItemRequest): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}salesOrderItem`, itemData, this.headerOption);
   }
 
@@ -185,5 +184,33 @@ getSalesWithFilterationByWarehouse(
     return this.http.put<any>(`${this.baseUrl}sales/sales/${salesOrderId}/finalize`, {}, this.headerOption);
   }
 
+  
+    /**
+     * Get Sales batches by Sales item ID
+     */
+    getSalesBatchesByItemId(salesOrderItemId: number): Observable<any> {
+      return this.http.get<any>(`${this.baseUrl}SalesOrderBatch/sales-order-item/${salesOrderItemId}`, this.headerOption);
+    }
+  
+    /**
+     * Add Sales batch
+     */
+    addSalesBatch(salesOrderItemId: number, batchData: AddSalesBatchRequest): Observable<any> {
+      return this.http.post<any>(`${this.baseUrl}SalesOrderBatch/sales-order-item/${salesOrderItemId}`, batchData, this.headerOption);
+    }
+  
+    /**
+     * Update Sales batch
+     */
+    updateSalesBatch(batchId: number, batchData: UpdateSalesBatchRequest): Observable<any> {
+      return this.http.put<any>(`${this.baseUrl}SalesOrderBatch/${batchId}`, batchData, this.headerOption);
+    }
+  
+    /**
+     * Delete Sales batch
+     */
+    deleteSalesBatch(batchId: number): Observable<any> {
+      return this.http.delete<any>(`${this.baseUrl}SalesOrderBatch/${batchId}`, this.headerOption);
+    }
   
 }
