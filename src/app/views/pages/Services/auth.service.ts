@@ -99,8 +99,12 @@ private readonly tokenSignal = signal<string | null>(
 
 token = this.tokenSignal.asReadonly();
 
+// getToken(): string | null {
+//   return this.token(); // ✅
+// }
+
 getToken(): string | null {
-  return this.token(); // ✅
+  return localStorage.getItem('token');
 }
 
 setToken(token: string): void {

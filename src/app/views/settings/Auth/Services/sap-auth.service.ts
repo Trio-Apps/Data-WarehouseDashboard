@@ -100,6 +100,8 @@ export class SapAuthService {
     sapName?: string,
     userName?: string
   ): Observable<SapResponse> {
+        console.log("token",this.auth.getToken());
+
     let url = `${this.baseUrl}Sap/${pageNumber}/${pageSize}`;
     
     // Build query parameters
