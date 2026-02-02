@@ -194,6 +194,7 @@ export class UsersComponent implements OnInit, OnDestroy {
     // Load all SAPs for admin
     this.sapAuthService.getSaps(1, 1000).subscribe({
       next: (res: any) => {
+        console.log('All SAPs response:', res);
         if (res.data && res.data.data) {
           this.saps = res.data.data;
         }

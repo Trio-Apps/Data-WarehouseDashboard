@@ -101,6 +101,7 @@ export class SalesFormComponent implements OnInit {
     if (!this.salesOrderId) return;
 
     this.loading = true;
+    console.log('Loading sales with ID:', this.salesOrderId);
     this.salesService.getSalesById(this.salesOrderId).subscribe({
       next: (res: any) => {
         //console.log('getSalesById response:', res);
@@ -144,19 +145,19 @@ export class SalesFormComponent implements OnInit {
    * Format date to ISO string preserving the selected date
    * input type="date" returns string in YYYY-MM-DD format
    */
+  
   private formatDateToISOString(date: string | Date): string {
     if (!date) return '';
     
+
     // If it's already a string (from input type="date"), use it directly
     if (typeof date === 'string') {
       return `${date}T00:00:00.000Z`;
     }
-    
     // If it's a Date object, format it
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    
     return `${year}-${month}-${day}T00:00:00.000Z`;
   }
 
@@ -200,14 +201,18 @@ export class SalesFormComponent implements OnInit {
       next: (res: any) => {
         //console.log('sales saved:', res);
         this.saving = false;
-
         const message = this.isEditMode ? 'sales updated successfully' : 'sales created successfully';
         this.toastr.success(message, 'Success');
-
-        // If creating new sales, navigate to items page
-      
-        this.router.navigate(['/processes/sales/sales-items', this.salesOrderId]);
         this.cdr.detectChanges();
+            // If creating new sales, navigate to items page
+       // If creating new sales, navigate to items page
+        if (!this.isEditMode && res.data?.salesOrderId) {
+          this.router.navigate(['/processes/sales/sales-items', res.data.salesOrderId]);
+        } else {
+          // If editing, go back to purchases list
+          this.router.navigate(['/processes/sales/sales-order', this.warehouseId]);
+        }
+
       },
       error: (err) => {
         console.error('Error saving sales:', err);
@@ -217,14 +222,20 @@ export class SalesFormComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+
+
   }
 
+
   onCancel(): void {
-    this.router.navigate(['/processes/sales/sales-items', this.salesOrderId]);
+    this.router.navigate(['/processes/sales/sales-order', this.warehouseId]);
   }
+
 
   displayCustomerName(customerId: number | null): string {
     const customer = this.customers.find(s => s.customerId === customerId );
     return customer ? customer.customerName  : '';
   }
+
+
 }

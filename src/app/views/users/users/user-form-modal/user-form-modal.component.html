@@ -220,6 +220,7 @@
                         [checked]="isWarehouseSelected(warehouse.warehouseId)"
                         (change)="onWarehouseCheckboxChange(warehouse.warehouseId, $event)"
                       />
+                     
                       <label cFormCheckLabel [for]="'warehouse-' + warehouse.warehouseId">
                         {{ warehouse.warehouseName }}
                       </label>

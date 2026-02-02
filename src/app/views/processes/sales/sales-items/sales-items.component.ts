@@ -160,7 +160,7 @@ export class SalesItemsComponent implements OnInit {
       console.log("outside")
     if (this.Sale?.salesOrderId) {
       console.log("inside")
-      this.router.navigate(['/processes/sales/sales-form', this.Sale.salesOrderId]);
+      this.router.navigate(['/processes/sales/sales-form',this.warehouseId, this.Sale.salesOrderId]);
     }
   }
 

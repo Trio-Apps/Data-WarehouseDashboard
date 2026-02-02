@@ -25,6 +25,7 @@ import { Sap } from '../../../settings/Auth/Models/sap-auth.model';
 import { UsersService } from '../../Services/users.service';
 import { Warehouse } from '../../../Inquiries/Models/warehouse.model';
 
+
 @Component({
   selector: 'app-user-form-modal',
   standalone: true,
@@ -132,6 +133,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     this.userForm.get('roles')?.valueChanges.subscribe(role => {
       this.onRoleChange(role);
     });
+
   }
 
   checkUserRole(): void {
@@ -252,7 +254,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
       sapIdsArray.updateValueAndValidity();
       this.userForm.get('warehouseIds')?.clearValidators();
       this.userForm.get('warehouseIds')?.updateValueAndValidity();
-    } else if (role === 'employee') {
+    } else if (this.roleEmployee(role)) {
       // Employee: Single SAP required, then multiple warehouses (validated in onSapIdChange)
       this.userForm.get('sapEmployeeId')?.setValidators([Validators.required]);
       this.userForm.get('sapEmployeeId')?.updateValueAndValidity();
@@ -275,7 +277,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
   onSapIdChange(sapId: number | null): void {
     const sapIdValue = sapId ? parseInt(sapId.toString()) : null;
     
-    if (this.selectedRole === 'employee' && sapIdValue) {
+    if (this.roleEmployee(this.selectedRole) && sapIdValue) {
       this.loadWarehousesBySapId(sapIdValue);
       // Set warehouse validation after SAP is selected
       const warehouseIdsArray = this.userForm.get('warehouseIds') as FormArray;
@@ -451,7 +453,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
       }
 
       // Load warehouses for employee if sapEmployeeId exists (do this first)
-      if (userRole === 'employee' && sapEmployeeId) {
+      if (this.roleEmployee(userRole) && sapEmployeeId) {
         this.loadWarehousesBySapId(sapEmployeeId).then(() => {
           // After warehouses are loaded, populate warehouse IDs if they exist
           if (warehouseIds && Array.isArray(warehouseIds) && warehouseIds.length > 0) {
@@ -465,7 +467,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
           // Force change detection to update UI
           this.cdr.detectChanges();
         });
-      } else if (userRole === 'employee' && warehouseIds && Array.isArray(warehouseIds) && warehouseIds.length > 0) {
+      } else if (this.roleEmployee(userRole) && warehouseIds && Array.isArray(warehouseIds) && warehouseIds.length > 0) {
         // If no sapEmployeeId but warehouseIds exist, still populate them
         warehouseIds.forEach((warehouseId: number) => {
           if (warehouseId != null) {
@@ -483,6 +485,10 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     }
   }
 
+  roleEmployee(roleName: string): boolean {
+    
+    return roleName !== 'super-admin' && roleName !== 'admin' && roleName !== 'manager';
+  }
   resetForm(): void {
     this.selectedRole = '';
     this.warehouses = [];
@@ -551,10 +557,9 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     if (!this.userForm.valid) {
       return;
     }
-
     const formValue = this.userForm.value;
     const selectedRole = formValue.roles || '';
-    
+
     // Additional validation based on role
     if (selectedRole === 'manager') {
       const sapIdsArray = this.userForm.get('sapIds') as FormArray;
@@ -564,7 +569,9 @@ export class UserFormModalComponent implements OnInit, OnChanges {
         sapIdsArray.updateValueAndValidity();
         return;
       }
-    } else if (selectedRole === 'employee') {
+    } 
+
+    else if (this.roleEmployee(selectedRole)) {
       const warehouseIdsArray = this.userForm.get('warehouseIds') as FormArray;
       if (warehouseIdsArray.length === 0) {
         warehouseIdsArray.setErrors({ required: true });
@@ -602,7 +609,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
       if (sapIds.length > 0) {
         userData.sapIds = sapIds;
       }
-    } else if (selectedRole === 'employee') {
+    } else if (this.roleEmployee(selectedRole)) {
       // Employee: Single SAP and multiple warehouses
       if (formValue.sapEmployeeId) {
         userData.sapEmployeeId = formValue.sapEmployeeId;
@@ -691,7 +698,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
   }
 
   isWarehouseIdsInvalid(): boolean {
-    if (this.selectedRole !== 'employee') return false;
+    if (!this.roleEmployee(this.selectedRole)) return false;
     const warehouseIdsArray = this.userForm.get('warehouseIds') as FormArray;
     return warehouseIdsArray.invalid && warehouseIdsArray.touched;
   }

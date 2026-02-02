@@ -19,7 +19,7 @@ export const routes: Routes = [
         }
       },
       {
-        path: 'sales-order/:salesOrderId',
+        path: 'sales-order/:warehouseId',
         loadComponent: () => import('./sales.component').then(m => m.SalesComponent),
         data: {
           title: 'Sales Order'
@@ -33,7 +33,7 @@ export const routes: Routes = [
         }
       },
       {
-        path: 'sales-form/:salesOrderId',
+        path: 'sales-form/:warehouseId/:salesOrderId',
         loadComponent: () => import('./sales-form/sales-form.component').then(m => m.SalesFormComponent),
         data: {
           title: 'Create Sales'

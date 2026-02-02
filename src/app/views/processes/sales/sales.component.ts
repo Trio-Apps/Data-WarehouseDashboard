@@ -315,13 +315,13 @@ export class SalesComponent implements OnInit, OnDestroy {
   }
 
   onAddSale(): void {
-    this.router.navigate(['/processes/Sale-form', this.warehouseId]);
+    this.router.navigate(['/processes/sales/sales-form', this.warehouseId,0]);
   }
 
   onEditSale(Sale: Sales): void {
     //console.log(Sale.salesOrderId);
     if (Sale.salesOrderId) {
-      this.router.navigate(['/processes/Sale-form', this.warehouseId, Sale.salesOrderId]);
+      this.router.navigate(['/processes/sales/sales-form', this.warehouseId, Sale.salesOrderId]);
     }
   }
 
