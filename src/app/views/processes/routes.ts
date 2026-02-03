@@ -10,7 +10,10 @@ export const routes: Routes = [
     path: 'purchases',
     loadChildren: () => import('./purchases/routes').then((m) => m.routes)
   },
-
+  {
+    path: 'approval-process',
+    loadChildren: () => import('./approval-process/routes').then((m) => m.routes)
+  },
  
 ];
 

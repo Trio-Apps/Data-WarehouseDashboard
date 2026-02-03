@@ -66,6 +66,23 @@ export const navItems: INavData[] = [
       }
     ]
   },
+   {
+    name: 'Approval Process',
+    url: '/approval-process',
+    iconComponent: { name: 'cil-arrow-top' },
+    children: [
+      {
+        name: 'Approval Steps Management',
+        url: '/processes/approval-process/approval-steps',
+        icon: 'nav-icon-bullet'
+      },
+      {
+        name: 'My Approvals',
+        url: '/processes/approval-process/my-processes',
+        icon: 'nav-icon-bullet'
+      }
+    ]
+  },
   {
     name: 'Settings',
     url: '/settings',

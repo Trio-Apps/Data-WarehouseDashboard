@@ -1,0 +1,84 @@
+<c-modal
+  [visible]="visible"
+  (visibleChange)="onVisibleChange($event)"
+  [backdrop]="true"
+  size="lg"
+>
+  <c-modal-header>
+    <h5 cModalTitle>{{ isEditMode ? 'Edit Approval Step' : 'Add Approval Step' }}</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <form [formGroup]="approvalForm" (ngSubmit)="onSave()">
+      <c-row [gutter]="3">
+        <c-col [md]="8">
+          <label class="form-label">
+            Step Name <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="stepName"
+            placeholder="Enter step name"
+            class="form-control"
+            [class.is-invalid]="isFieldInvalid('stepName')"
+          />
+          @if (isFieldInvalid('stepName')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('stepName') }}
+            </div>
+          }
+        </c-col>
+
+        <c-col [md]="4">
+          <label class="form-label">
+            Step Order <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="number"
+            formControlName="stepOrder"
+            placeholder="1"
+            class="form-control"
+            min="1"
+            [class.is-invalid]="isFieldInvalid('stepOrder')"
+          />
+          @if (isFieldInvalid('stepOrder')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('stepOrder') }}
+            </div>
+          }
+        </c-col>
+
+        <c-col [md]="12">
+          <label class="form-label">
+            Role <span class="text-danger">*</span>
+          </label>
+          <select
+            cFormControl
+            formControlName="roleId"
+            class="form-select"
+            [class.is-invalid]="isFieldInvalid('roleId')"
+          >
+            <option value="">-- Select Role --</option>
+            @for (role of roles; track role.id) {
+              <option [value]="role.id">{{ role.roleName }}</option>
+            }
+          </select>
+          @if (isFieldInvalid('roleId')) {
+            <div class="invalid-feedback d-block">
+              {{ getFieldError('roleId') }}
+            </div>
+          }
+        </c-col>
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" (click)="onCancel()">
+      Cancel
+    </button>
+    <button cButton color="primary" (click)="onSave()" [disabled]="approvalForm.invalid">
+      {{ isEditMode ? 'Update' : 'Create' }}
+    </button>
+  </c-modal-footer>
+</c-modal>
