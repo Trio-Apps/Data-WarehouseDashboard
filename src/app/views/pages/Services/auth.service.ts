@@ -64,9 +64,9 @@ export class AuthService {
 
 
   logOut() {
+      this.router.navigate(['/login']);
       localStorage.clear();
       window.location.reload();
-      this.router.navigate(['/login']);
   }
 
     // roles
