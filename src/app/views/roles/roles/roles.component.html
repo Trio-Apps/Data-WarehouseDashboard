@@ -49,14 +49,14 @@
                     }
                   </td> -->
                   <td class="text-center">
-                    @if(role?.roleName != 'super-admin' && role?.roleName != 'admin' && role?.roleName != 'manager' ){
+                    <!-- @if(role?.roleName != 'super-admin' && role?.roleName != 'admin' ){ -->
                      <button cButton color="info" size="sm" class="me-2" (click)="onEditRole(role)">
                       <svg cIcon name="cil-pencil"></svg>
                     </button>
                     <button cButton color="danger" size="sm" (click)="onDeleteRole(role)">
                       <svg cIcon name="cil-trash"></svg>
                     </button>
-                    }
+                    <!-- } -->
                 
                   </td>
                 </tr>

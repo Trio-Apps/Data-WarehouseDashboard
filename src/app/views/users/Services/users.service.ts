@@ -60,7 +60,7 @@ export class UsersService {
       url += '?' + params.join('&');
     }
   
-    return this.http.get<UserResponse>(url, this.headerOption);
+    return this.http.get<UserResponse>(url);
   }
 
   /**

@@ -376,7 +376,7 @@ export class UsersComponent implements OnInit, OnDestroy {
   onSaveUser(userData: User): void {
     this.modalLoading = true;
     this.cdr.detectChanges();
-console.log("User Model : " ,userData);
+     console.log("User Model : " ,userData);
     if (this.isEditMode && userData.id) {
       // Update existing user
        //userData.roles = userData.roles[0]; 
