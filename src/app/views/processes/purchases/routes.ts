@@ -9,20 +9,7 @@ export const routes: Routes = [
     },
     children: [
       //
-      {
-        path: 'item-barcodes/:itemId',
-        loadComponent: () => import('../item-barcodes/item-barcodes.component').then(m => m.ItemBarcodesComponent),
-        data: {
-          title: 'Item Barcodes'
-        }
-      },
-      {
-        path: 'dynamic-barcodes/:itemBarCodeId',
-        loadComponent: () => import('../item-barcodes/dynamic/dynamic-barcodes/dynamic-barcodes.component').then(m => m.DynamicBarcodesComponent),
-        data: {
-          title: 'Dynamic Barcodes'
-        }
-      },
+     
       {
         path: ':warehouseId',
         loadComponent: () => import('./purchases.component').then(m => m.PurchasesComponent),

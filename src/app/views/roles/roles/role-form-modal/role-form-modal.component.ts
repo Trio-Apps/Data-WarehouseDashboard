@@ -1,4 +1,4 @@
-import { Component, EventEmitter, Input, OnInit, OnChanges, Output } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, OnChanges, Output, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import {
@@ -14,7 +14,8 @@ import {
   FormCheckInputDirective,
   FormCheckLabelDirective
 } from '@coreui/angular';
-import { Role } from '../../Models/role.model';
+import { Permission, PermissionForRole, Role, RoleFormPayload } from '../../Models/role.model';
+import { RolesService } from '../../Services/roles.service';
 
 @Component({
   selector: 'app-role-form-modal',
@@ -42,30 +43,15 @@ export class RoleFormModalComponent implements OnInit, OnChanges {
   @Input() role: Role | null = null;
   @Input() isEditMode: boolean = false;
   @Output() visibleChange = new EventEmitter<boolean>();
-  @Output() save = new EventEmitter<Role>();
+  @Output() save = new EventEmitter<RoleFormPayload>();
   @Output() cancel = new EventEmitter<void>();
 
   roleForm!: FormGroup;
-  availablePermissions: string[] = [
-    'Users.View',
-    'Users.Create',
-    'Users.Edit',
-    'Users.Delete',
-    'Roles.View',
-    'Roles.Create',
-    'Roles.Edit',
-    'Roles.Delete',
-    'Items.View',
-    'Items.Create',
-    'Items.Edit',
-    'Items.Delete',
-    'Inquiries.View',
-    'Dashboard.View',
-    'Settings.View',
-    'Settings.Edit'
-  ];
+  availablePermissions: PermissionForRole[] = [];
+  permissionsLoading: boolean = false;
 
-  constructor(private fb: FormBuilder) {
+  constructor(private cdr: ChangeDetectorRef,
+private fb: FormBuilder, private rolesService: RolesService) {
     this.initForm();
   }
 
@@ -77,8 +63,10 @@ export class RoleFormModalComponent implements OnInit, OnChanges {
     if (this.visible) {
       if (this.role && this.isEditMode) {
         this.populateForm();
+        this.loadRolePermissions(this.role.id);
       } else {
         this.resetForm();
+        this.loadAllPermissions();
       }
     }
   }
@@ -86,6 +74,7 @@ export class RoleFormModalComponent implements OnInit, OnChanges {
   initForm(): void {
     this.roleForm = this.fb.group({
       roleName: ['', [Validators.required, Validators.minLength(2)]],
+      permissionIds: [[]]
       // description: [''],
       // isActive: [true],
       // permissions: [[]]
@@ -106,6 +95,7 @@ export class RoleFormModalComponent implements OnInit, OnChanges {
   resetForm(): void {
     this.roleForm.reset({
       roleName: '',
+      permissionIds: []
       // description: '',
       // isActive: true,
       // permissions: []
@@ -116,8 +106,9 @@ export class RoleFormModalComponent implements OnInit, OnChanges {
     if (this.roleForm.valid) {
       const formValue = this.roleForm.value;
       
-      const roleData: Role = {
+      const roleData: RoleFormPayload = {
         roleName: formValue.roleName,
+        permissionIds: formValue.permissionIds || []
         // description: formValue.description,
         // isActive: formValue.isActive,
         // permissions: formValue.permissions || []
@@ -149,22 +140,22 @@ export class RoleFormModalComponent implements OnInit, OnChanges {
     }
   }
 
-  togglePermission(permission: string): void {
-    const permissions = this.roleForm.get('permissions')?.value || [];
-    const index = permissions.indexOf(permission);
+  togglePermission(permissionId: number): void {
+    const permissionIds = this.roleForm.get('permissionIds')?.value || [];
+    const index = permissionIds.indexOf(permissionId);
     
     if (index > -1) {
-      permissions.splice(index, 1);
+      permissionIds.splice(index, 1);
     } else {
-      permissions.push(permission);
+      permissionIds.push(permissionId);
     }
     
-    this.roleForm.patchValue({ permissions });
+    this.roleForm.patchValue({ permissionIds });
   }
 
-  isPermissionSelected(permission: string): boolean {
-    const permissions = this.roleForm.get('permissions')?.value || [];
-    return permissions.includes(permission);
+  isPermissionSelected(permissionId: number): boolean {
+    const permissionIds = this.roleForm.get('permissionIds')?.value || [];
+    return permissionIds.includes(permissionId);
   }
 
   getFieldError(fieldName: string): string {
@@ -192,5 +183,54 @@ export class RoleFormModalComponent implements OnInit, OnChanges {
     const field = this.roleForm.get(fieldName);
     return !!(field && field.invalid && field.touched);
   }
-}
 
+  private loadAllPermissions(): void {
+    this.permissionsLoading = true;
+    this.rolesService.getPermissions().subscribe({
+      next: (res) => {
+         
+        const permissions = res.data || [];
+        this.availablePermissions = permissions.map((p: Permission) => ({
+          permissionId: p.permissionId,
+          key: p.key,
+          name: p.name,
+          group: p.group,
+          description: p.description,
+          isSelected: false
+        }));
+     
+        this.permissionsLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.availablePermissions = [];
+        this.permissionsLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private loadRolePermissions(roleId?: number): void {
+    if (!roleId) {
+      this.availablePermissions = [];
+      return;
+    }
+
+    this.permissionsLoading = true;
+    this.rolesService.getRoleWithInAndUnactivePermissions(roleId).subscribe({
+      next: (res) => {
+        const permissions = res.data || [];
+        this.availablePermissions = permissions;
+        const selectedIds = permissions.filter(p => p.isSelected).map(p => p.permissionId);
+        this.roleForm.patchValue({ permissionIds: selectedIds });
+        this.permissionsLoading = false;
+        this.cdr.detectChanges();
+      },
+      error: () => {
+        this.availablePermissions = [];
+        this.permissionsLoading = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
+}

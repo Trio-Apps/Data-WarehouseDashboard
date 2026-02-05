@@ -63,13 +63,15 @@ export class UserFormModalComponent implements OnInit, OnChanges {
   isSuperAdmin: boolean = false;
   isAdmin: boolean = false;
   isManager: boolean = false;
+  companyIdFromAuth: number | null = null;
+  requiresCompanySelection: boolean = false;
+  requiresSapWarehouseSelection: boolean = false;
   companies: Company[] = [];
   saps: Sap[] = [];
-  warehouses: Warehouse[] = [];
+  warehousesBySap: Record<number, Warehouse[]> = {};
+  loadingWarehousesBySap: Record<number, boolean> = {};
   loadingCompanies: boolean = false;
   loadingSaps: boolean = false;
-  loadingWarehouses: boolean = false;
-  selectedRole: string = '';
 
   constructor(
     private fb: FormBuilder,
@@ -81,6 +83,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     private cdr:ChangeDetectorRef
   ) {
     this.checkUserRole();
+    this.setCompanyContext();
     this.initForm();
   }
 
@@ -88,11 +91,11 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     // Initialize form
     this.getRolesObserve();
 
-    if (this.isSuperAdmin) {
+    if (this.requiresCompanySelection) {
       this.loadCompanies();
     }
 
-    if (this.isAdmin || this.isManager) {
+    if (this.requiresSapWarehouseSelection) {
       this.loadAllSaps();
     }
   }
@@ -109,7 +112,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
 
   initForm(): void {
     // Set validators based on role
-    const companyIdValidators = this.isSuperAdmin ? [Validators.required] : [];
+    const companyIdValidators = this.requiresCompanySelection ? [Validators.required] : [];
 
     this.userForm = this.fb.group(
       {
@@ -118,22 +121,16 @@ export class UserFormModalComponent implements OnInit, OnChanges {
         fullName: [''],
         phoneNumber: ['', [Validators.pattern(/^[0-9+\-\s()]+$/)]],
         roles: ['', Validators.required],
-        companyId: [null, companyIdValidators],
-        sapEmployeeId: [null], // Single SAP for employee
-        sapIds: this.fb.array([]), // Multiple SAPs for manager
-        warehouseIds: this.fb.array([]), // Multiple warehouses for employee
+        companyId: [this.requiresCompanySelection ? null : this.companyIdFromAuth, companyIdValidators],
+        sapIds: this.fb.array([]),
+        warehouseIds: this.fb.array([]),
         // isActive: [true],
         password: [''],
         confirmPassword: ['']
       },
       { validators: this.passwordMatchValidator }
     );
-
-    // Subscribe to role changes
-    this.userForm.get('roles')?.valueChanges.subscribe(role => {
-      this.onRoleChange(role);
-    });
-
+    
   }
 
   checkUserRole(): void {
@@ -141,6 +138,12 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     this.isAdmin = this.authService.hasRole('admin');
     this.isManager = this.authService.hasRole('manager');
 
+  }
+
+  setCompanyContext(): void {
+    this.companyIdFromAuth = this.authService.getCompanyId();
+    this.requiresCompanySelection = this.companyIdFromAuth === null;
+    this.requiresSapWarehouseSelection = this.companyIdFromAuth !== null;
   }
 
   loadCompanies(): void {
@@ -151,10 +154,12 @@ export class UserFormModalComponent implements OnInit, OnChanges {
           this.companies = res.data.data;
         }
         this.loadingCompanies = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.loadingCompanies = false;
         this.companies = [];
+        this.cdr.detectChanges();
       }
     });
   }
@@ -163,16 +168,20 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     this.loadingSaps = true;
     this.sapAuthService.getAllSap().subscribe({
       next: (res: any) => {
-        console.log("saps",res)
-        if (res.data) {
+        if (res?.data) {
           this.saps = res.data;
+        } else if (Array.isArray(res)) {
+          this.saps = res;
+        } else {
+          this.saps = [];
         }
         this.loadingSaps = false;
+        this.cdr.detectChanges();
       },
       error: (err: any) => {
         this.loadingSaps = false;
         this.saps = [];
-        console.log("error get sap :",err)
+        this.cdr.detectChanges();
       }
     });
   }
@@ -195,9 +204,11 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     this.rolesService.getAllRoles().subscribe({
       next: (res: any) => {
         this.rolesList = res.data;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.rolesList = [];
+        this.cdr.detectChanges();
       }
     });
   }
@@ -220,102 +231,48 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     return this.rolesList;
   }
 
-  onRoleChange(role: string): void {
-    this.selectedRole = role || '';
-    
-    // Reset SAP and warehouse selections
-    this.userForm.patchValue({
-      sapId: null
-    });
-    
-    // Clear form arrays
+  applySapWarehouseValidators(): void {
     const sapIdsArray = this.userForm.get('sapIds') as FormArray;
     const warehouseIdsArray = this.userForm.get('warehouseIds') as FormArray;
-    
-    while (sapIdsArray.length !== 0) {
-      sapIdsArray.removeAt(0);
-    }
-    while (warehouseIdsArray.length !== 0) {
-      warehouseIdsArray.removeAt(0);
-    }
-    
-    this.warehouses = [];
-    
-    // Set validators based on selected role
-    if (role === 'manager') {
-      // Manager: Multiple SAPs required
-      this.userForm.get('sapId')?.clearValidators();
-      this.userForm.get('sapId')?.updateValueAndValidity();
-      // Custom validator for FormArray
+
+    if (this.requiresSapWarehouseSelection) {
       sapIdsArray.setValidators([(control: AbstractControl): ValidationErrors | null => {
         const formArray = control as FormArray;
         return formArray.length > 0 ? null : { required: true };
       }]);
-      sapIdsArray.updateValueAndValidity();
-      this.userForm.get('warehouseIds')?.clearValidators();
-      this.userForm.get('warehouseIds')?.updateValueAndValidity();
-    } else if (this.roleEmployee(role)) {
-      // Employee: Single SAP required, then multiple warehouses (validated in onSapIdChange)
-      this.userForm.get('sapEmployeeId')?.setValidators([Validators.required]);
-      this.userForm.get('sapEmployeeId')?.updateValueAndValidity();
-      sapIdsArray.clearValidators();
-      sapIdsArray.updateValueAndValidity();
-      // Warehouse validation will be set after SAP is selected
-      warehouseIdsArray.clearValidators();
-      warehouseIdsArray.updateValueAndValidity();
-    } else {
-      // Other roles: Clear validators
-      this.userForm.get('sapEmployeeId')?.clearValidators();
-      this.userForm.get('sapEmployeeId')?.updateValueAndValidity();
-      sapIdsArray.clearValidators();
-      sapIdsArray.updateValueAndValidity();
-      this.userForm.get('warehouseIds')?.clearValidators();
-      this.userForm.get('warehouseIds')?.updateValueAndValidity();
-    }
-  }
-
-  onSapIdChange(sapId: number | null): void {
-    const sapIdValue = sapId ? parseInt(sapId.toString()) : null;
-    
-    if (this.roleEmployee(this.selectedRole) && sapIdValue) {
-      this.loadWarehousesBySapId(sapIdValue);
-      // Set warehouse validation after SAP is selected
-      const warehouseIdsArray = this.userForm.get('warehouseIds') as FormArray;
       warehouseIdsArray.setValidators([(control: AbstractControl): ValidationErrors | null => {
         const formArray = control as FormArray;
         return formArray.length > 0 ? null : { required: true };
       }]);
-      warehouseIdsArray.updateValueAndValidity();
     } else {
-      this.warehouses = [];
-      const warehouseIdsArray = this.userForm.get('warehouseIds') as FormArray;
-      while (warehouseIdsArray.length !== 0) {
-        warehouseIdsArray.removeAt(0);
-      }
+      sapIdsArray.clearValidators();
       warehouseIdsArray.clearValidators();
-      warehouseIdsArray.updateValueAndValidity();
     }
+
+    sapIdsArray.updateValueAndValidity();
+    warehouseIdsArray.updateValueAndValidity();
   }
 
   loadWarehousesBySapId(sapId: number): Promise<void> {
-    this.loadingWarehouses = true;
+    this.loadingWarehousesBySap[sapId] = true;
     return new Promise((resolve) => {
       this.usersService.getWarehousesBySapId(sapId).subscribe({
         next: (res: any) => {
           if (Array.isArray(res)) {
-            this.warehouses = res;
+            this.warehousesBySap[sapId] = res;
           } else if (res.data && Array.isArray(res.data)) {
-            this.warehouses = res.data;
+            this.warehousesBySap[sapId] = res.data;
           } else {
-            this.warehouses = [];
+            this.warehousesBySap[sapId] = [];
           }
-          this.loadingWarehouses = false;
+          this.loadingWarehousesBySap[sapId] = false;
+          this.cdr.detectChanges();
           resolve();
         },
-        error: (err) => {
-          this.loadingWarehouses = false;
-          this.warehouses = [];
-          console.log("sap",err)
+        error: () => {
+          this.loadingWarehousesBySap[sapId] = false;
+          this.warehousesBySap[sapId] = [];
+          this.cdr.detectChanges();
           resolve();
         }
       });
@@ -374,6 +331,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
       // Add SAP ID if not already present
       if (!sapIdsArray.value.includes(sapId)) {
         sapIdsArray.push(this.fb.control(sapId));
+        this.loadWarehousesBySapId(sapId);
       }
     } else {
       // Remove SAP ID
@@ -381,9 +339,21 @@ export class UserFormModalComponent implements OnInit, OnChanges {
       if (index > -1) {
         sapIdsArray.removeAt(index);
       }
+
+      const warehousesToRemove = this.warehousesBySap[sapId]?.map(w => w.warehouseId) || [];
+      const warehouseIdsArray = this.userForm.get('warehouseIds') as FormArray;
+      warehousesToRemove.forEach((warehouseId) => {
+        const warehouseIndex = warehouseIdsArray.value.indexOf(warehouseId);
+        if (warehouseIndex > -1) {
+          warehouseIdsArray.removeAt(warehouseIndex);
+        }
+      });
+      delete this.warehousesBySap[sapId];
+      delete this.loadingWarehousesBySap[sapId];
     }
     
     sapIdsArray.updateValueAndValidity();
+    this.applySapWarehouseValidators();
   }
 
   onWarehouseCheckboxChange(warehouseId: number, event: any): void {
@@ -405,15 +375,28 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     
     warehouseIdsArray.updateValueAndValidity();
   }
+
+  getSelectedSapIds(): number[] {
+    const sapIdsArray = this.userForm.get('sapIds') as FormArray;
+    return sapIdsArray.value || [];
+  }
+
+  getSapName(sapId: number): string {
+    const sap = this.saps.find(s => s.sapId === sapId);
+    return sap?.name || `SAP ${sapId}`;
+  }
+
+  getWarehousesForSap(sapId: number): Warehouse[] {
+    return this.warehousesBySap[sapId] || [];
+  }
+
+  isWarehousesLoadingForSap(sapId: number): boolean {
+    return !!this.loadingWarehousesBySap[sapId];
+  }
   populateForm(): void {
     if (this.user) {
-      const userRole = this.user.roleName || '';
-      this.selectedRole = userRole;
-      
-      // Get data from user object
       const sapIds = (this.user as any).sapIds || [];
       const warehouseIds = (this.user as any).warehouseIds || [];
-      const sapEmployeeId = (this.user as any).sapEmployeeId || null;
       
       // Clear form arrays first
       const sapIdsArray = this.userForm.get('sapIds') as FormArray;
@@ -424,38 +407,31 @@ export class UserFormModalComponent implements OnInit, OnChanges {
       while (warehouseIdsArray.length !== 0) {
         warehouseIdsArray.removeAt(0);
       }
+      this.warehousesBySap = {};
+      this.loadingWarehousesBySap = {};
       
       // Patch form values
       this.userForm.patchValue({
         email: this.user.email || '',
         fullName: this.user.fullName || '',
         phoneNumber: this.user.phoneNumber || '',
-        roles: userRole,
-        companyId: (this.user as any).companyId || null,
-        sapEmployeeId: sapEmployeeId,
+        roles: this.user.roleName || '',
+        companyId: this.requiresCompanySelection ? ((this.user as any).companyId || null) : this.companyIdFromAuth
       });
 
-      // Set validators based on role first
-      const companyIdValidators = this.isSuperAdmin ? [Validators.required] : [];
+      const companyIdValidators = this.requiresCompanySelection ? [Validators.required] : [];
       this.userForm.get('companyId')?.setValidators(companyIdValidators);
       this.userForm.get('companyId')?.updateValueAndValidity();
       
-      this.onRoleChange(userRole);
-
-      // Populate SAP IDs array for manager (only if sapIds exists and is not null/empty)
-      if (userRole === 'manager' && sapIds && Array.isArray(sapIds) && sapIds.length > 0) {
+      if (this.requiresSapWarehouseSelection && Array.isArray(sapIds) && sapIds.length > 0) {
         sapIds.forEach((sapId: number) => {
           if (sapId != null) {
             sapIdsArray.push(this.fb.control(sapId));
           }
         });
         sapIdsArray.updateValueAndValidity();
-      }
 
-      // Load warehouses for employee if sapEmployeeId exists (do this first)
-      if (this.roleEmployee(userRole) && sapEmployeeId) {
-        this.loadWarehousesBySapId(sapEmployeeId).then(() => {
-          // After warehouses are loaded, populate warehouse IDs if they exist
+        Promise.all(sapIds.map((sapId: number) => this.loadWarehousesBySapId(sapId))).then(() => {
           if (warehouseIds && Array.isArray(warehouseIds) && warehouseIds.length > 0) {
             warehouseIds.forEach((warehouseId: number) => {
               if (warehouseId != null) {
@@ -464,18 +440,10 @@ export class UserFormModalComponent implements OnInit, OnChanges {
             });
             warehouseIdsArray.updateValueAndValidity();
           }
-          // Force change detection to update UI
           this.cdr.detectChanges();
         });
-      } else if (this.roleEmployee(userRole) && warehouseIds && Array.isArray(warehouseIds) && warehouseIds.length > 0) {
-        // If no sapEmployeeId but warehouseIds exist, still populate them
-        warehouseIds.forEach((warehouseId: number) => {
-          if (warehouseId != null) {
-            warehouseIdsArray.push(this.fb.control(warehouseId));
-          }
-        });
-        warehouseIdsArray.updateValueAndValidity();
       }
+      this.applySapWarehouseValidators();
 
       // Remove password validators in edit mode
       this.userForm.get('password')?.clearValidators();
@@ -485,13 +453,9 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     }
   }
 
-  roleEmployee(roleName: string): boolean {
-    
-    return roleName !== 'super-admin' && roleName !== 'admin' && roleName !== 'manager';
-  }
   resetForm(): void {
-    this.selectedRole = '';
-    this.warehouses = [];
+    this.warehousesBySap = {};
+    this.loadingWarehousesBySap = {};
     
     // Clear form arrays
     const sapIdsArray = this.userForm.get('sapIds') as FormArray;
@@ -510,17 +474,17 @@ export class UserFormModalComponent implements OnInit, OnChanges {
       fullName: '',
       phoneNumber: '',
       roles: '',
-      companyId: null,
-      sapId: null,
+      companyId: this.requiresCompanySelection ? null : this.companyIdFromAuth,
       // isActive: true,
       password: '',
       confirmPassword: ''
     });
 
     // Set validators based on role
-    const companyIdValidators = this.isSuperAdmin ? [Validators.required] : [];
+    const companyIdValidators = this.requiresCompanySelection ? [Validators.required] : [];
     this.userForm.get('companyId')?.setValidators(companyIdValidators);
     this.userForm.get('companyId')?.updateValueAndValidity();
+    this.applySapWarehouseValidators();
 
     // Add password validators for new user
     if (!this.isEditMode) {
@@ -560,19 +524,14 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     const formValue = this.userForm.value;
     const selectedRole = formValue.roles || '';
 
-    // Additional validation based on role
-    if (selectedRole === 'manager') {
-      const sapIdsArray = this.userForm.get('sapIds') as FormArray;
+    if (this.requiresSapWarehouseSelection) {
       if (sapIdsArray.length === 0) {
         sapIdsArray.setErrors({ required: true });
         sapIdsArray.controls.forEach(control => control.markAsTouched());
         sapIdsArray.updateValueAndValidity();
         return;
       }
-    } 
 
-    else if (this.roleEmployee(selectedRole)) {
-      const warehouseIdsArray = this.userForm.get('warehouseIds') as FormArray;
       if (warehouseIdsArray.length === 0) {
         warehouseIdsArray.setErrors({ required: true });
         warehouseIdsArray.controls.forEach(control => control.markAsTouched());
@@ -590,36 +549,25 @@ export class UserFormModalComponent implements OnInit, OnChanges {
       password: formValue.password,
       confirmPassword: formValue.confirmPassword,
       companyId: null,
-      sapEmployeeId: null,
       sapIds: null,
       warehouseIds: null
       // isActive: formValue.isActive
     };
 
-    // Set companyId for super-admin
-    if (this.isSuperAdmin) {
+    if (this.requiresCompanySelection) {
       userData.companyId = formValue.companyId || null;
     }
 
-    // Handle SAP and warehouse assignments based on role
-    if (selectedRole === 'manager') {
-      // Manager: Multiple SAPs
-      const sapIdsArray = this.userForm.get('sapIds') as FormArray;
+    if (this.requiresSapWarehouseSelection) {
       const sapIds = sapIdsArray.value || [];
+      const warehouseIds = warehouseIdsArray.value || [];
       if (sapIds.length > 0) {
         userData.sapIds = sapIds;
       }
-    } else if (this.roleEmployee(selectedRole)) {
-      // Employee: Single SAP and multiple warehouses
-      if (formValue.sapEmployeeId) {
-        userData.sapEmployeeId = formValue.sapEmployeeId;
-      }
-      const warehouseIdsArray = this.userForm.get('warehouseIds') as FormArray;
-      const warehouseIds = warehouseIdsArray.value || [];
       if (warehouseIds.length > 0) {
         userData.warehouseIds = warehouseIds;
       }
-     }
+    }
      // else if (this.isAdmin && !this.isSuperAdmin) {
     //   // Other roles with admin: Single SAP
     //   userData.sapId = formValue.sapId || null;
@@ -679,7 +627,6 @@ export class UserFormModalComponent implements OnInit, OnChanges {
       phoneNumber: 'phoneNumber',
       roles: 'roles',
       companyId: 'Company',
-      sapId: 'SAP',
       password: 'Password',
       confirmPassword: 'Confirm Password'
     };
@@ -692,15 +639,14 @@ export class UserFormModalComponent implements OnInit, OnChanges {
   }
 
   isSapIdsInvalid(): boolean {
-    if (this.selectedRole !== 'manager') return false;
+    if (!this.requiresSapWarehouseSelection) return false;
     const sapIdsArray = this.userForm.get('sapIds') as FormArray;
     return sapIdsArray.invalid && sapIdsArray.touched;
   }
 
   isWarehouseIdsInvalid(): boolean {
-    if (!this.roleEmployee(this.selectedRole)) return false;
+    if (!this.requiresSapWarehouseSelection) return false;
     const warehouseIdsArray = this.userForm.get('warehouseIds') as FormArray;
     return warehouseIdsArray.invalid && warehouseIdsArray.touched;
   }
 }
-

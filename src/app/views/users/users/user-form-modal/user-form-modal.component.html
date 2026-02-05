@@ -105,8 +105,8 @@
             </div>
           }
         </c-col>
-        <!-- Company select for super-admin -->
-        @if (isSuperAdmin) {
+        <!-- Company select when company is not set in auth -->
+        @if (requiresCompanySelection) {
           <c-col [md]="6">
             <label class="form-label">
               Company <span class="text-danger">*</span>
@@ -134,9 +134,8 @@
           </c-col>
         }
 
-        <!-- SAP selection based on role -->
-        @if (selectedRole === 'manager' && (isAdmin || isSuperAdmin)) {
-          <!-- Multiple SAPs for manager -->
+        <!-- SAP selection based on company context -->
+        @if (requiresSapWarehouseSelection) {
           <c-col [md]="12">
             <label class="form-label">
               SAP Connections <span class="text-danger">*</span>
@@ -170,69 +169,42 @@
               }
             }
           </c-col>
-        } @else if (selectedRole !== 'super-admin' && selectedRole !== 'admin' && selectedRole !== 'manager' && (isAdmin || isSuperAdmin || isManager)) {
-          <!-- Single SAP for employee -->
-          <c-col [md]="6">
-            <label class="form-label">
-              SAP Connection <span class="text-danger">*</span>
-            </label>
-            @if (loadingSaps) {
-              <div class="text-body-secondary">Loading SAPs...</div>
-            } @else {
-              <select
-                cFormControl
-                formControlName="sapEmployeeId"
-                class="form-select"
-                [class.is-invalid]="isFieldInvalid('sapEmployeeId')"
-                (change)="onSapIdChange($any($event.target).value)"
-              >
-                <option [value]="null">-- Select SAP --</option>
-                @for (sap of saps; track sap.sapId) {
-                  <option [value]="sap.sapId">{{ sap.name }}</option>
-                }
-              </select>
-              @if (isFieldInvalid('sapEmployeeId')) {
-                <div class="invalid-feedback d-block">
-                  {{ getFieldError('sapEmployeeId') }}
-                </div>
-              }
-            }
-          </c-col>
-          
-          <!-- Warehouses selection for employee (after SAP is selected) -->
-          @if (userForm.get('sapEmployeeId')?.value) {
+
+          @for (sapId of getSelectedSapIds(); track sapId) {
             <c-col [md]="12">
               <label class="form-label">
-                Warehouses <span class="text-danger">*</span>
+                Warehouses for {{ getSapName(sapId) }} <span class="text-danger">*</span>
               </label>
-              @if (loadingWarehouses) {
+              @if (isWarehousesLoadingForSap(sapId)) {
                 <div class="text-body-secondary">Loading warehouses...</div>
-              } @else if (warehouses.length === 0 && userForm.get('sapEmployeeId')?.value) {
+              } @else if (getWarehousesForSap(sapId).length === 0) {
                 <div class="text-body-secondary">No warehouses available for this SAP</div>
               } @else {
                 <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
-                  @for (warehouse of warehouses; track warehouse.warehouseId) {
+                  @for (warehouse of getWarehousesForSap(sapId); track warehouse.warehouseId) {
                     <div class="form-check mb-2">
                       <input
                         cFormCheckInput
                         type="checkbox"
-                        [id]="'warehouse-' + warehouse.warehouseId"
+                        [id]="'warehouse-' + sapId + '-' + warehouse.warehouseId"
                         [checked]="isWarehouseSelected(warehouse.warehouseId)"
                         (change)="onWarehouseCheckboxChange(warehouse.warehouseId, $event)"
                       />
-                     
-                      <label cFormCheckLabel [for]="'warehouse-' + warehouse.warehouseId">
+                      <label cFormCheckLabel [for]="'warehouse-' + sapId + '-' + warehouse.warehouseId">
                         {{ warehouse.warehouseName }}
                       </label>
                     </div>
                   }
                 </div>
-                @if (isWarehouseIdsInvalid()) {
-                  <div class="invalid-feedback d-block">
-                    Please select at least one warehouse
-                  </div>
-                }
               }
+            </c-col>
+          }
+
+          @if (isWarehouseIdsInvalid()) {
+            <c-col [md]="12">
+              <div class="invalid-feedback d-block">
+                Please select at least one warehouse
+              </div>
             </c-col>
           }
         }

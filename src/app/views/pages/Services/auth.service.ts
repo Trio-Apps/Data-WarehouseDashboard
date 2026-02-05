@@ -92,6 +92,15 @@ hasRole(role: string): boolean {
   }
  
 
+   // companyId
+  storeCompanyId(companyId: number) {
+    localStorage.setItem('CompanyId', companyId.toString())
+  }
+  getCompanyId(): number | null {
+    const value = localStorage.getItem('CompanyId');
+    return value ? parseInt(value) : null;
+  }
+  
   // Token
 private readonly tokenSignal = signal<string | null>(
   localStorage.getItem('token')

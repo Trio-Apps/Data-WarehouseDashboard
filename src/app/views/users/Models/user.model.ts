@@ -6,8 +6,6 @@ export interface User {
   phoneNumber?: string;
   roleName: string;
   companyId?: number | null;
-  //sapId?: number | null;
-  sapEmployeeId?: number | null;
   sapIds?: number[] | null;
   warehouseIds?: number[] | null;
 }
@@ -20,7 +18,6 @@ export interface AddUser {
   confirmPassword: string;
   roleName: string;
   companyId?: number | null;
-  sapEmployeeId?: number | null;
   sapIds?: number[] | null;
   warehouseIds?: number[] | null;
 }

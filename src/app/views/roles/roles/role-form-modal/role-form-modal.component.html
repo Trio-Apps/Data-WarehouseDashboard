@@ -8,6 +8,7 @@
     <h5 cModalTitle>{{ isEditMode ? 'Edit Role' : 'Add New Role' }}</h5>
   </c-modal-header>
   <c-modal-body>
+    <!-- <div>{{roleForm | json }}</div> -->
     <form [formGroup]="roleForm" (ngSubmit)="onSave()">
       <c-row [gutter]="3">
         <!-- Role Name -->
@@ -42,33 +43,40 @@
           ></textarea>
         </c-col> -->
 
+        
         <!-- Permissions -->
-        <!-- <c-col [md]="12">
+        <c-col [md]="12">
           <label class="form-label">Permissions</label>
           <div class="permissions-container border rounded p-3" style="max-height: 300px; overflow-y: auto;">
-            <c-row [gutter]="2">
-              @for (permission of availablePermissions; track permission) {
-                <c-col [md]="6" [sm]="12">
-                  <div class="form-check">
-                    <input
-                      cFormCheckInput
-                      type="checkbox"
-                      [id]="'perm-' + permission"
-                      [checked]="isPermissionSelected(permission)"
-                      (change)="togglePermission(permission)"
-                    />
-                    <label cFormCheckLabel [for]="'perm-' + permission">
-                      {{ permission }}
-                    </label>
-                  </div>
-                </c-col>
-              }
-            </c-row>
+            @if (permissionsLoading) {
+              <div class="text-body-secondary">Loading permissions...</div>
+            } @else if (availablePermissions.length === 0) {
+              <div class="text-body-secondary">No permissions available</div>
+            } @else {
+              <c-row [gutter]="2">
+                @for (permission of availablePermissions; track permission.permissionId) {
+                  <c-col [md]="6" [sm]="12">
+                    <div class="form-check">
+                      <input
+                        cFormCheckInput
+                        type="checkbox"
+                        [id]="'perm-' + permission.permissionId"
+                        [checked]="isPermissionSelected(permission.permissionId)"
+                        (change)="togglePermission(permission.permissionId)"
+                      />
+                      <label cFormCheckLabel [for]="'perm-' + permission.permissionId">
+                        {{ permission.name || permission.key }}
+                      </label>
+                    </div>
+                  </c-col>
+                }
+              </c-row>
+            }
           </div>
           <small class="text-body-secondary">
-            Selected: {{ roleForm.get('permissions')?.value?.length || 0 }} permissions
+            Selected: {{ roleForm.get('permissionIds')?.value?.length || 0 }} permissions
           </small>
-        </c-col> -->
+        </c-col>
 
         <!-- Is Active -->
         <!-- <c-col [md]="12">

@@ -12,7 +12,7 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { RolesService } from '../Services/roles.service';
-import { AddRole, Role } from '../Models/role.model';
+import { AddRoleWithPermissions, Role, RoleFormPayload, UpdateRoleWithPermissions } from '../Models/role.model';
 import { RoleFormModalComponent } from './role-form-modal/role-form-modal.component';
 import { ToastrService } from 'ngx-toastr';
 
@@ -237,16 +237,19 @@ export class RolesComponent implements OnInit, OnDestroy {
     this.showRoleModal = true;
   }
 
-  onSaveRole(roleData: Role): void {
+  onSaveRole(roleData: RoleFormPayload): void {
     this.modalLoading = true;
     this.cdr.detectChanges();
 
     if (this.isEditMode && roleData.id) {
-      console.log(roleData);
-      // Update existing role
-      this.rolesService.updateRole(roleData.id, roleData).subscribe({
-        next: (res: any) => {
-          console.log('Role updated:', res);
+      const payload: UpdateRoleWithPermissions = {
+        roleId: roleData.id,
+        roleName: roleData.roleName,
+        permissionIds: roleData.permissionIds || []
+      };
+
+      this.rolesService.updateRoleWithPermissions(roleData.id, payload).subscribe({
+        next: () => {
           this.modalLoading = false;
           this.showRoleModal = false;
           this.selectedRole = null;
@@ -265,8 +268,8 @@ export class RolesComponent implements OnInit, OnDestroy {
       });
     } else {
       // Create new role
-      const newRole :AddRole = { roleName: roleData.roleName };
-      this.rolesService.createRole(newRole).subscribe({
+      const newRole: AddRoleWithPermissions = { roleName: roleData.roleName, permissionIds: roleData.permissionIds || [] };
+      this.rolesService.createRoleWithPermissions(newRole).subscribe({
         next: (res: any) => {
           console.log('Role created:', res);
           this.modalLoading = false;

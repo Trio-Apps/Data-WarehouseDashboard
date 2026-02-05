@@ -248,4 +248,6 @@ export class ShowItemsComponent implements OnInit, OnDestroy {
   onDetails(itemId: number): void {
     this.router.navigate(['/processes/item-barcodes', itemId]);
   }
+
+  
 }

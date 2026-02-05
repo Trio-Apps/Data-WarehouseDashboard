@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { AddRole, Role, RoleResponse } from '../Models/role.model';
+import { AddRole, AddRoleWithPermissions, Permission, PermissionForRoleResponse, PermissionResponse, Role, RoleResponse, UpdateRoleWithPermissions } from '../Models/role.model';
 import { AuthService } from '../../pages/Services/auth.service';
 
 @Injectable({
@@ -32,12 +32,23 @@ export class RolesService {
   getRoles(pageNumber: number, pageSize: number): Observable<RoleResponse> {
     let url = `${this.baseUrl}Role/${pageNumber}/${pageSize}`;
     
-    return this.http.get<RoleResponse>(url, this.headerOption);
+    return this.http.get<RoleResponse>(url);
+  }
+
+  getPermissions(): Observable<PermissionResponse> {
+    let url = `${this.baseUrl}Permissions`;
+    
+    return this.http.get<PermissionResponse>(url);
   }
    getAllRoles(): Observable<RoleResponse> {
     let url = `${this.baseUrl}Role`;
+    return this.http.get<RoleResponse>(url);
+  }
+
+  getRoleWithInAndUnactivePermissions(roleId :number): Observable<PermissionForRoleResponse> {
+    let url = `${this.baseUrl}Permissions/role/${roleId}`;
     
-    return this.http.get<RoleResponse>(url, this.headerOption);
+    return this.http.get<PermissionForRoleResponse>(url);
   }
 
   /**
@@ -54,11 +65,20 @@ export class RolesService {
     return this.http.post<any>(`${this.baseUrl}Role`, role, this.headerOption);
   }
 
+    createRoleWithPermissions(role: AddRoleWithPermissions): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}Permissions/roles`, role);
+  }
+
+
   /**
    * Update role
    */
   updateRole(roleId: number, role: Role): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}Role/${roleId}`, role, this.headerOption);
+    return this.http.put<any>(`${this.baseUrl}Role/${roleId}`, role);
+  }
+
+   updateRoleWithPermissions(roleId: number, role: UpdateRoleWithPermissions): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}Permissions/roles/${roleId}/permissions`, role);
   }
 
   /**
