@@ -17,6 +17,7 @@ import { CompaniesService } from '../Services/companies.service';
 import { Company } from '../Models/company.model';
 import { CompanyFormModalComponent } from './company-form-modal/company-form-modal.component';
 import { ToastrService } from 'ngx-toastr';
+import { AuthService } from '../../pages/Services/auth.service';
 
 @Component({
   selector: 'app-companies',
@@ -57,6 +58,11 @@ export class CompaniesComponent implements OnInit, OnDestroy {
   isEditMode: boolean = false;
   modalLoading: boolean = false;
 
+  canViewCompanies: boolean = false;
+  canCreateCompanies: boolean = false;
+  canEditCompanies: boolean = false;
+  canDeleteCompanies: boolean = false;
+
   // Company details card
   companyDetails: any = null;
   loadingCompanyDetails: boolean = false;
@@ -72,16 +78,30 @@ export class CompaniesComponent implements OnInit, OnDestroy {
     private router: Router,
     private fb: FormBuilder,
     private companiesService: CompaniesService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {
+    this.checkPermissions();
     this.form = this.fb.group({
       search: ['']
     });
   }
 
+  checkPermissions(): void {
+    this.canViewCompanies = this.authService.hasPermission('Companys.Get');
+    this.canCreateCompanies = this.authService.hasPermission('Companys.Create');
+    this.canEditCompanies = this.authService.hasPermission('Companys.Edit');
+    this.canDeleteCompanies = this.authService.hasPermission('Companys.Delete');
+  }
+
   ngOnInit(): void {
-  
+    if (!this.canViewCompanies) {
+      this.loading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     // Read pagination from URL query params
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
       const page = params['page'] ? +params['page'] : 1;
@@ -106,6 +126,18 @@ export class CompaniesComponent implements OnInit, OnDestroy {
   }
 
   loadCompanies(): void {
+    if (!this.canViewCompanies) {
+      this.loading = false;
+      this.companies = [];
+      this.filteredCompanies = [];
+      this.totalItems = 0;
+      this.totalPages = 0;
+      this.hasNext = false;
+      this.hasPrevious = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.loading = true;
     this.cdr.detectChanges();
 
@@ -153,6 +185,11 @@ export class CompaniesComponent implements OnInit, OnDestroy {
     return this.filteredCompanies;
   }
   changeStatusCompany(company: Company): void {
+    if (!this.canEditCompanies) {
+      this.toastr.error('You do not have permission to edit companies.', 'Access Denied');
+      return;
+    }
+
     if (company.companyId) {
       this.companiesService.changeStatusCompany(company.companyId).subscribe({  
         next: (res: any) => {
@@ -233,6 +270,11 @@ export class CompaniesComponent implements OnInit, OnDestroy {
   }
 
   onSearch(): void {
+    if (!this.canViewCompanies) {
+      this.toastr.error('You do not have permission to view companies.', 'Access Denied');
+      return;
+    }
+
     this.loading = true;
     this.cdr.detectChanges();
 
@@ -256,18 +298,37 @@ export class CompaniesComponent implements OnInit, OnDestroy {
   }
 
   onAddCompany(): void {
+    if (!this.canCreateCompanies) {
+      this.toastr.error('You do not have permission to create companies.', 'Access Denied');
+      return;
+    }
+
     this.selectedCompany = null;
     this.isEditMode = false;
     this.showCompanyModal = true;
   }
 
   onEditCompany(company: Company): void {
+    if (!this.canEditCompanies) {
+      this.toastr.error('You do not have permission to edit companies.', 'Access Denied');
+      return;
+    }
+
     this.selectedCompany = { ...company };
     this.isEditMode = true;
     this.showCompanyModal = true;
   }
 
   onSaveCompany(companyData: Company): void {
+    if (this.isEditMode && !this.canEditCompanies) {
+      this.toastr.error('You do not have permission to edit companies.', 'Access Denied');
+      return;
+    }
+    if (!this.isEditMode && !this.canCreateCompanies) {
+      this.toastr.error('You do not have permission to create companies.', 'Access Denied');
+      return;
+    }
+
     this.modalLoading = true;
     this.cdr.detectChanges();
 
@@ -323,6 +384,11 @@ export class CompaniesComponent implements OnInit, OnDestroy {
   }
 
   onDeleteCompany(company: Company): void {
+    if (!this.canDeleteCompanies) {
+      this.toastr.error('You do not have permission to delete companies.', 'Access Denied');
+      return;
+    }
+
     if (confirm(`Are you sure you want to delete company: ${company.name}?`)) {
       if (company.companyId) {
         this.companiesService.deleteCompany(company.companyId).subscribe({
@@ -341,6 +407,11 @@ export class CompaniesComponent implements OnInit, OnDestroy {
   }
 
   onAction(company: Company): void {
+    if (!this.canEditCompanies) {
+      this.toastr.error('You do not have permission to edit companies.', 'Access Denied');
+      return;
+    }
+
     if (company.companyId) {
       // Call performAction endpoint
       this.companiesService.selectCompany(company.companyId).subscribe({
@@ -360,6 +431,13 @@ export class CompaniesComponent implements OnInit, OnDestroy {
   }
 
   loadCompanyDetails(companyId: number): void {
+    if (!this.canViewCompanies) {
+      this.companyDetails = null;
+      this.loadingCompanyDetails = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.loadingCompanyDetails = true;
     this.companyDetails = null;
     this.cdr.detectChanges();
@@ -399,5 +477,9 @@ export class CompaniesComponent implements OnInit, OnDestroy {
       .replace(/([A-Z])/g, ' $1')
       .replace(/^./, str => str.toUpperCase())
       .trim();
+  }
+
+  get tableColumnCount(): number {
+    return this.canEditCompanies || this.canDeleteCompanies ? 4 : 3;
   }
 }

@@ -2,106 +2,118 @@
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0 header-title">Roles Management</h4>
-      <button cButton color="primary" class="header-button" (click)="onAddRole()">
-        <svg cIcon name="cil-plus" class="me-2"></svg>
-        Add Role
-      </button>
+      @if (canCreateRoles) {
+        <button cButton color="primary" class="header-button" (click)="onAddRole()">
+          <svg cIcon name="cil-plus" class="me-2"></svg>
+          Add Role
+        </button>
+      }
     </c-card-header>
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
       <!-- Search Section -->
   
-
-      <!-- Table Container with Scroll -->
-      <div class="table-container">
-        <table
-          [hover]="true"
-          [striped]="true"
-          cTable
-          class="mb-0"
-        >
-          <thead class="table-header">
-            <tr>
-              <th scope="col" class="bg-body-tertiary">#</th>
-              <th scope="col" class="bg-body-tertiary">Role Name</th>
-              <!-- <th scope="col" class="bg-body-tertiary">Description</th>
-              <th scope="col" class="bg-body-tertiary">Status</th> -->
-              <th scope="col" class="bg-body-tertiary text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @if (loading) {
+      @if (!canViewRoles) {
+        <div class="p-4 text-center text-body-secondary">
+          You do not have permission to view roles.
+        </div>
+      } @else {
+        <!-- Table Container with Scroll -->
+        <div class="table-container">
+          <table
+            [hover]="true"
+            [striped]="true"
+            cTable
+            class="mb-0"
+          >
+            <thead class="table-header">
               <tr>
-                <td colspan="5" class="text-center py-4">
-                  <span class="text-body-secondary">Loading...</span>
-                </td>
+                <th scope="col" class="bg-body-tertiary">#</th>
+                <th scope="col" class="bg-body-tertiary">Role Name</th>
+                <!-- <th scope="col" class="bg-body-tertiary">Description</th>
+                <th scope="col" class="bg-body-tertiary">Status</th> -->
+                @if (canEditRoles || canDeleteRoles) {
+                  <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+                }
               </tr>
-            } @else if (paginatedRoles.length > 0) {
-              @for (role of paginatedRoles; track role.id || $index) {
+            </thead>
+            <tbody>
+              @if (loading) {
                 <tr>
-                  <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
-                  <td><strong>{{ role?.roleName || 'N/A' }}</strong></td>
-                  <!-- <td>{{ role?.description || 'N/A' }}</td>
-                  <td>
-                    @if (role?.isActive) {
-                      <span class="badge bg-success">Active</span>
-                    } @else {
-                      <span class="badge bg-danger">Inactive</span>
+                  <td [attr.colspan]="tableColumnCount" class="text-center py-4">
+                    <span class="text-body-secondary">Loading...</span>
+                  </td>
+                </tr>
+              } @else if (paginatedRoles.length > 0) {
+                @for (role of paginatedRoles; track role.id || $index) {
+                  <tr>
+                    <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
+                    <td><strong>{{ role?.roleName || 'N/A' }}</strong></td>
+                    <!-- <td>{{ role?.description || 'N/A' }}</td>
+                    <td>
+                      @if (role?.isActive) {
+                        <span class="badge bg-success">Active</span>
+                      } @else {
+                        <span class="badge bg-danger">Inactive</span>
+                      }
+                    </td> -->
+                    @if (canEditRoles || canDeleteRoles) {
+                      <td class="text-center">
+                        @if (canEditRoles) {
+                          <button cButton color="info" size="sm" class="me-2" (click)="onEditRole(role)">
+                            <svg cIcon name="cil-pencil"></svg>
+                          </button>
+                        }
+                        @if (canDeleteRoles) {
+                          <button cButton color="danger" size="sm" (click)="onDeleteRole(role)">
+                            <svg cIcon name="cil-trash"></svg>
+                          </button>
+                        }
+                      </td>
                     }
-                  </td> -->
-                  <td class="text-center">
-                    <!-- @if(role?.roleName != 'super-admin' && role?.roleName != 'admin' ){ -->
-                     <button cButton color="info" size="sm" class="me-2" (click)="onEditRole(role)">
-                      <svg cIcon name="cil-pencil"></svg>
-                    </button>
-                    <button cButton color="danger" size="sm" (click)="onDeleteRole(role)">
-                      <svg cIcon name="cil-trash"></svg>
-                    </button>
-                    <!-- } -->
-                
+                  </tr>
+                }
+              } @else {
+                <tr>
+                  <td [attr.colspan]="tableColumnCount" class="text-center py-4">
+                    <span class="text-body-secondary">No roles found</span>
                   </td>
                 </tr>
               }
-            } @else {
-              <tr>
-                <td colspan="5" class="text-center py-4">
-                  <span class="text-body-secondary">No roles found</span>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Pagination -->
-      @if (totalPages > 0) {
-        <div class="pagination-container p-3 border-top">
-          <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center mb-2">
-              <li class="page-item" [class.disabled]="!hasPrevious">
-                <a class="page-link" (click)="onPreviousPage($event)"
-                  [attr.aria-label]="'Previous'" [attr.tabindex]="!hasPrevious ? -1 : null"
-                  [class.disabled]="!hasPrevious" href="#">
-                  <span aria-hidden="true">&laquo;</span>
-                </a>
-              </li>
-              @for (page of getPageNumbers(); track page) {
-                <li class="page-item" [class.active]="page === currentPage">
-                  <a class="page-link" (click)="onPageChange(page, $event)" href="#">{{ page }}</a>
-                </li>
-              }
-              <li class="page-item" [class.disabled]="!hasNext">
-                <a class="page-link" (click)="onNextPage($event)"
-                  [attr.aria-label]="'Next'" [attr.tabindex]="!hasNext ? -1 : null"
-                  [class.disabled]="!hasNext" href="#">
-                  <span aria-hidden="true">&raquo;</span>
-                </a>
-              </li>
-            </ul>
-          </nav>
-          <div class="text-body-secondary small text-center">
-            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }} of {{ totalItems }} roles
-          </div>
+            </tbody>
+          </table>
         </div>
+
+        <!-- Pagination -->
+        @if (totalPages > 0) {
+          <div class="pagination-container p-3 border-top">
+            <nav aria-label="Page navigation">
+              <ul class="pagination justify-content-center mb-2">
+                <li class="page-item" [class.disabled]="!hasPrevious">
+                  <a class="page-link" (click)="onPreviousPage($event)"
+                    [attr.aria-label]="'Previous'" [attr.tabindex]="!hasPrevious ? -1 : null"
+                    [class.disabled]="!hasPrevious" href="#">
+                    <span aria-hidden="true">&laquo;</span>
+                  </a>
+                </li>
+                @for (page of getPageNumbers(); track page) {
+                  <li class="page-item" [class.active]="page === currentPage">
+                    <a class="page-link" (click)="onPageChange(page, $event)" href="#">{{ page }}</a>
+                  </li>
+                }
+                <li class="page-item" [class.disabled]="!hasNext">
+                  <a class="page-link" (click)="onNextPage($event)"
+                    [attr.aria-label]="'Next'" [attr.tabindex]="!hasNext ? -1 : null"
+                    [class.disabled]="!hasNext" href="#">
+                    <span aria-hidden="true">&raquo;</span>
+                  </a>
+                </li>
+              </ul>
+            </nav>
+            <div class="text-body-secondary small text-center">
+              Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }} of {{ totalItems }} roles
+            </div>
+          </div>
+        }
       }
     </c-card-body>
   </c-card>

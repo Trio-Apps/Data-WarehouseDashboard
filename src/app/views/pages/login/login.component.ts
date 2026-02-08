@@ -119,6 +119,10 @@ export class LoginComponent implements OnInit {
                   this.cdr.detectChanges();
 
         }
+        if (res.permissions) {
+          this.authService.storePermissions(res.permissions);
+          this.cdr.detectChanges();
+        }
         if(res.user.companyId){
           this.authService.storeCompanyId(res.user.companyId);
                   this.cdr.detectChanges();

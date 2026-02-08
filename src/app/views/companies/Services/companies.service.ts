@@ -27,6 +27,7 @@ export class CompaniesService {
    * @param pageNumber Page number (1-based)
    * @param pageSize Number of items per page
    */
+  
   getCompanies(pageNumber: number, pageSize: number): Observable<CompanyResponse> {
     let url = `${this.baseUrl}Company/${pageNumber}/${pageSize}`;
     return this.http.get<CompanyResponse>(url, this.headerOption);

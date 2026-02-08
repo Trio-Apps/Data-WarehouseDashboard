@@ -69,8 +69,12 @@ export class UsersComponent implements OnInit, OnDestroy {
   saps: Sap[] = [];
   loadingCompanies: boolean = false;
   loadingSaps: boolean = false;
-  isSuperAdmin: boolean = false;
-  isAdmin: boolean = false;
+  canViewUsers: boolean = false;
+  canCreateUsers: boolean = false;
+  canEditUsers: boolean = false;
+  canDeleteUsers: boolean = false;
+  canViewCompanies: boolean = false;
+  canViewSaps: boolean = false;
 
   // Expose Math to template
   Math = Math;
@@ -89,7 +93,7 @@ export class UsersComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {
-    this.checkUserRole();
+    this.checkPermissions();
     this.form = this.fb.group({
       search: [''],
       searchCompanyId: [null],
@@ -99,19 +103,29 @@ export class UsersComponent implements OnInit, OnDestroy {
     });
   }
 
-  checkUserRole(): void {
-    this.isSuperAdmin = this.authService.hasRole('super-admin');
-    this.isAdmin = this.authService.hasRole('admin');
+  checkPermissions(): void {
+    this.canViewUsers = this.authService.hasPermission('Users.Get');
+    this.canCreateUsers = this.authService.hasPermission('Users.Create');
+    this.canEditUsers = this.authService.hasPermission('Users.Edit');
+    this.canDeleteUsers = this.authService.hasPermission('Users.Delete');
+    this.canViewCompanies = this.authService.hasPermission('Companys.Get');
+    this.canViewSaps = this.authService.hasPermission('Saps.Get');
   }
 
   ngOnInit(): void {
-    // Load companies for super-admin
-    if (this.isSuperAdmin) {
+    if (!this.canViewUsers) {
+      this.loading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    // Load companies if permitted
+    if (this.canViewCompanies) {
       this.loadCompanies();
     }
     
-    // Load SAPs for admin (without company filter)
-    if (this.isAdmin && !this.isSuperAdmin) {
+    // Load SAPs (without company filter) if permitted
+    if (this.canViewSaps && !this.canViewCompanies) {
       this.loadAllSaps();
     }
 
@@ -154,15 +168,17 @@ export class UsersComponent implements OnInit, OnDestroy {
     const companyId = this.form.value.searchCompanyId;
     this.searchCompanyId = companyId || null;
     
-    // Reset SAP selection when company changes (only for super-admin)
-    if (this.isSuperAdmin) {
+    // Reset SAP selection when company changes
+    if (this.canViewCompanies) {
       this.form.patchValue({ searchSapId: null });
       this.searchSapId = null;
       this.saps = [];
 
       // Load SAPs for selected company
-      if (companyId) {
+      if (companyId && this.canViewSaps) {
         this.loadSapsByCompany(companyId);
+      } else if (this.canViewSaps) {
+        this.loadAllSaps();
       }
     }
   }
@@ -218,6 +234,18 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   loadUsers(): void {
+    if (!this.canViewUsers) {
+      this.loading = false;
+      this.users = [];
+      this.filteredUsers = [];
+      this.totalItems = 0;
+      this.totalPages = 0;
+      this.hasNext = false;
+      this.hasPrevious = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.loading = true;
     this.cdr.detectChanges();
 
@@ -339,6 +367,11 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   onSearch(): void {
+    if (!this.canViewUsers) {
+      this.toastr.error('You do not have permission to view users.', 'Access Denied');
+      return;
+    }
+
     this.loading = true;
     this.cdr.detectChanges();
 
@@ -360,12 +393,22 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   onAddUser(): void {
+    if (!this.canCreateUsers) {
+      this.toastr.error('You do not have permission to create users.', 'Access Denied');
+      return;
+    }
+
     this.selectedUser = null;
     this.isEditMode = false;
     this.showUserModal = true;
   }
 
   onEditUser(user: User): void {
+    if (!this.canEditUsers) {
+      this.toastr.error('You do not have permission to edit users.', 'Access Denied');
+      return;
+    }
+
     this.selectedUser = { ...user };
 
     console.log("edit here :", this.selectedUser);
@@ -374,6 +417,15 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   onSaveUser(userData: User): void {
+    if (this.isEditMode && !this.canEditUsers) {
+      this.toastr.error('You do not have permission to edit users.', 'Access Denied');
+      return;
+    }
+    if (!this.isEditMode && !this.canCreateUsers) {
+      this.toastr.error('You do not have permission to create users.', 'Access Denied');
+      return;
+    }
+
     this.modalLoading = true;
     this.cdr.detectChanges();
      console.log("User Model : " ,userData);
@@ -430,6 +482,11 @@ export class UsersComponent implements OnInit, OnDestroy {
   }
 
   onDeleteUser(user: User): void {
+    if (!this.canDeleteUsers) {
+      this.toastr.error('You do not have permission to delete users.', 'Access Denied');
+      return;
+    }
+
     if (confirm(`Are you sure you want to delete user: ${user.id}?`)) {
       if (user.id) {
         this.usersService.deleteUser(user.id).subscribe({
@@ -445,6 +502,10 @@ export class UsersComponent implements OnInit, OnDestroy {
         });
       }
     }
+  }
+
+  get tableColumnCount(): number {
+    return this.canEditUsers || this.canDeleteUsers ? 6 : 5;
   }
 }
 

@@ -69,7 +69,7 @@ export class AuthService {
       window.location.reload();
   }
 
-    // roles
+  // roles
 
 storeRoles(roles: string[]): void {
   localStorage.setItem('roles', JSON.stringify(roles));
@@ -83,6 +83,26 @@ getRoles(): string[] {
 hasRole(role: string): boolean {
   return this.getRoles().includes(role);
 }
+
+  // permissions
+
+  storePermissions(permissions: string[]): void {
+    localStorage.setItem('permissions', JSON.stringify(permissions || []));
+  }
+
+  getPermissions(): string[] {
+    const value = localStorage.getItem('permissions');
+    return value ? (JSON.parse(value) as string[]) : [];
+  }
+
+  hasPermission(permission: string): boolean {
+    return this.getPermissions().includes(permission);
+  }
+
+  hasAnyPermission(permissions: string[]): boolean {
+    const current = new Set(this.getPermissions());
+    return permissions.some((permission) => current.has(permission));
+  }
 
   storeEmailRegister(email: string) {
     localStorage.setItem('EmailRegister', email)

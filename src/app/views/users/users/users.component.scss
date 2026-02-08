@@ -259,6 +259,29 @@ c-card.full-height-card{
   border-top:1px solid rgba(40,106,97,0.08) !important;
 }
 
+/* keep filter fields consistent across permission combinations */
+.form-section .filter-row{
+  align-items: flex-end;
+}
+
+.form-section .filter-col{
+  flex: 1 1 240px;
+  min-width: 220px;
+}
+
+.form-section .search-button-col{
+  flex: 0 0 180px;
+  min-width: 160px;
+}
+
+@media (max-width: 992px){
+  .form-section .filter-col,
+  .form-section .search-button-col{
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+}
+
 /* labels */
 .form-section .form-label{
   color:var(--text-heading);

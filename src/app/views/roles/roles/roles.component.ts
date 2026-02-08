@@ -15,6 +15,7 @@ import { RolesService } from '../Services/roles.service';
 import { AddRoleWithPermissions, Role, RoleFormPayload, UpdateRoleWithPermissions } from '../Models/role.model';
 import { RoleFormModalComponent } from './role-form-modal/role-form-modal.component';
 import { ToastrService } from 'ngx-toastr';
+import { AuthService } from '../../pages/Services/auth.service';
 
 @Component({
   selector: 'app-roles',
@@ -53,6 +54,11 @@ export class RolesComponent implements OnInit, OnDestroy {
   isEditMode: boolean = false;
   modalLoading: boolean = false;
 
+  canViewRoles: boolean = false;
+  canCreateRoles: boolean = false;
+  canEditRoles: boolean = false;
+  canDeleteRoles: boolean = false;
+
   // Expose Math to template
   Math = Math;
 
@@ -64,15 +70,30 @@ export class RolesComponent implements OnInit, OnDestroy {
     private router: Router,
     private fb: FormBuilder,
     private rolesService: RolesService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {
+    this.checkPermissions();
     this.form = this.fb.group({
       search: ['']
     });
   }
 
+  checkPermissions(): void {
+    this.canViewRoles = this.authService.hasPermission('Roles.Get');
+    this.canCreateRoles = this.authService.hasPermission('Roles.Create');
+    this.canEditRoles = this.authService.hasPermission('Roles.Edit');
+    this.canDeleteRoles = this.authService.hasPermission('Roles.Delete');
+  }
+
   ngOnInit(): void {
+    if (!this.canViewRoles) {
+      this.loading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     // Read pagination from URL query params
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
       const page = params['page'] ? +params['page'] : 1;
@@ -95,6 +116,18 @@ export class RolesComponent implements OnInit, OnDestroy {
   }
 
   loadRoles(): void {
+    if (!this.canViewRoles) {
+      this.loading = false;
+      this.roles = [];
+      this.filteredRoles = [];
+      this.totalItems = 0;
+      this.totalPages = 0;
+      this.hasNext = false;
+      this.hasPrevious = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.loading = true;
     this.cdr.detectChanges();
 
@@ -203,6 +236,11 @@ export class RolesComponent implements OnInit, OnDestroy {
   }
 
   onSearch(): void {
+    if (!this.canViewRoles) {
+      this.toastr.error('You do not have permission to view roles.', 'Access Denied');
+      return;
+    }
+
     this.loading = true;
     this.cdr.detectChanges();
 
@@ -226,18 +264,37 @@ export class RolesComponent implements OnInit, OnDestroy {
   }
 
   onAddRole(): void {
+    if (!this.canCreateRoles) {
+      this.toastr.error('You do not have permission to create roles.', 'Access Denied');
+      return;
+    }
+
     this.selectedRole = null;
     this.isEditMode = false;
     this.showRoleModal = true;
   }
 
   onEditRole(role: Role): void {
+    if (!this.canEditRoles) {
+      this.toastr.error('You do not have permission to edit roles.', 'Access Denied');
+      return;
+    }
+
     this.selectedRole = { ...role };
     this.isEditMode = true;
     this.showRoleModal = true;
   }
 
   onSaveRole(roleData: RoleFormPayload): void {
+    if (this.isEditMode && !this.canEditRoles) {
+      this.toastr.error('You do not have permission to edit roles.', 'Access Denied');
+      return;
+    }
+    if (!this.isEditMode && !this.canCreateRoles) {
+      this.toastr.error('You do not have permission to create roles.', 'Access Denied');
+      return;
+    }
+
     this.modalLoading = true;
     this.cdr.detectChanges();
 
@@ -298,6 +355,11 @@ export class RolesComponent implements OnInit, OnDestroy {
   }
 
   onDeleteRole(role: Role): void {
+    if (!this.canDeleteRoles) {
+      this.toastr.error('You do not have permission to delete roles.', 'Access Denied');
+      return;
+    }
+
     if (confirm(`Are you sure you want to delete role: ${role.roleName}?`)) {
       if (role.id) {
         this.rolesService.deleteRole(role.roleName).subscribe({
@@ -313,6 +375,10 @@ export class RolesComponent implements OnInit, OnDestroy {
         });
       }
     }
+  }
+
+  get tableColumnCount(): number {
+    return this.canEditRoles || this.canDeleteRoles ? 3 : 2;
   }
 }
 

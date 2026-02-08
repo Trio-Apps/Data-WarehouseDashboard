@@ -66,7 +66,12 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   companies: Company[] = [];
   loadingCompanies: boolean = false;
   loadingRoles: boolean = false;
-  isSuperAdmin: boolean = false;
+  canViewApprovalSteps: boolean = false;
+  canCreateApprovalSteps: boolean = false;
+  canEditApprovalSteps: boolean = false;
+  canDeleteApprovalSteps: boolean = false;
+  canViewCompanies: boolean = false;
+  canViewRoles: boolean = false;
 
   // Expose Math to template
   Math = Math;
@@ -85,7 +90,7 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {
-    this.isSuperAdmin = this.authService.hasRole('super-admin');
+    this.checkPermissions();
     this.form = this.fb.group({
       searchCompanyId: [null],
       searchStepName: [''],
@@ -94,11 +99,28 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
     });
   }
 
+  checkPermissions(): void {
+    this.canViewApprovalSteps = this.authService.hasPermission('ApprovalSteps.Get');
+    this.canCreateApprovalSteps = this.authService.hasPermission('ApprovalSteps.Create');
+    this.canEditApprovalSteps = this.authService.hasPermission('ApprovalSteps.Edit');
+    this.canDeleteApprovalSteps = this.authService.hasPermission('ApprovalSteps.Delete');
+    this.canViewCompanies = this.authService.hasPermission('Companys.Get');
+    this.canViewRoles = this.authService.hasPermission('Roles.Get');
+  }
+
   ngOnInit(): void {
-    if (this.isSuperAdmin) {
+    if (!this.canViewApprovalSteps) {
+      this.loading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
+    if (this.canViewCompanies) {
       this.loadCompanies();
     }
-    this.loadRoles();
+    if (this.canViewRoles) {
+      this.loadRoles();
+    }
 
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
       const page = params['page'] ? +params['page'] : 1;
@@ -120,6 +142,13 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   }
 
   loadCompanies(): void {
+    if (!this.canViewCompanies) {
+      this.loadingCompanies = false;
+      this.companies = [];
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.loadingCompanies = true;
     this.companiesService.getCompanies(1, 1000).subscribe({
       next: (res: any) => {
@@ -139,6 +168,13 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   }
 
   loadRoles(): void {
+    if (!this.canViewRoles) {
+      this.loadingRoles = false;
+      this.roles = [];
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.loadingRoles = true;
     this.rolesService.getAllRoles().subscribe({
       next: (res: any) => {
@@ -164,6 +200,18 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   }
 
   loadApprovalSteps(): void {
+    if (!this.canViewApprovalSteps) {
+      this.loading = false;
+      this.approvalSteps = [];
+      this.filteredApprovalSteps = [];
+      this.totalItems = 0;
+      this.totalPages = 0;
+      this.hasNext = false;
+      this.hasPrevious = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.loading = true;
     this.cdr.detectChanges();
 
@@ -273,6 +321,11 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   }
 
   onSearch(): void {
+    if (!this.canViewApprovalSteps) {
+      this.toastr.error('You do not have permission to view approval steps.', 'Access Denied');
+      return;
+    }
+
     this.loading = true;
     this.cdr.detectChanges();
 
@@ -294,18 +347,37 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   }
 
   onAddStepClick(): void {
+    if (!this.canCreateApprovalSteps) {
+      this.toastr.error('You do not have permission to create approval steps.', 'Access Denied');
+      return;
+    }
+
     this.selectedStep = null;
     this.isEditMode = false;
     this.showStepModal = true;
   }
 
   onEditStep(step: ApprovalStepDto): void {
+    if (!this.canEditApprovalSteps) {
+      this.toastr.error('You do not have permission to edit approval steps.', 'Access Denied');
+      return;
+    }
+
     this.selectedStep = { ...step };
     this.isEditMode = true;
     this.showStepModal = true;
   }
 
   onSaveStep(stepData: AddApprovalStepDto | UpdateApprovalStepDto): void {
+    if (this.isEditMode && !this.canEditApprovalSteps) {
+      this.toastr.error('You do not have permission to edit approval steps.', 'Access Denied');
+      return;
+    }
+    if (!this.isEditMode && !this.canCreateApprovalSteps) {
+      this.toastr.error('You do not have permission to create approval steps.', 'Access Denied');
+      return;
+    }
+
     this.modalLoading = true;
     this.cdr.detectChanges();
 
@@ -323,6 +395,11 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   }
 
   onAddStep(stepData: AddApprovalStepDto): void {
+    if (!this.canCreateApprovalSteps) {
+      this.toastr.error('You do not have permission to create approval steps.', 'Access Denied');
+      return;
+    }
+
     this.approvalService.createApprovalStep(stepData).subscribe({
       next: () => {
         this.toastr.success('Approval step created successfully', 'Success');
@@ -340,6 +417,11 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   }
 
   onUpdateStep(stepData: UpdateApprovalStepDto): void {
+    if (!this.canEditApprovalSteps) {
+      this.toastr.error('You do not have permission to edit approval steps.', 'Access Denied');
+      return;
+    }
+
     this.approvalService.updateApprovalStep(stepData).subscribe({
       next: () => {
         this.toastr.success('Approval step updated successfully', 'Success');
@@ -357,6 +439,11 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   }
 
   onDeleteStep(step: ApprovalStepDto): void {
+    if (!this.canDeleteApprovalSteps) {
+      this.toastr.error('You do not have permission to delete approval steps.', 'Access Denied');
+      return;
+    }
+
     if (confirm(`Are you sure you want to delete step: ${step.stepName}?`)) {
       this.approvalService.deleteApprovalStep(step.approvalStepId).subscribe({
         next: () => {
@@ -370,5 +457,9 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  get tableColumnCount(): number {
+    return this.canEditApprovalSteps || this.canDeleteApprovalSteps ? 6 : 5;
   }
 }

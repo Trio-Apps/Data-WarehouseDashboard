@@ -7,6 +7,7 @@ import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
 import { ApprovalService } from '../Services/approval.service';
 import { ProcessApproval } from '../Models/approval-model';
+import { AuthService } from '../../../pages/Services/auth.service';
 
 @Component({
   selector: 'app-my-processes',
@@ -37,17 +38,34 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
   // Expose Math to template
   Math = Math;
 
+  canViewMyApprovals: boolean = false;
+  canActionApprovals: boolean = false;
+
   private queryParamsSubscription?: Subscription;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private approvalService: ApprovalService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
-  ) {}
+  ) {
+    this.checkPermissions();
+  }
+
+  checkPermissions(): void {
+    this.canViewMyApprovals = this.authService.hasPermission('Approvals.GetMy');
+    this.canActionApprovals = this.authService.hasPermission('Approvals.Action');
+  }
 
   ngOnInit(): void {
+    if (!this.canViewMyApprovals) {
+      this.loading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
       const page = params['page'] ? +params['page'] : 1;
       const pageSize = params['pageSize'] ? +params['pageSize'] : 10;
@@ -66,6 +84,18 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
   }
 
   loadMyApprovals(): void {
+    if (!this.canViewMyApprovals) {
+      this.loading = false;
+      this.approvals = [];
+      this.filteredApprovals = [];
+      this.totalItems = 0;
+      this.totalPages = 0;
+      this.hasNext = false;
+      this.hasPrevious = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.loading = true;
     this.cdr.detectChanges();
 
@@ -167,6 +197,11 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
   }
 
   goToProcess(approval: ProcessApproval): void {
+    if (!this.canActionApprovals) {
+      this.toastr.error('You do not have permission to take action on approvals.', 'Access Denied');
+      return;
+    }
+
     const processType = approval.processItemIsProgress?.processType || '';
     const referenceId = approval.processItemIsProgress?.referenceId;
 
@@ -187,5 +222,9 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
         this.toastr.info(`No navigation defined for ${processType}.`, 'Info');
         break;
     }
+  }
+
+  get tableColumnCount(): number {
+    return this.canActionApprovals ? 8 : 7;
   }
 }

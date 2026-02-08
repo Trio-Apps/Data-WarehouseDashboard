@@ -17,7 +17,7 @@ import {
 } from '@coreui/angular';
 
 import { DefaultFooterComponent, DefaultHeaderComponent } from './';
-import { navItems } from './_nav';
+import { navItems, NavItemWithPermissions } from './_nav';
 import { AuthService } from '../../views/pages/Services/auth.service';
 
 function isOverflown(element: HTMLElement) {
@@ -50,7 +50,7 @@ function isOverflown(element: HTMLElement) {
   ]
 })
 export class DefaultLayoutComponent implements OnInit {
-  public navItems: INavData[] = [];
+  public navItems: NavItemWithPermissions[] = [];
 
   constructor(private authService: AuthService) {}
 
@@ -59,48 +59,39 @@ export class DefaultLayoutComponent implements OnInit {
   }
 
   filterNavItems(): void {
-    const isSuperAdmin = this.authService.hasRole('super-admin');
-    const isAdmin = this.authService.hasRole('admin');
- const isManager = this.authService.hasRole('manager');
+    this.navItems = this.filterItemsByPermissions(navItems);
+  }
 
-    if (isSuperAdmin) {
-      // Show all items if user is admin
-      this.navItems = navItems.filter(item => {
-        // Filter out Barcodes
-        if (item.name === 'Barcodes') {
-          return false;
+  private filterItemsByPermissions(items: NavItemWithPermissions[]): NavItemWithPermissions[] {
+    return items
+      .map((item) => {
+        const required = item.permissions;
+
+        if (item.children && item.children.length > 0) {
+          const filteredChildren = this.filterItemsByPermissions(item.children);
+          const hasParentPermission = this.hasAnyPermission(required);
+          if (filteredChildren.length === 0 && !hasParentPermission) {
+            return null;
+          }
+          return {
+            ...item,
+            children: filteredChildren
+          };
         }
-          // Filter out Barcodes
-        if (item.name === 'Inquiries') {
-          return false;
+
+        if (!this.hasAnyPermission(required)) {
+          return null;
         }
-       
-           // Filter out Barcodes
-        if (item.name === 'Settings') {
-          return false;
-        }
-        
-        return true;
-      });
-    } else if(isAdmin) {
-      // Filter out Settings and Barcodes if user is not admin
-      this.navItems = navItems.filter(item => {
-        
-           // Filter out Barcodes
-        if (item.name === 'Companies') {
-          return false;
-        }
-        return true;
-      });
+
+        return item;
+      })
+      .filter((item): item is NavItemWithPermissions => !!item);
+  }
+
+  private hasAnyPermission(permissions?: string[]): boolean {
+    if (!permissions || permissions.length === 0) {
+      return true;
     }
-    else {
-        this.navItems = navItems.filter(item => {
-           // Filter out Barcodes
-        if (item.name === 'Roles' || item.name === 'Settings' || item.name === 'Companies') {
-          return false;
-        }
-        return true;
-      });
-    }
+    return this.authService.hasAnyPermission(permissions);
   }
 }

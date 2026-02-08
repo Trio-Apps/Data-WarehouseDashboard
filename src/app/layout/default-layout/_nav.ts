@@ -1,6 +1,11 @@
 import { INavData } from '@coreui/angular';
 
-export const navItems: INavData[] = [
+export interface NavItemWithPermissions extends INavData {
+  permissions?: string[];
+  children?: NavItemWithPermissions[];
+}
+
+export const navItems: NavItemWithPermissions[] = [
   {
     name: 'Dashboard',
     url: '/dashboard',
@@ -22,19 +27,22 @@ export const navItems: INavData[] = [
       {
         name: 'Barcodes Inquiry',
         url: '/inquiries/items-inquiry',
-        icon: 'nav-icon-bullet'
+        icon: 'nav-icon-bullet',
+        permissions: ['Warehouses.Get']
       },
        {
         name: 'Processes Inquiry',
         url: '/inquiries/processes-inquiry',
-        icon: 'nav-icon-bullet'
+        icon: 'nav-icon-bullet',
+        permissions: ['Warehouses.Get']
       }
     ]
   },
   {
     name: 'Companies',
     url: '/companies/companies',
-    iconComponent: { name: 'cil-building' }
+    iconComponent: { name: 'cil-building' },
+    permissions: ['Companys.Get']
   },
 
   {
@@ -46,11 +54,13 @@ export const navItems: INavData[] = [
     name: 'Users',
     url: '/users',
     iconComponent: { name: 'cil-people' },
+    permissions: ['Users.Get'],
     children: [
       {
         name: 'Users Management',
         url: '/users/users',
-        icon: 'nav-icon-bullet'
+        icon: 'nav-icon-bullet',
+        permissions: ['Users.Get']
       }
     ]
   },
@@ -58,11 +68,13 @@ export const navItems: INavData[] = [
     name: 'Roles',
     url: '/roles',
     iconComponent: { name: 'cil-arrow-top' },
+    permissions: ['Roles.Get'],
     children: [
       {
         name: 'Roles Management',
         url: '/roles/roles',
-        icon: 'nav-icon-bullet'
+        icon: 'nav-icon-bullet',
+        permissions: ['Roles.Get']
       }
     ]
   },
@@ -74,12 +86,14 @@ export const navItems: INavData[] = [
       {
         name: 'Approval Steps Management',
         url: '/processes/approval-process/approval-steps',
-        icon: 'nav-icon-bullet'
+        icon: 'nav-icon-bullet',
+        permissions: ['ApprovalSteps.Get']
       },
       {
         name: 'My Approvals',
         url: '/processes/approval-process/my-processes',
-        icon: 'nav-icon-bullet'
+        icon: 'nav-icon-bullet',
+        permissions: ['Approvals.GetMy']
       }
     ]
   },
@@ -91,19 +105,23 @@ export const navItems: INavData[] = [
       {
         name: 'SAP Auth Settings',
         url: '/settings/auth',
-        icon: 'nav-icon-bullet'
+        icon: 'nav-icon-bullet',
+        permissions: ['Saps.Get']
       }
-    ]
+    ],
+    permissions: ['Saps.Get']
   },
   {
     name: 'Barcodes',
     url: '/barcodes',
     iconComponent: { name: 'cil-barcode' },
+    permissions: ['Items.Get'],
     children: [
       {
         name: 'Barcode Settings',
         url: '/barcodes/barcodes',
-        icon: 'nav-icon-bullet'
+        icon: 'nav-icon-bullet',
+        permissions: ['Items.Get']
       }
     ]
   },

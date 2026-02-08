@@ -2,10 +2,12 @@
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0 header-title">Companies Management</h4>
-      <button cButton color="primary" class="header-button" (click)="onAddCompany()">
-        <svg cIcon name="cil-plus" class="me-2"></svg>
-        Add Company
-      </button>
+      @if (canCreateCompanies) {
+        <button cButton color="primary" class="header-button" (click)="onAddCompany()">
+          <svg cIcon name="cil-plus" class="me-2"></svg>
+          Add Company
+        </button>
+      }
     </c-card-header>
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
       <!-- Search Section -->
@@ -30,6 +32,11 @@
         </form>
       </div> -->
 
+      @if (!canViewCompanies) {
+        <div class="p-4 text-center text-body-secondary">
+          You do not have permission to view companies.
+        </div>
+      } @else {
       <!-- Company Details Card -->
       @if (companyDetails) {
       <div class="p-3 border-bottom">
@@ -75,13 +82,15 @@
               <th scope="col" class="bg-body-tertiary">#</th>
               <th scope="col" class="bg-body-tertiary">Company Name</th>
               <th scope="col" class="bg-body-tertiary">Status</th>
-              <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+              @if (canEditCompanies || canDeleteCompanies) {
+                <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+              }
             </tr>
           </thead>
           <tbody>
             @if (loading) {
             <tr>
-              <td colspan="4" class="text-center py-4">
+              <td [attr.colspan]="tableColumnCount" class="text-center py-4">
                 <span class="text-body-secondary">Loading...</span>
               </td>
             </tr>
@@ -97,25 +106,31 @@
                 <span class="badge bg-danger">Inactive</span>
                 }
               </td>
-              <td class="text-center">
-                <button cButton color="info" size="sm" class="me-2" (click)="onEditCompany(company)">
-                  <svg cIcon name="cil-pencil"></svg>
-                </button>
-                <button cButton color="warning" size="sm" class="me-2" (click)="onAction(company)">
-                  <svg cIcon name="cil-star"></svg>
-                </button>
-                <button cButton color="danger" size="sm" class="me-2" (click)="onDeleteCompany(company)">
-                  <svg cIcon name="cil-trash"></svg>
-                </button>
-                <button cButton color="secondary" size="sm" (click)="changeStatusCompany(company)">
-                  <svg cIcon name="cil-check"></svg>
-                </button>
-              </td>
+              @if (canEditCompanies || canDeleteCompanies) {
+                <td class="text-center">
+                  @if (canEditCompanies) {
+                    <button cButton color="info" size="sm" class="me-2" (click)="onEditCompany(company)">
+                      <svg cIcon name="cil-pencil"></svg>
+                    </button>
+                    <button cButton color="warning" size="sm" class="me-2" (click)="onAction(company)">
+                      <svg cIcon name="cil-star"></svg>
+                    </button>
+                    <button cButton color="secondary" size="sm"  class="me-2" (click)="changeStatusCompany(company)">
+                      <svg cIcon name="cil-check"></svg>
+                    </button>
+                  }
+                  @if (canDeleteCompanies) {
+                    <button cButton color="danger" size="sm" class="me-2" (click)="onDeleteCompany(company)">
+                      <svg cIcon name="cil-trash"></svg>
+                    </button>
+                  }
+                </td>
+              }
             </tr>
             }
             } @else {
             <tr>
-              <td colspan="4" class="text-center py-4">
+              <td [attr.colspan]="tableColumnCount" class="text-center py-4">
                 <span class="text-body-secondary">No companies found</span>
               </td>
             </tr>
@@ -153,6 +168,7 @@
           of {{ totalItems }} companies
         </div>
       </div>
+      }
       }
     </c-card-body>
   </c-card>
