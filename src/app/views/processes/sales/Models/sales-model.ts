@@ -13,6 +13,13 @@ export interface Sales {
   customer?: Customer;
   customerName?:string;
   items?: SalesItem[];
+  canApprove?: boolean;
+  approval?: boolean | null;
+  approvalStatus?: string | null;
+  reason?: string;
+  processApprovalId?: number;
+  processItemIsProgressId?:number;
+  isReturn?: boolean|null;
 }
 
 export interface AddSales {
@@ -21,7 +28,6 @@ export interface AddSales {
   comment: string;
   customerId: number;
   warehouseId: number;
-
   isDraft: boolean;
   
 }

@@ -26,11 +26,16 @@
                   <h6 class="card-title">Sale Order #{{ Sale?.salesOrderId }}</h6>
                 </div>
                 <div>
-               @if (Sale?.status == 'Draft') { 
+               @if (!isApproved(Sale)) { 
                   <button cButton class="me-2" color="warning" size="sm" (click)="onEditSale()">
                   <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
                   Edit
                </button>
+               @if (Sale?.canApprove) {
+                  <button cButton class="me-2" color="success" size="sm" (click)="onOpenApprovalModal()">
+                    Approve
+                  </button>
+               }
    }
 
    @else{
@@ -38,6 +43,11 @@
                   <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
                   Return
                 </button>
+      @if (Sale?.canApprove) {
+        <button cButton class="ms-2" color="success" size="sm" (click)="onOpenApprovalModal()">
+          Approve
+        </button>
+      }
   }
                  
            
@@ -71,6 +81,16 @@
                 </c-col>
                 <c-col [md]="3">
                   <div class="mb-2">
+                    <label class="form-label small text-muted">Approval Status</label>
+                    <p class="mb-0">
+                      <span [class]="getApprovalBadgeClass(Sale)">
+                        {{ getApprovalStatusText(Sale) }}
+                      </span>
+                    </p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
                     <label class="form-label small text-muted">Comment</label>
                     <p class="mb-0">{{ Sale?.comment || 'No comment' }}</p>
                   </div>
@@ -86,7 +106,7 @@
       <div class="flex-grow-1 d-flex flex-column p-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0">Sale Items</h5>
-          @if (Sale && Sale?.status == 'Draft') {
+          @if (Sale && !isApproved(Sale)) {
             <button cButton color="primary" size="sm" (click)="onAddItem()">
               <svg cIcon name="cilPlus" class="me-2"></svg>
               Add Item
@@ -106,7 +126,7 @@
                 <th scope="col" class="bg-body-tertiary">Quantity</th>
                 <th scope="col" class="bg-body-tertiary">Unit</th>
                 <th scope="col" class="bg-body-tertiary text-center">Batches</th>
-                @if (Sale && Sale?.status == 'Draft') {
+                @if (Sale && !isApproved(Sale)) {
                   <th scope="col" class="bg-body-tertiary text-center">Actions</th>
                 }
                 @else{
@@ -119,7 +139,7 @@
             <tbody>
               @if (loading) {
                 <tr>
-                  <td [attr.colspan]="Sale && Sale?.status == 'Draft' ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="Sale && !isApproved(Sale) ? 8 : 7" class="text-center py-4">
                     <span class="text-body-secondary">Loading...</span>
                   </td>
                 </tr>
@@ -143,7 +163,7 @@
                         <svg cIcon name="cil-layers"></svg>
                       </button>
                     </td>
-                    @if (Sale?.status == 'Draft') {
+                    @if (!isApproved(Sale)) {
                       <td class="text-center">
                       <button cButton color="info" size="sm" class="me-2" (click)="onEditItem(item)" title="Edit">
                         <svg cIcon name="cil-pencil"></svg>
@@ -163,7 +183,7 @@
                 }
               } @else {
                 <tr>
-                  <td [attr.colspan]="Sale && Sale?.status == 'Draft' ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="Sale && !isApproved(Sale) ? 8 : 7" class="text-center py-4">
                     <span class="text-body-secondary">No items in this Sale</span>
                   </td>
                 </tr>
@@ -204,3 +224,61 @@
   (visibleChange)="showEditItemModal = $event"
   (itemUpdated)="onItemUpdated()">
 </app-edit-item-modal>
+
+<!-- Approval Modal -->
+
+
+<c-modal
+  [visible]="showApprovalModal"
+  (visibleChange)="onApprovalVisibleChange($event)"
+  size="lg"
+  alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>Approval</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="mb-3 p-2 bg-light rounded">
+     Are you sure about confirming this order?
+    </div>
+    <c-row [gutter]="3">
+      <c-col [md]="12">
+        <label class="form-label">Comment</label>
+        <textarea
+          class="form-control"
+          rows="3"
+          [value]="approvalComment"
+          (input)="approvalComment = $any($event.target).value"
+          placeholder="Add comment (optional)">
+        </textarea>
+      </c-col>
+    </c-row>
+  </c-modal-body>
+  <c-modal-footer>
+    <button
+      cButton
+      color="secondary"
+      type="button"
+      (click)="onCancelApprovalModal()"
+      [disabled]="approvalSubmitting">
+      Cancel
+    </button>
+    <button
+      cButton
+      color="danger"
+      type="button"
+      class="ms-2"
+      (click)="submitApproval(false)"
+      [disabled]="approvalSubmitting">
+      No
+    </button>
+    <button
+      cButton
+      color="success"
+      type="button"
+      class="ms-2"
+      (click)="submitApproval(true)"
+      [disabled]="approvalSubmitting">
+      Yes
+    </button>
+  </c-modal-footer>
+</c-modal>

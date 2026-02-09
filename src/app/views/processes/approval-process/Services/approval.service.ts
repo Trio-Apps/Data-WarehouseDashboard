@@ -107,4 +107,11 @@ export class ApprovalService {
     const url = `${this.baseUrl}Approval/my-approval-process/${pageNumber}/${pageSize}`;
     return this.http.get<ProcessApprovalResponse>(url, this.headerOption);
   }
+
+   changeApprovalStatus(approval:boolean, orderProcessApprovalId: number, comment?: string): Observable<any> {
+    const url = `${this.baseUrl}Approval/make-order-is-approval/${approval}/order-process-approval-id/${orderProcessApprovalId}${comment ? `?comment=${encodeURIComponent(comment)}` : ''}`;
+    return this.http.patch<any>(url, this.headerOption);
+  }
+
+
 }

@@ -20,6 +20,7 @@
               <th scope="col" class="bg-body-tertiary">Posting Date</th>
               <th scope="col" class="bg-body-tertiary">Due Date</th>
               <th scope="col" class="bg-body-tertiary">Status</th>
+              <th scope="col" class="bg-body-tertiary">Approval Status</th>
               <th scope="col" class="bg-body-tertiary">Comment</th>
               <th scope="col" class="bg-body-tertiary">Items Count</th>
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
@@ -46,6 +47,11 @@
                   {{ getStatusText(sale) }}
                 </span>
               </td>
+              <td>
+                <span [class]="getApprovalBadgeClass(sale)">
+                  {{ getApprovalStatusText(sale) }}
+                </span>
+              </td>
               <td>{{ sale.comment || 'No comment' }}</td>
               <td>{{ sale.itemCount }}</td>
               <td class="text-center">
@@ -54,7 +60,7 @@
                   <svg cIcon name="cil-list"></svg>
                 </button>
 
-                @if (sale.status == 'Draft') {
+                @if (!isApproved(sale)) {
                 <button cButton color="warning" size="sm" class="me-2" (click)="onEditSale(sale)" title="Edit">
                   <svg cIcon name="cil-pencil"></svg>
                 </button>

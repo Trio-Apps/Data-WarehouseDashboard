@@ -8,13 +8,15 @@ import {
   ButtonModule,
   FormModule,
   GridModule,
-  UtilitiesModule
+  UtilitiesModule,
+  ModalModule
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 
 import { ToastrService } from 'ngx-toastr';
 import { SalesService } from '../Services/sales.service';
 import { SalesReturnService } from '../Services/sales-return.service';
+import { ApprovalService } from '../../approval-process/Services/approval.service';
 import { EditItemModalComponent } from '../edit-item-modal/edit-item-modal.component';
 import { AddReturnItemModalComponent } from '../sales-return/add-return-item-modal/add-return-item-modal.component';
 import { ReturnItem } from '../Models/sales-return-model';
@@ -29,6 +31,7 @@ import { ReturnItem } from '../Models/sales-return-model';
       FormModule,
       GridModule,
       UtilitiesModule,
+      ModalModule,
       IconDirective,
       DatePipe,
       EditItemModalComponent,
@@ -48,12 +51,16 @@ export class SalesItemsComponent implements OnInit {
   showAddReturnItemModal: boolean = false;
   selectedItem: SalesItem | null = null;
   selectedItemForReturn: {item: ReturnItem,SaleId: number} | null = null;
+  showApprovalModal: boolean = false;
+  approvalComment: string = '';
+  approvalSubmitting: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private salesService: SalesService,
     private salesReturnService: SalesReturnService,
+    private approvalService: ApprovalService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {}
@@ -79,6 +86,7 @@ export class SalesItemsComponent implements OnInit {
       next: (res: any) => {
         if (res.data) {
           this.Sale = res.data;
+          console.log("Sale",this.Sale);
                     this.cdr.detectChanges();
          // console.log("Sale",this.Sale);
           if (res.data.warehouseId) {
@@ -250,7 +258,116 @@ export class SalesItemsComponent implements OnInit {
         return 'badge bg-secondary';
     }
   }
-getStatusText(Sale: Sales | null): string {
+  getStatusText(Sale: Sales | null): string {
   return Sale?.status || 'Unknown';
 }
+
+  private mapApprovalStatusText(value: string): string {
+    const normalized = value.trim();
+    switch (normalized) {
+      case '1':
+        return 'InProgress';
+      case '2':
+        return 'Approved';
+      case '3':
+        return 'Rejected';
+      default:
+        return normalized;
+    }
+  }
+
+  isApproved(Sale: Sales | null): boolean {
+    const rawStatus = Sale?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return false;
+    }
+    return this.mapApprovalStatusText(String(rawStatus)) === 'Approved';
+  }
+
+  getApprovalStatusText(Sale: Sales | null): string {
+    const rawStatus = Sale?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return 'not found';
+    }
+    return this.mapApprovalStatusText(String(rawStatus));
+  }
+
+  getApprovalBadgeClass(Sale: Sales | null): string {
+    const rawStatus = Sale?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return 'badge bg-secondary';
+    }
+    const statusText = this.mapApprovalStatusText(String(rawStatus));
+    switch (statusText) {
+      case 'Approved':
+        return 'badge bg-success';
+      case 'Rejected':
+        return 'badge bg-danger';
+      case 'InProgress':
+        return 'badge bg-info';
+      default:
+        return 'badge bg-secondary';
+    }
+  }
+
+  onOpenApprovalModal(): void {
+    if (!this.Sale?.processApprovalId) {
+      this.toastr.warning('Approval data not found', 'Warning');
+      return;
+    }
+    this.approvalComment = '';
+    this.setApprovalModalVisible(true);
+  }
+
+  onCancelApprovalModal(): void {
+    if (this.approvalSubmitting) {
+      return;
+    }
+    this.setApprovalModalVisible(false);
+  }
+
+  onApprovalVisibleChange(visible: boolean): void {
+    this.setApprovalModalVisible(visible);
+  }
+
+  private setApprovalModalVisible(visible: boolean): void {
+    setTimeout(() => {
+      this.showApprovalModal = visible;
+      this.cdr.detectChanges();
+    });
+  }
+
+  private setApprovalSubmitting(value: boolean): void {
+    Promise.resolve().then(() => {
+      this.approvalSubmitting = value;
+      this.cdr.detectChanges();
+    });
+  }
+
+  submitApproval(approved: boolean): void {
+    if (!this.Sale?.processApprovalId) {
+      this.toastr.warning('Approval data not found', 'Warning');
+      return;
+    }
+    this.setApprovalSubmitting(true);
+    const comment = this.approvalComment?.trim();
+    this.approvalService
+      .changeApprovalStatus(approved, this.Sale.processApprovalId, comment || undefined)
+      .subscribe({
+        next: () => {
+          this.toastr.success(
+            approved ? 'Approval sent successfully' : 'Rejection sent successfully',
+            'Success'
+          );
+          this.setApprovalModalVisible(false);
+          this.setApprovalSubmitting(false);
+          this.loadSale();
+        },
+        error: (err) => {
+          console.error('Error updating approval status:', err);
+          this.setApprovalSubmitting(false);
+          this.toastr.error('Failed to update approval status. Please try again.', 'Error');
+        }
+      });
+  }
 }

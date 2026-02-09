@@ -378,5 +378,53 @@ getStatusText(Sale: Sales): string {
   return Sale.status;
 }
 
+private mapApprovalStatusText(value: string): string {
+  const normalized = value.trim();
+  switch (normalized) {
+    case '1':
+      return 'InProgress';
+    case '2':
+      return 'Approved';
+    case '3':
+      return 'Rejected';
+    default:
+      return normalized;
+  }
+}
+
+isApproved(Sale: Sales): boolean {
+  const rawStatus = Sale.approvalStatus;
+  if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+    return false;
+  }
+  return this.mapApprovalStatusText(String(rawStatus)) === 'Approved';
+}
+
+getApprovalStatusText(Sale: Sales): string {
+  const rawStatus = Sale.approvalStatus;
+  if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+    return 'not found';
+  }
+  return this.mapApprovalStatusText(String(rawStatus));
+}
+
+getApprovalBadgeClass(Sale: Sales): string {
+  const rawStatus = Sale.approvalStatus;
+  if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+    return 'badge bg-secondary';
+  }
+  const statusText = this.mapApprovalStatusText(String(rawStatus));
+  switch (statusText) {
+    case 'Approved':
+      return 'badge bg-success';
+    case 'Rejected':
+      return 'badge bg-danger';
+    case 'InProgress':
+      return 'badge bg-info';
+    default:
+      return 'badge bg-secondary';
+  }
+}
+
 }
 

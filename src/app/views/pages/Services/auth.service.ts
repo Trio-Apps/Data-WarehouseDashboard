@@ -63,10 +63,11 @@ export class AuthService {
   // }
 
 
-  logOut() {
-      this.router.navigate(['/login']);
+  logOut(): void {
+      // Clear auth state first, then force navigation to login.
       localStorage.clear();
-      window.location.reload();
+      this.tokenSignal.set(null);
+      this.router.navigateByUrl('/login', { replaceUrl: true });
   }
 
   // roles
