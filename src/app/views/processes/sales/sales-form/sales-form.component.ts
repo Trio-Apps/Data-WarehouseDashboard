@@ -206,12 +206,12 @@ export class SalesFormComponent implements OnInit {
         this.cdr.detectChanges();
             // If creating new sales, navigate to items page
        // If creating new sales, navigate to items page
-        if (!this.isEditMode && res.data?.salesOrderId) {
-          this.router.navigate(['/processes/sales/sales-items', res.data.salesOrderId]);
-        } else {
-          // If editing, go back to purchases list
-          this.router.navigate(['/processes/sales/sales-order', this.warehouseId]);
-        }
+      //  if (!this.isEditMode && res.data?.salesOrderId) {
+         this.router.navigate(['/processes/sales/sales-items', res.data.salesOrderId]);
+        // } else {
+        //   // If editing, go back to purchases list
+        //   this.router.navigate(['/processes/sales/sales-order', this.warehouseId]);
+        // }
 
       },
       error: (err) => {
@@ -228,7 +228,12 @@ export class SalesFormComponent implements OnInit {
 
 
   onCancel(): void {
-    this.router.navigate(['/processes/sales/sales-order', this.warehouseId]);
+      if (this.isEditMode && this.salesOrderId) {
+         this.router.navigate(['/processes/sales/sales-items',  this.salesOrderId]);
+        } else {
+          // If editing, go back to purchases list
+          this.router.navigate(['/processes/sales/sales-order', this.warehouseId]);
+        }
   }
 
 

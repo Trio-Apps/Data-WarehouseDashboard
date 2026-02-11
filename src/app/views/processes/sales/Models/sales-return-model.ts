@@ -9,6 +9,12 @@
   status: string;
   createdAt?: string;
   updatedAt?: string;
+  canApprove?: boolean;
+  approval?: boolean | null;
+  approvalStatus?: string | null;
+  reason?: string;
+  processApprovalId?: number;
+  processItemIsProgressId?: number;
 }
 
  export interface UpdateReturn {

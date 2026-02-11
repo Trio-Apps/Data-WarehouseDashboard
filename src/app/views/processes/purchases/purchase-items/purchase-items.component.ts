@@ -1,19 +1,21 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, DatePipe } from '@angular/common';
 import {
   TableModule,
   CardModule,
   ButtonModule,
   FormModule,
   GridModule,
-  UtilitiesModule
+  UtilitiesModule,
+  ModalModule
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { PurchaseService } from '../Services/purchase.service';
 import { Purchase, PurchaseItem } from '../Models/purchase.model';
 import { EditItemModalComponent } from '../edit-item-modal/edit-item-modal.component';
 import { ToastrService } from 'ngx-toastr';
+import { ApprovalService } from '../../approval-process/Services/approval.service';
 
 @Component({
   selector: 'app-purchase-items',
@@ -25,7 +27,9 @@ import { ToastrService } from 'ngx-toastr';
     FormModule,
     GridModule,
     UtilitiesModule,
+    ModalModule,
     IconDirective,
+    DatePipe,
     EditItemModalComponent
   ],
   templateUrl: './purchase-items.component.html',
@@ -40,10 +44,14 @@ export class PurchaseItemsComponent implements OnInit {
   warehouseId: number = 0;
   showEditItemModal: boolean = false;
   selectedItem: PurchaseItem | null = null;
+  showApprovalModal: boolean = false;
+  approvalComment: string = '';
+  approvalSubmitting: boolean = false;
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private purchaseService: PurchaseService,
+    private approvalService: ApprovalService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {}
@@ -121,8 +129,10 @@ export class PurchaseItemsComponent implements OnInit {
       }
     });
   }
+
+
   onAddItem(): void {
-    if (this.isDraft) {
+    if (this.isDraft && !this.isApproved(this.purchase)) {
       if (!this.warehouseId && this.purchase?.warehouseId) {
         this.warehouseId = this.purchase.warehouseId;
       }
@@ -138,7 +148,7 @@ export class PurchaseItemsComponent implements OnInit {
   }
 
   onEditItem(item: PurchaseItem): void {
-    if (!this.isDraft) {
+    if (!this.isDraft || this.isApproved(this.purchase)) {
       this.toastr.warning('Cannot edit items in finalized purchases', 'Warning');
       return;
     }
@@ -147,12 +157,22 @@ export class PurchaseItemsComponent implements OnInit {
     this.showEditItemModal = true;
   }
 
+  onEditPurchase(): void {
+    if (this.purchase?.purchaseOrderId) {
+      this.router.navigate([
+        '/processes/purchases/purchase-form',
+        this.warehouseId,
+        this.purchase.purchaseOrderId
+      ]);
+    }
+  }
+
   onItemUpdated(): void {
     this.loadItemsPurchase(); // Reload to show updated items
   }
 
   onRemoveItem(item: PurchaseItem): void {
-    if (!this.isDraft) {
+    if (!this.isDraft || this.isApproved(this.purchase)) {
       this.toastr.warning('Cannot remove items from finalized purchases', 'Warning');
       return;
     }
@@ -175,29 +195,29 @@ export class PurchaseItemsComponent implements OnInit {
     }
   }
 
-  onFinalizePurchase(): void {
-    if (confirm('Are you sure you want to finalize this purchase? This action cannot be undone.')) {
-      this.purchaseService.finalizePurchase(this.purchaseOrderId).subscribe({
-        next: () => {
-          this.toastr.success('Purchase finalized successfully', 'Success');
-          this.loadItemsPurchase(); // Reload to update status
-          this.cdr.detectChanges();
-        },
-        error: (err) => {
-          console.error('Error finalizing purchase:', err);
-          const errorMessage = err.error?.message || 'Error finalizing purchase. Please try again.';
-          this.toastr.error(errorMessage, 'Error');
-        }
-      });
-    }
-  }
+  // onFinalizePurchase(): void {
+  //   if (confirm('Are you sure you want to finalize this purchase? This action cannot be undone.')) {
+  //     this.purchaseService.finalizePurchase(this.purchaseOrderId).subscribe({
+  //       next: () => {
+  //         this.toastr.success('Purchase finalized successfully', 'Success');
+  //         this.loadItemsPurchase(); // Reload to update status
+  //         this.cdr.detectChanges();
+  //       },
+  //       error: (err) => {
+  //         console.error('Error finalizing purchase:', err);
+  //         const errorMessage = err.error?.message || 'Error finalizing purchase. Please try again.';
+  //         this.toastr.error(errorMessage, 'Error');
+  //       }
+  //     });
+  //   }
+  // }
 
   onBackToPurchases(): void {
     if (this.warehouseId) {
-      this.router.navigate(['/processes/purchases/purchases', this.warehouseId]);
+      this.router.navigate(['/processes/purchases', this.warehouseId]);
     } else if (this.purchase?.warehouseId) {
       this.warehouseId = this.purchase.warehouseId;
-      this.router.navigate(['/processes/purchases/purchases', this.warehouseId]);
+      this.router.navigate(['/processes/purchases', this.warehouseId]);
     }
   }
             
@@ -211,7 +231,7 @@ export class PurchaseItemsComponent implements OnInit {
     return 0;
   }
 
-  getStatusBadgeClass(purchase: Purchase): string {
+  getStatusBadgeClass(purchase: Purchase | null): string {
     if (!purchase || !purchase.status) return 'badge bg-secondary';
     
     const status = purchase.status.toLowerCase();
@@ -224,5 +244,118 @@ export class PurchaseItemsComponent implements OnInit {
     } else {
       return 'badge bg-secondary';
     }
+  }
+
+  getStatusText(purchase: Purchase | null): string {
+    return purchase?.status || 'Unknown';
+  }
+
+  private mapApprovalStatusText(value: string): string {
+    const normalized = value.trim();
+    switch (normalized) {
+      case '1':
+        return 'InProgress';
+      case '2':
+        return 'Approved';
+      case '3':
+        return 'Rejected';
+      default:
+        return normalized;
+    }
+  }
+
+  isApproved(purchase: Purchase | null): boolean {
+    const rawStatus = purchase?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return false;
+    }
+    return this.mapApprovalStatusText(String(rawStatus)) === 'Approved';
+  }
+
+  getApprovalStatusText(purchase: Purchase | null): string {
+    const rawStatus = purchase?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return 'not found';
+    }
+    return this.mapApprovalStatusText(String(rawStatus));
+  }
+
+  getApprovalBadgeClass(purchase: Purchase | null): string {
+    const rawStatus = purchase?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return 'badge bg-secondary';
+    }
+    const statusText = this.mapApprovalStatusText(String(rawStatus));
+    switch (statusText) {
+      case 'Approved':
+        return 'badge bg-success';
+      case 'Rejected':
+        return 'badge bg-danger';
+      case 'InProgress':
+        return 'badge bg-info';
+      default:
+        return 'badge bg-secondary';
+    }
+  }
+
+  onOpenApprovalModal(): void {
+    if (!this.purchase?.processApprovalId) {
+      this.toastr.warning('Approval data not found', 'Warning');
+      return;
+    }
+    this.approvalComment = '';
+    this.setApprovalModalVisible(true);
+  }
+
+  onCancelApprovalModal(): void {
+    if (this.approvalSubmitting) {
+      return;
+    }
+    this.setApprovalModalVisible(false);
+  }
+
+  onApprovalVisibleChange(visible: boolean): void {
+    this.setApprovalModalVisible(visible);
+  }
+
+  private setApprovalModalVisible(visible: boolean): void {
+    setTimeout(() => {
+      this.showApprovalModal = visible;
+      this.cdr.detectChanges();
+    });
+  }
+
+  private setApprovalSubmitting(value: boolean): void {
+    Promise.resolve().then(() => {
+      this.approvalSubmitting = value;
+      this.cdr.detectChanges();
+    });
+  }
+
+  submitApproval(approved: boolean): void {
+    if (!this.purchase?.processApprovalId) {
+      this.toastr.warning('Approval data not found', 'Warning');
+      return;
+    }
+    this.setApprovalSubmitting(true);
+    const comment = this.approvalComment?.trim();
+    this.approvalService
+      .changeApprovalStatus(approved, this.purchase.processApprovalId, comment || undefined)
+      .subscribe({
+        next: () => {
+          this.toastr.success(
+            approved ? 'Approval sent successfully' : 'Rejection sent successfully',
+            'Success'
+          );
+          this.setApprovalModalVisible(false);
+          this.setApprovalSubmitting(false);
+          this.loadPurchase();
+        },
+        error: (err) => {
+          console.error('Error updating approval status:', err);
+          this.setApprovalSubmitting(false);
+          this.toastr.error('Failed to update approval status. Please try again.', 'Error');
+        }
+      });
   }
 }

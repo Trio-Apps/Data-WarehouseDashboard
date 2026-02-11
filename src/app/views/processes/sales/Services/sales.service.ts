@@ -167,14 +167,15 @@ getSalesWithFilterationByWarehouse(
    * Remove item from sales
    */
   removeItemFromSales( salesItemId: number): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}sales/${salesItemId}`, this.headerOption);
+    return this.http.delete<any>(`${this.baseUrl}SalesOrderItem/Sales-item-order/${salesItemId}`, this.headerOption);
   }
 
   /**
    * Update sales item
    */
-  updateSalesItem(itemData: UpdateItemRequest): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}salesOrderItem`, itemData, this.headerOption);
+  
+  updateSalesItem(saleOrderItemId:number, itemData: UpdateItemRequest): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}SalesOrderItem/Sales-item-order/${saleOrderItemId}`, itemData);
   }
 
   /**

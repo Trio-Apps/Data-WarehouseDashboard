@@ -1,7 +1,7 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">Sale Order - Purchase #{{ salesOrderId }}</h4>
+      <h4 class="mb-0 header-title">Sale Order #{{ salesOrderId }}</h4>
       <button cButton color="secondary" class="header-button" (click)="onBackToSales()">
         <svg cIcon name="cilArrowLeft" class="me-2"></svg>
         Back
@@ -39,10 +39,12 @@
    }
 
    @else{
-     <button  cButton color="danger" size="sm" (click)="onGoReturn()">
-                  <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
-                  Return
-                </button>
+     @if (Sale?.isReturn) {
+       <button  cButton color="danger" size="sm" (click)="onGoReturn()">
+                    <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
+                    Return
+                  </button>
+     }
       @if (Sale?.canApprove) {
         <button cButton class="ms-2" color="success" size="sm" (click)="onOpenApprovalModal()">
           Approve
@@ -129,7 +131,7 @@
                 @if (Sale && !isApproved(Sale)) {
                   <th scope="col" class="bg-body-tertiary text-center">Actions</th>
                 }
-                @else{
+                @else if (isApproved(Sale)) {
                  <th scope="col" class="bg-body-tertiary text-center">Return Item</th>
                 }
 
@@ -139,7 +141,7 @@
             <tbody>
               @if (loading) {
                 <tr>
-                  <td [attr.colspan]="Sale && !isApproved(Sale) ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="Sale && (!isApproved(Sale) || Sale?.isReturn) ? 8 : 7" class="text-center py-4">
                     <span class="text-body-secondary">Loading...</span>
                   </td>
                 </tr>
@@ -172,7 +174,7 @@
                         <svg cIcon name="cil-trash"></svg>
                       </button>
                     </td> }  
-                    @else {
+                    @else if (isApproved(Sale)) {
                      <td class="text-center">
                       <button cButton color="danger" size="sm" (click)="onAddReturnItem(item)" title="Return Item">
                         <svg cIcon name="cil-item"></svg>
@@ -183,7 +185,7 @@
                 }
               } @else {
                 <tr>
-                  <td [attr.colspan]="Sale && !isApproved(Sale) ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="Sale && (!isApproved(Sale) || Sale?.isReturn) ? 8 : 7" class="text-center py-4">
                     <span class="text-body-secondary">No items in this Sale</span>
                   </td>
                 </tr>

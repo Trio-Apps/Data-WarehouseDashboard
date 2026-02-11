@@ -79,7 +79,7 @@ export class SalesBatchesComponent implements OnInit {
     });
 
     this.editForm = this.fb.group({
-      receiptPurchaseOrderBatchId: [0, Validators.required],
+      salesOrderBatchId: [0, Validators.required],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
       comment: [''],
       expiryDate: ['', Validators.required]
@@ -217,6 +217,7 @@ export class SalesBatchesComponent implements OnInit {
       expiryDate: expiryDateISO
     };
 
+    console.log("batchData.salesOrderBatchId",batchData.salesOrderBatchId);
     this.salesService.updateSalesBatch(batchData.salesOrderBatchId, batchData).subscribe({
       next: (res: any) => {
         this.saving = false;

@@ -13,6 +13,12 @@ export interface Purchase {
   supplier?: Supplier;
   supplierName?:string;
   items?: PurchaseItem[];
+  canApprove?: boolean;
+  approval?: boolean | null;
+  approvalStatus?: string | null;
+  reason?: string;
+  processApprovalId?: number;
+  processItemIsProgressId?: number;
 }
 
 export interface AddPurchase {

@@ -201,10 +201,10 @@ export class SalesItemsComponent implements OnInit {
       if (item.salesOrderItemId) {
         this.salesService.removeItemFromSales(item.salesOrderItemId).subscribe({
           next: (res) => {
-            this.toastr.success('Item removed successfully', res);
+            this.toastr.success('Item removed successfully');
              
             if (item.salesOrderItemId) {
-              this.loadSaleItems(item.salesOrderItemId);
+              this.loadSaleItems(this.salesOrderId);
               this.cdr.detectChanges();
             }
 

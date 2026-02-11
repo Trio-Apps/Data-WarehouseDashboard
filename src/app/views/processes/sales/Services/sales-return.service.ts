@@ -38,6 +38,10 @@ export class SalesReturnService {
     return this.http.get<any>(`${this.baseUrl}SalesReturnOrder/sales-order/${SalesOrderId}`, this.headerOption);
   }
 
+    getReturnWithCustomerBySalesId(SalesOrderId: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}SalesReturnOrder/by-sales-order/${SalesOrderId}`, this.headerOption);
+  }
+
   /**
    * Update Return
    */

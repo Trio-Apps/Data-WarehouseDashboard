@@ -1,134 +1,232 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <div>
-        <h4 class="mb-0 header-title">Purchase Items - #{{ purchaseOrderId }}</h4>
-        @if (purchase) {
-          <div class="mt-2 d-flex align-items-center gap-3" style="font-size: 0.875rem; opacity: 0.9;">
-            <span>Supplier: {{ purchase.supplierName || 'N/A' }}</span>
-            <span>|</span>
-            <span>
-              Status: <span [ngClass]="getStatusBadgeClass(purchase)">{{ purchase.status }}</span>
-            </span>
-          </div>
-        }
-      </div>
-      <div class="d-flex gap-2">
-        <button cButton color="secondary" class="header-button" (click)="onBackToPurchases()">
-          <svg cIcon name="cilArrowLeft" class="me-2"></svg>
-          Back
-        </button>
-        @if (isDraft) {
-          <button cButton color="primary" class="header-button" (click)="onAddItem()">
-            <svg cIcon name="cilPlus" class="me-2"></svg>
-            Add Item
-          </button>
-        }
-        @if (purchase?.status && items.length > 0 && isDraft) {
-          <button cButton color="success" class="header-button" (click)="onFinalizePurchase()">
-            <svg cIcon name="cilCheck" class="me-2"></svg>
-            Finalize
-          </button>
-        }
-      </div>
+      <h4 class="mb-0 header-title">Purchase Order #{{ purchaseOrderId }}</h4>
+      <button cButton color="secondary" class="header-button" (click)="onBackToPurchases()">
+        <svg cIcon name="cilArrowLeft" class="me-2"></svg>
+        Back
+      </button>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
-      <!-- Purchase Summary Cards -->
-      @if (!loading && purchase) {
-        <div class="p-3 border-bottom">
-          <c-row [gutter]="3">
-            <c-col [md]="4">
-              <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                  <h6 class="card-title text-muted mb-2">Total Items</h6>
-                  <h3 class="mb-0" style="color: var(--primary-brand);">{{ items.length }}</h3>
+      <div class="p-3 border-bottom">
+        <h5 class="mb-3">Purchase Order</h5>
+        @if (loading) {
+          <div class="text-center py-4">
+            <span class="text-body-secondary">Loading...</span>
+          </div>
+        }
+        @else {
+          <div class="card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <h6 class="card-title">Purchase Order #{{ purchase?.purchaseOrderId }}</h6>
                 </div>
-              </div>
-            </c-col>
-            <c-col [md]="4">
-              <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                  <h6 class="card-title text-muted mb-2">Total Quantity</h6>
-                  <h3 class="mb-0" style="color: var(--accent-mint);">{{ getTotalQuantity() }}</h3>
-                </div>
-              </div>
-            </c-col>
-            <c-col [md]="4">
-              <div class="card h-100 border-0 shadow-sm">
-                <div class="card-body text-center">
-                  <h6 class="card-title text-muted mb-2">Total Value</h6>
-                  <h3 class="mb-0" style="color: var(--primary-brand);">${{ getTotalValue() | number:'1.2-2' }}</h3>
-                </div>
-              </div>
-            </c-col>
-          </c-row>
-        </div>
-      }
-
-      <!-- Table Container with Scroll -->
-      <div class="table-container">
-        <table [hover]="true" [striped]="true" cTable class="mb-0">
-          <thead class="table-header">
-            <tr>
-              <th scope="col" class="bg-body-tertiary">#</th>
-              <th scope="col" class="bg-body-tertiary">Item Code</th>
-              <th scope="col" class="bg-body-tertiary">Item Name</th>
-              <th scope="col" class="bg-body-tertiary">Barcode</th>
-              <th scope="col" class="bg-body-tertiary">Quantity</th>
-              <th scope="col" class="bg-body-tertiary">Unit</th>
-              @if (isDraft) {
-                <th scope="col" class="bg-body-tertiary text-center">Actions</th>
-              }
-            </tr>
-          </thead>
-
-          <tbody>
-            @if (loading) {
-              <tr>
-                <td [attr.colspan]="isDraft ? 7 : 6" class="text-center py-4">
-                  <span class="text-body-secondary">Loading...</span>
-                </td>
-              </tr>
-            } @else if (items.length > 0) {
-              @for (item of items; track item.purchaseItemId || $index) {
-                <tr>
-                  <td>{{ $index + 1 }}</td>
-                  <td>{{ item.itemCode }}</td>
-                  <td>{{ item.itemName }}</td>
-                  <td>{{ item.barCode || 'N/A' }}</td>
-                  <td>{{ item.quantity }}</td>
-                  <td>{{ item.unitName || 'N/A' }}</td>
-                  @if (isDraft) {
-                    <td class="text-center">
-                      <button cButton color="info" size="sm" class="me-2" (click)="onEditItem(item)">
-                        <svg cIcon name="cil-pencil"></svg>
+                <div>
+                  @if (!isApproved(purchase)) {
+                    <button cButton class="me-2" color="warning" size="sm" (click)="onEditPurchase()">
+                      Edit
+                    </button>
+                    @if (purchase?.canApprove) {
+                      <button cButton class="me-2" color="success" size="sm" (click)="onOpenApprovalModal()">
+                        Approve
                       </button>
-                      <button cButton color="danger" size="sm" (click)="onRemoveItem(item)">
-                        <svg cIcon name="cil-trash"></svg>
-                      </button>
-                    </td>
+                    }
                   }
+                  @else {
+                    @if (purchase?.canApprove) {
+                      <button cButton class="ms-2" color="success" size="sm" (click)="onOpenApprovalModal()">
+                        Approve
+                      </button>
+                    }
+                  }
+                </div>
+              </div>
+              <c-row [gutter]="3">
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Posting Date</label>
+                    <p class="mb-0">{{ purchase?.postingDate | date:'short' }}</p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Due Date</label>
+                    <p class="mb-0">{{ purchase?.dueDate | date:'short' }}</p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Status</label>
+                    <p class="mb-0">
+                      <span [class]="getStatusBadgeClass(purchase)">
+                        {{ getStatusText(purchase) }}
+                      </span>
+                    </p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Approval Status</label>
+                    <p class="mb-0">
+                      <span [class]="getApprovalBadgeClass(purchase)">
+                        {{ getApprovalStatusText(purchase) }}
+                      </span>
+                    </p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Comment</label>
+                    <p class="mb-0">{{ purchase?.comment || 'No comment' }}</p>
+                  </div>
+                </c-col>
+              </c-row>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="flex-grow-1 d-flex flex-column p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">Purchase Items</h5>
+          @if (purchase && isDraft && !isApproved(purchase)) {
+            <button cButton color="primary" size="sm" (click)="onAddItem()">
+              <svg cIcon name="cilPlus" class="me-2"></svg>
+              Add Item
+            </button>
+          }
+        </div>
+
+        <div class="table-container flex-grow-1">
+          <table [hover]="true" [striped]="true" cTable class="mb-0">
+            <thead class="table-header">
+              <tr>
+                <th scope="col" class="bg-body-tertiary">#</th>
+                <th scope="col" class="bg-body-tertiary">Item Code</th>
+                <th scope="col" class="bg-body-tertiary">Item Name</th>
+                <th scope="col" class="bg-body-tertiary">Barcode</th>
+                <th scope="col" class="bg-body-tertiary">Quantity</th>
+                <th scope="col" class="bg-body-tertiary">Unit</th>
+                @if (purchase && isDraft && !isApproved(purchase)) {
+                  <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+                }
+              </tr>
+            </thead>
+
+            <tbody>
+              @if (loading) {
+                <tr>
+                  <td [attr.colspan]="purchase && isDraft && !isApproved(purchase) ? 7 : 6" class="text-center py-4">
+                    <span class="text-body-secondary">Loading...</span>
+                  </td>
+                </tr>
+              } @else if (items.length > 0) {
+                @for (item of items; track item.purchaseItemId || $index) {
+                  <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ item.itemCode }}</td>
+                    <td>{{ item.itemName }}</td>
+                    <td>{{ item.barCode || 'N/A' }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.unitName || 'N/A' }}</td>
+                    @if (purchase && isDraft && !isApproved(purchase)) {
+                      <td class="text-center">
+                        <button cButton color="info" size="sm" class="me-2" (click)="onEditItem(item)">
+                          <svg cIcon name="cil-pencil"></svg>
+                        </button>
+                        <button cButton color="danger" size="sm" (click)="onRemoveItem(item)">
+                          <svg cIcon name="cil-trash"></svg>
+                        </button>
+                      </td>
+                    }
+                  </tr>
+                }
+              } @else {
+                <tr>
+                  <td [attr.colspan]="purchase && isDraft && !isApproved(purchase) ? 7 : 6" class="text-center py-4">
+                    <span class="text-body-secondary">No items in this purchase</span>
+                  </td>
                 </tr>
               }
-            } @else {
-              <tr>
-                <td [attr.colspan]="isDraft ? 7 : 6" class="text-center py-4">
-                  <span class="text-body-secondary">No items in this purchase</span>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+        </div>
+
+        @if (purchase && items.length > 0) {
+          <div class="mt-3 pt-3 border-top">
+            <div class="d-flex justify-content-end">
+              <div class="text-end">
+                <p class="mb-0"><strong>Total Items:</strong> {{ items.length }}</p>
+                <p class="mb-0"><strong>Total Quantity:</strong> {{ getTotalQuantity() }}</p>
+              </div>
+            </div>
+          </div>
+        }
       </div>
     </c-card-body>
   </c-card>
 </div>
 
-<!-- Edit Item Modal -->
 <app-edit-item-modal
   [visible]="showEditItemModal"
   [item]="selectedItem"
   (visibleChange)="showEditItemModal = $event"
   (itemUpdated)="onItemUpdated()">
 </app-edit-item-modal>
+
+<c-modal
+  [visible]="showApprovalModal"
+  (visibleChange)="onApprovalVisibleChange($event)"
+  size="lg"
+  alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>Approval</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="mb-3 p-2 bg-light rounded">
+      Are you sure about confirming this order?
+    </div>
+    <c-row [gutter]="3">
+      <c-col [md]="12">
+        <label class="form-label">Comment</label>
+        <textarea
+          class="form-control"
+          rows="3"
+          [value]="approvalComment"
+          (input)="approvalComment = $any($event.target).value"
+          placeholder="Add comment (optional)">
+        </textarea>
+      </c-col>
+    </c-row>
+  </c-modal-body>
+  <c-modal-footer>
+    <button
+      cButton
+      color="secondary"
+      type="button"
+      (click)="onCancelApprovalModal()"
+      [disabled]="approvalSubmitting">
+      Cancel
+    </button>
+    <button
+      cButton
+      color="danger"
+      type="button"
+      class="ms-2"
+      (click)="submitApproval(false)"
+      [disabled]="approvalSubmitting">
+      No
+    </button>
+    <button
+      cButton
+      color="success"
+      type="button"
+      class="ms-2"
+      (click)="submitApproval(true)"
+      [disabled]="approvalSubmitting">
+      Yes
+    </button>
+  </c-modal-footer>
+</c-modal>

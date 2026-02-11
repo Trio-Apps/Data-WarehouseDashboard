@@ -99,7 +99,7 @@ export class AddItemComponent implements OnInit {
     this.loading = true;
     this.salesService.getItemsbyWarehouseId(this.warehouseId).subscribe({
       next: (res: any) => {
-
+   console.log("items",res.data);
         if (res.data) {
           this.items = res.data.map((item: any) => ({
             itemId: item.itemId,
@@ -123,7 +123,7 @@ export class AddItemComponent implements OnInit {
     this.loadingUomGroups = true;
     this.uomGroups = [];
     this.manualForm.patchValue({ uoMEntry: '' });
-
+ 
     this.salesService.getUoMGroupByItemId(itemId).subscribe({
       next: (res: any) => {
         if (res.success && res.data) {
@@ -166,7 +166,7 @@ export class AddItemComponent implements OnInit {
         this.saving = false;
         this.toastr.success('Item added successfully by barcode', 'Success');
         // العودة لصفحة عرض العناصر
-        this.router.navigate(['/processes/purchase-items', this.salesOrderId]);
+        this.router.navigate(['/processes/sales/sales-items', this.salesOrderId]);
         this.cdr.detectChanges();
       },
       error: (err) => {

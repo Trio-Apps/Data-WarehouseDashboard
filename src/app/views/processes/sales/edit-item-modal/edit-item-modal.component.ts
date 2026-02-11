@@ -151,7 +151,7 @@ export class EditItemModalComponent implements OnInit, OnChanges {
       uoMEntry: formValue.uoMEntry
     };
 
-    this.salesService.updateSalesItem(itemData).subscribe({
+    this.salesService.updateSalesItem(itemData.SalesOrderItemId, itemData).subscribe({
       next: (res: any) => {
         console.log('Item updated:', res);
         this.saving = false;

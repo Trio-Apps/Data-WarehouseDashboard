@@ -7,12 +7,14 @@ import {
   ButtonModule,
   FormModule,
   GridModule,
-  UtilitiesModule
+  UtilitiesModule,
+  ModalModule
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
 import { Return, ReturnItem } from '../Models/sales-return-model';
 import { SalesReturnService } from '../Services/sales-return.service';
+import { ApprovalService } from '../../approval-process/Services/approval.service';
 import { EditSalesReturnComponent } from './edit-sales-return/edit-sales-return.component';
 import { EditItemModalComponent } from '../edit-item-modal/edit-item-modal.component';
 import { EditReturnItemModalComponent } from './edit-return-item-modal/edit-return-item-modal.component';
@@ -27,6 +29,7 @@ import { EditReturnItemModalComponent } from './edit-return-item-modal/edit-retu
       FormModule,
       GridModule,
       UtilitiesModule,
+      ModalModule,
       IconDirective,
       DatePipe,
       EditSalesReturnComponent,
@@ -47,11 +50,15 @@ export class SalesReturnComponent implements OnInit {
   selectedReturn: Return | null = null;
   showEditReturnModal : boolean = false;
   selectedItem: ReturnItem | null = null;
+  showApprovalModal: boolean = false;
+  approvalComment: string = '';
+  approvalSubmitting: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private returnService: SalesReturnService,
+    private approvalService: ApprovalService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {}
@@ -74,7 +81,7 @@ export class SalesReturnComponent implements OnInit {
   loadReturn(): void {
     this.loading = true;
    // console.log("sales id",this.salesOrderId);
-    this.returnService.getReturnBySalesId(this.salesOrderId).subscribe({
+    this.returnService.getReturnWithCustomerBySalesId(this.salesOrderId).subscribe({
       next: (res: any) => {
         if (res.data) {
           this.return = res.data;
@@ -241,9 +248,117 @@ console.log("editing return",this.return);
   }
 
 
-getStatusText(returnDto: Return | null): string {
+  getStatusText(returnDto: Return | null): string {
   return returnDto?.status || '';
 }
 
+  private mapApprovalStatusText(value: string): string {
+    const normalized = value.trim();
+    switch (normalized) {
+      case '1':
+        return 'InProgress';
+      case '2':
+        return 'Approved';
+      case '3':
+        return 'Rejected';
+      default:
+        return normalized;
+    }
+  }
+
+  isApproved(returnDto: Return | null): boolean {
+    const rawStatus = returnDto?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return false;
+    }
+    return this.mapApprovalStatusText(String(rawStatus)) === 'Approved';
+  }
+
+  getApprovalStatusText(returnDto: Return | null): string {
+    const rawStatus = returnDto?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return 'not found';
+    }
+    return this.mapApprovalStatusText(String(rawStatus));
+  }
+
+  getApprovalBadgeClass(returnDto: Return | null): string {
+    const rawStatus = returnDto?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return 'badge bg-secondary';
+    }
+    const statusText = this.mapApprovalStatusText(String(rawStatus));
+    switch (statusText) {
+      case 'Approved':
+        return 'badge bg-success';
+      case 'Rejected':
+        return 'badge bg-danger';
+      case 'InProgress':
+        return 'badge bg-info';
+      default:
+        return 'badge bg-secondary';
+    }
+  }
+
+  onOpenApprovalModal(): void {
+    if (!this.return?.processApprovalId) {
+      this.toastr.warning('Approval data not found', 'Warning');
+      return;
+    }
+    this.approvalComment = '';
+    this.setApprovalModalVisible(true);
+  }
+
+  onCancelApprovalModal(): void {
+    if (this.approvalSubmitting) {
+      return;
+    }
+    this.setApprovalModalVisible(false);
+  }
+
+  onApprovalVisibleChange(visible: boolean): void {
+    this.setApprovalModalVisible(visible);
+  }
+
+  private setApprovalModalVisible(visible: boolean): void {
+    setTimeout(() => {
+      this.showApprovalModal = visible;
+      this.cdr.detectChanges();
+    });
+  }
+
+  private setApprovalSubmitting(value: boolean): void {
+    Promise.resolve().then(() => {
+      this.approvalSubmitting = value;
+      this.cdr.detectChanges();
+    });
+  }
+
+  submitApproval(approved: boolean): void {
+    if (!this.return?.processApprovalId) {
+      this.toastr.warning('Approval data not found', 'Warning');
+      return;
+    }
+    this.setApprovalSubmitting(true);
+    const comment = this.approvalComment?.trim();
+    this.approvalService
+      .changeApprovalStatus(approved, this.return.processApprovalId, comment || undefined)
+      .subscribe({
+        next: () => {
+          this.toastr.success(
+            approved ? 'Approval sent successfully' : 'Rejection sent successfully',
+            'Success'
+          );
+          this.setApprovalModalVisible(false);
+          this.setApprovalSubmitting(false);
+          this.loadReturn();
+        },
+        error: (err) => {
+          console.error('Error updating approval status:', err);
+          this.setApprovalSubmitting(false);
+          this.toastr.error('Failed to update approval status. Please try again.', 'Error');
+        }
+      });
+  }
 
 }
