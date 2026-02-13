@@ -7,19 +7,20 @@ import {
   ButtonModule,
   FormModule,
   GridModule,
-  UtilitiesModule
+  UtilitiesModule,
+  ModalModule
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
 import { GoodsReturnService } from '../Services/goods-return.service';
 import { Return, ReturnItem } from '../Models/retrun-model';
 import { EditReturnItemModalComponent } from './edit-return-item-modal/edit-return-item-modal.component';
-import { EditGoodReturnComponent } from './edit-good-return/edit-good-return.component';
+import { ApprovalService } from '../../approval-process/Services/approval.service';
 
 @Component({
   selector: 'app-goods-return',
-    standalone: true,
- imports: [
+  standalone: true,
+  imports: [
     CommonModule,
     TableModule,
     CardModule,
@@ -27,11 +28,10 @@ import { EditGoodReturnComponent } from './edit-good-return/edit-good-return.com
     FormModule,
     GridModule,
     UtilitiesModule,
+    ModalModule,
     IconDirective,
     DatePipe,
-    EditReturnItemModalComponent,
-    EditGoodReturnComponent
-    
+    EditReturnItemModalComponent
   ],
   templateUrl: './goods-return.component.html',
   styleUrl: './goods-return.component.scss',
@@ -39,19 +39,22 @@ import { EditGoodReturnComponent } from './edit-good-return/edit-good-return.com
 export class GoodsReturnComponent implements OnInit {
   receiptOrderId: number = 0;
   purchaseOrderId: number = 0;
+  goodsReturnId: number = 0;
   return: Return | null = null;
   returnItems: ReturnItem[] = [];
   loading: boolean = true;
   warehouseId: number = 0;
   showEditItemModal: boolean = false;
-  selectedReturn: Return | null = null;
-  showEditReturnModal : boolean = false;
   selectedItem: ReturnItem | null = null;
+  showApprovalModal: boolean = false;
+  approvalComment: string = '';
+  approvalSubmitting: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private returnService: GoodsReturnService,
+    private approvalService: ApprovalService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {}
@@ -59,14 +62,18 @@ export class GoodsReturnComponent implements OnInit {
   ngOnInit(): void {
     this.receiptOrderId = +this.route.snapshot.paramMap.get('receiptId')!;
     this.purchaseOrderId = +this.route.snapshot.paramMap.get('purchaseOrderId')!;
-    if (this.receiptOrderId) {
+    this.goodsReturnId = +this.route.snapshot.paramMap.get('goodsReturnId')!;
+
+    if (this.goodsReturnId) {
       this.loadreturn();
+    } else {
+      this.loading = false;
     }
 
-    // إعادة تحميل البيانات عند العودة من صفحة أخرى
     this.route.params.subscribe(params => {
-      const newreceiptOrderId = +params['receiptId'];
-      if (newreceiptOrderId && newreceiptOrderId === this.receiptOrderId) {
+      const newgoodsReturnId = +params['goodsReturnId'];
+      if (newgoodsReturnId && newgoodsReturnId !== this.goodsReturnId) {
+        this.goodsReturnId = newgoodsReturnId;
         this.loadreturn();
       }
     });
@@ -74,19 +81,13 @@ export class GoodsReturnComponent implements OnInit {
 
   loadreturn(): void {
     this.loading = true;
-   // console.log("receipt id",this.receiptOrderId);
-    this.returnService.getReturnByReceiptId(this.receiptOrderId).subscribe({
+    this.returnService.getReturnById(this.goodsReturnId).subscribe({
       next: (res: any) => {
         if (res.data) {
+          console.log("return",res);
           this.return = res.data;
-                    this.cdr.detectChanges();
-         // console.log("return",this.return);
-          if (res.data.warehouseId) {
-            this.warehouseId = res.data.warehouseId;
-          }
-          // تحميل عناصر الـ return
+          this.warehouseId = res.data.warehouseId || this.warehouseId;
           if (this.return?.goodsReturnOrderId) {
-           // console.log("return id",this.return.goodsReturnOrderId);
             this.loadreturnItems(this.return.goodsReturnOrderId);
           } else {
             this.returnItems = [];
@@ -101,8 +102,7 @@ export class GoodsReturnComponent implements OnInit {
         }
       },
       error: (err) => {
-       // console.error('Error loading return:', err);
-        // إذا لم يكن هناك return، هذا طبيعي
+        console.error('Error loading return:', err);
         if (err.status === 404) {
           this.return = null;
           this.returnItems = [];
@@ -115,11 +115,11 @@ export class GoodsReturnComponent implements OnInit {
     });
   }
 
-  loadreturnItems(returnId: number): void {
+ 
 
+  loadreturnItems(returnId: number): void {
     this.returnService.getReturnItemsByReturnId(returnId).subscribe({
       next: (res: any) => {
-          console.log("return items",res); 
         if (res.data) {
           this.returnItems = Array.isArray(res.data) ? res.data : (res.data.data || []);
         } else {
@@ -129,7 +129,7 @@ export class GoodsReturnComponent implements OnInit {
         this.cdr.detectChanges();
       },
       error: (err) => {
-       // console.error('Error loading return items:', err);
+        console.error('Error loading return items:', err);
         this.returnItems = [];
         this.loading = false;
         this.toastr.error('Failed to load return items. Please try again.', 'Error');
@@ -139,14 +139,11 @@ export class GoodsReturnComponent implements OnInit {
   }
 
   onAddReturn(): void {
-    this.router.navigate(['/processes/purchases/return-form', this.receiptOrderId]);
+    this.router.navigate(['/processes/purchases/goods-return-form', this.purchaseOrderId, this.receiptOrderId]);
   }
-
-
 
   onAddItem(): void {
     if (this.return?.returnReceiptOrderId) {
-      // returnReceiptOrderId هو الـ return ID، و receiptOrderId هو returnReceiptOrderId
       this.router.navigate(['/processes/purchases/add-return-item', this.return.returnReceiptOrderId, this.receiptOrderId]);
     } else {
       this.toastr.warning('Please create return first', 'Warning');
@@ -158,59 +155,63 @@ export class GoodsReturnComponent implements OnInit {
     this.showEditItemModal = true;
   }
 
- onEditReturn(): void {
-    if (!this.return) {
-    console.warn('return is undefined!');
-    return;
+  onEditReturn(): void {
+    if (!this.return?.goodsReturnOrderId) {
+      return;
     }
-console.log("editing return",this.return);
-  this.selectedReturn = { ...this.return };
-  this.showEditReturnModal = true;
+    this.router.navigate([
+      '/processes/purchases/goods-return-form',
+      this.purchaseOrderId,
+      this.receiptOrderId,
+      this.return.goodsReturnOrderId
+    ]);
   }
-  onItemUpdated(): void {
-    //  console.log("reloading items",this.return);
 
+  onDeleteReturn(): void {
+    if (!this.return?.goodsReturnOrderId) {
+      return;
+    }
+    if (confirm(`Are you sure you want to delete return order #${this.return.goodsReturnOrderId}?`)) {
+      this.returnService.deleteReturnOrder(this.return.goodsReturnOrderId).subscribe({
+        next: () => {
+          this.toastr.success('Return order deleted successfully', 'Success');
+          this.return = null;
+          this.returnItems = [];
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error deleting return order:', err);
+          const errorMessage = err.error?.message || 'Error deleting return order. Please try again.';
+          this.toastr.error(errorMessage, 'Error');
+        }
+      });
+    }
+  }
+
+  onItemUpdated(): void {
     if (this.return?.goodsReturnOrderId) {
-      console.log("reloading items");
       this.loadreturnItems(this.return.goodsReturnOrderId);
     }
-
-  }
-
-
-   onReturnUpdated(): void {
-    //  console.log("reloading items",this.return);
-
-    if (this.receiptOrderId) {
-      console.log("reloading items");
-      this.loadreturn();
-    }
-
   }
 
   onViewBatches(item: ReturnItem): void {
     if (item.goodsReturnOrderItemId) {
-      console.log("inside")
-      this.router.navigate(['/processes/purchases/return-batches',item.goodsReturnOrderItemId, this.receiptOrderId,this.purchaseOrderId, item.quantity]);
+      this.router.navigate(['/processes/purchases/return-batches', item.goodsReturnOrderItemId, this.receiptOrderId, this.purchaseOrderId, item.quantity]);
     }
   }
 
   onRemoveItem(item: ReturnItem): void {
     if (confirm(`Are you sure you want to remove "${item.itemName || 'this item'}" from the return?`)) {
       if (item.goodsReturnOrderItemId) {
-        this.returnService.deleteReturnItem(item.goodsReturnOrderItemId||0).subscribe({
+        this.returnService.deleteReturnItem(item.goodsReturnOrderItemId || 0).subscribe({
           next: (res) => {
             this.toastr.success('Item removed successfully', res);
-             
             if (item.goodsReturnOrderId) {
               this.loadreturnItems(item.goodsReturnOrderId);
-              this.cdr.detectChanges();
             }
-
             this.cdr.detectChanges();
           },
           error: (err) => {
-           // console.error('Error removing item:', err);
             const errorMessage = err.error?.message || 'Error removing item. Please try again.';
             this.toastr.error(errorMessage, 'Error');
           }
@@ -220,17 +221,18 @@ console.log("editing return",this.return);
   }
 
   onBackToReceipts(): void {
-    if (this.purchaseOrderId) {
-      this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId]);
-    } 
+    if (this.receiptOrderId) {
+      this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId, this.receiptOrderId]);
+    } else {
+      this.router.navigate(['/processes/purchases/goods-return-orders', this.warehouseId]);
+    }
   }
 
   getTotalQuantity(): number {
     return this.returnItems.reduce((total, item) => total + item.quantity, 0);
   }
-  
-  getStatusBadgeClass(returnDto: Return | null): string {
 
+  getStatusBadgeClass(returnDto: Return | null): string {
     switch (returnDto?.status) {
       case 'Draft':
         return 'badge bg-warning';
@@ -243,10 +245,116 @@ console.log("editing return",this.return);
     }
   }
 
+  getStatusText(returnDto: Return | null): string {
+    return returnDto?.status || '';
+  }
 
-getStatusText(returnDto: Return | null): string {
-  return returnDto?.status || '';
-}
+  private mapApprovalStatusText(value: string): string {
+    const normalized = value.trim();
+    switch (normalized) {
+      case '1':
+        return 'InProgress';
+      case '2':
+        return 'Approved';
+      case '3':
+        return 'Rejected';
+      default:
+        return normalized;
+    }
+  }
 
+  isApproved(returnDto: Return | null): boolean {
+    const rawStatus = returnDto?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return false;
+    }
+    return this.mapApprovalStatusText(String(rawStatus)) === 'Approved';
+  }
 
+  getApprovalStatusText(returnDto: Return | null): string {
+    const rawStatus = returnDto?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return 'not found';
+    }
+    return this.mapApprovalStatusText(String(rawStatus));
+  }
+
+  getApprovalBadgeClass(returnDto: Return | null): string {
+    const rawStatus = returnDto?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return 'badge bg-secondary';
+    }
+    const statusText = this.mapApprovalStatusText(String(rawStatus));
+    switch (statusText) {
+      case 'Approved':
+        return 'badge bg-success';
+      case 'Rejected':
+        return 'badge bg-danger';
+      case 'InProgress':
+        return 'badge bg-info';
+      default:
+        return 'badge bg-secondary';
+    }
+  }
+
+  onOpenApprovalModal(): void {
+    if (!this.return?.processApprovalId) {
+      this.toastr.warning('Approval data not found', 'Warning');
+      return;
+    }
+    this.approvalComment = '';
+    this.setApprovalModalVisible(true);
+  }
+
+  onCancelApprovalModal(): void {
+    if (this.approvalSubmitting) {
+      return;
+    }
+    this.setApprovalModalVisible(false);
+  }
+
+  onApprovalVisibleChange(visible: boolean): void {
+    this.setApprovalModalVisible(visible);
+  }
+
+  private setApprovalModalVisible(visible: boolean): void {
+    setTimeout(() => {
+      this.showApprovalModal = visible;
+      this.cdr.detectChanges();
+    });
+  }
+
+  private setApprovalSubmitting(value: boolean): void {
+    Promise.resolve().then(() => {
+      this.approvalSubmitting = value;
+      this.cdr.detectChanges();
+    });
+  }
+
+  submitApproval(approved: boolean): void {
+    if (!this.return?.processApprovalId) {
+      this.toastr.warning('Approval data not found', 'Warning');
+      return;
+    }
+    this.setApprovalSubmitting(true);
+    const comment = this.approvalComment?.trim();
+    this.approvalService
+      .changeApprovalStatus(approved, this.return.processApprovalId, comment || undefined)
+      .subscribe({
+        next: () => {
+          this.toastr.success(
+            approved ? 'Approval sent successfully' : 'Rejection sent successfully',
+            'Success'
+          );
+          this.setApprovalModalVisible(false);
+          this.setApprovalSubmitting(false);
+          this.loadreturn();
+        },
+        error: (err) => {
+          console.error('Error updating approval status:', err);
+          this.setApprovalSubmitting(false);
+          this.toastr.error('Failed to update approval status. Please try again.', 'Error');
+        }
+      });
+  }
 }

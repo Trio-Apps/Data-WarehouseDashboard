@@ -27,11 +27,25 @@
                   <p class="text-muted mb-0 small">receipt Order ID: {{ return?.returnReceiptOrderId }}</p>
                 </div>
                 <div>
-               @if (return?.status == 'Draft') {
+               @if (!isApproved(return)) {
                   <button cButton class="me-2" color="warning" size="sm" (click)="onEditReturn()">
                   <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
                   Edit
                 </button>
+                 <button cButton class="me-2" color="danger" size="sm" (click)="onDeleteReturn()">
+                  Delete
+                </button>
+                @if (return?.canApprove) {
+                  <button cButton class="me-2" color="success" size="sm" (click)="onOpenApprovalModal()">
+                    Approve
+                  </button>
+                }
+                } @else {
+                @if (return?.canApprove) {
+                  <button cButton class="ms-2" color="success" size="sm" (click)="onOpenApprovalModal()">
+                    Approve
+                  </button>
+                }
                 }
                
                 </div>
@@ -58,6 +72,16 @@
                       <span [class]="getStatusBadgeClass(return)">
                           {{ getStatusText(return) }}
                     </span>
+                    </p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Approval Status</label>
+                    <p class="mb-0">
+                      <span [class]="getApprovalBadgeClass(return)">
+                        {{ getApprovalStatusText(return) }}
+                      </span>
                     </p>
                   </div>
                 </c-col>
@@ -98,7 +122,7 @@
                 <th scope="col" class="bg-body-tertiary">Quantity</th>
                 <th scope="col" class="bg-body-tertiary">Unit</th>
                 <th scope="col" class="bg-body-tertiary text-center">Batches</th>
-               @if (return && return?.status == 'Draft') { 
+               @if (return && !isApproved(return)) { 
                   <th scope="col" class="bg-body-tertiary text-center">Actions</th>
                 }
               </tr>
@@ -107,7 +131,7 @@
             <tbody>
               @if (loading) {
                 <tr>
-                  <td [attr.colspan]="return && return?.status == 'Draft' ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="return && !isApproved(return) ? 8 : 7" class="text-center py-4">
                     <span class="text-body-secondary">Loading...</span>
                   </td>
                 </tr>
@@ -132,7 +156,7 @@
                         <svg cIcon name="cil-layers"></svg>
                       </button>
                     </td>
-                    @if (return?.status == 'Draft') {
+                    @if (!isApproved(return)) {
                       <td class="text-center">
                       <button cButton color="info" size="sm" class="me-2" (click)="onEditItem(item)" title="Edit">
                         <svg cIcon name="cil-pencil"></svg>
@@ -147,7 +171,7 @@
                 }
               } @else {
                 <tr>
-                  <td [attr.colspan]="return && return?.status == 'Draft' ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="return && !isApproved(return) ? 8 : 7" class="text-center py-4">
                     <span class="text-body-secondary">No items in this return</span>
                   </td>
                 </tr>
@@ -171,15 +195,6 @@
     </c-card-body>
   </c-card>
 </div>
-<!-- Edit return  Modal -->
-
-<app-edit-good-return
-  [visible]="showEditReturnModal"
-  [item]="selectedReturn"
-  (visibleChange)="showEditReturnModal = $event"
-  (itemUpdated)="onReturnUpdated()">
-</app-edit-good-return>
-
 <!-- Edit return Item Modal -->
 
 <app-edit-return-item-modal
@@ -188,4 +203,59 @@
   (visibleChange)="showEditItemModal = $event"
   (itemUpdated)="onItemUpdated()">
 </app-edit-return-item-modal>
+
+<c-modal
+  [visible]="showApprovalModal"
+  (visibleChange)="onApprovalVisibleChange($event)"
+  size="lg"
+  alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>Approval</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="mb-3 p-2 bg-light rounded">
+      Are you sure about confirming this order?
+    </div>
+    <c-row [gutter]="3">
+      <c-col [md]="12">
+        <label class="form-label">Comment</label>
+        <textarea
+          class="form-control"
+          rows="3"
+          [value]="approvalComment"
+          (input)="approvalComment = $any($event.target).value"
+          placeholder="Add comment (optional)">
+        </textarea>
+      </c-col>
+    </c-row>
+  </c-modal-body>
+  <c-modal-footer>
+    <button
+      cButton
+      color="secondary"
+      type="button"
+      (click)="onCancelApprovalModal()"
+      [disabled]="approvalSubmitting">
+      Cancel
+    </button>
+    <button
+      cButton
+      color="danger"
+      type="button"
+      class="ms-2"
+      (click)="submitApproval(false)"
+      [disabled]="approvalSubmitting">
+      No
+    </button>
+    <button
+      cButton
+      color="success"
+      type="button"
+      class="ms-2"
+      (click)="submitApproval(true)"
+      [disabled]="approvalSubmitting">
+      Yes
+    </button>
+  </c-modal-footer>
+</c-modal>
 

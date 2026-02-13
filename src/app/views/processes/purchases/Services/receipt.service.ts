@@ -38,6 +38,9 @@ export class ReceiptService {
   getReceiptByPurchaseId(purchaseOrderId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}ReceiptPurchaseOrder/purchase-order/${purchaseOrderId}`, this.headerOption);
   }
+   getReceiptById(id: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}ReceiptPurchaseOrder/${id}`, this.headerOption);
+  }
 
   /**
    * Create receipt for purchase order
@@ -51,6 +54,13 @@ export class ReceiptService {
    */
   updateReceipt(receiptId: number, receiptData: any): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}ReceiptPurchaseOrder/${receiptId}`, receiptData, this.headerOption);
+  }
+
+  /**
+   * Delete receipt
+   */
+  deleteReceipt(receiptId: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}ReceiptPurchaseOrder/${receiptId}`, this.headerOption);
   }
 
   /**

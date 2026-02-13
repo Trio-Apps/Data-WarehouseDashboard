@@ -12,8 +12,8 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { ReceiptService } from '../Services/receipt.service';
-import { ReceiptBatch, AddReceiptBatchRequest, UpdateReceiptBatchRequest, ReceiptItem } from '../Models/receipt';
+import { ReceiptService } from '../../Services/receipt.service';
+import { ReceiptBatch, AddReceiptBatchRequest, UpdateReceiptBatchRequest, ReceiptItem } from '../../Models/receipt';
 import { ToastrService } from 'ngx-toastr';
 
 @Component({

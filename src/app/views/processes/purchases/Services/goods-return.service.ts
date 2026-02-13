@@ -3,7 +3,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../pages/Services/auth.service';
-import { AddReturnItemRequest, UpdateReturn, UpdateReturnBatchRequest, UpdateReturnItemRequest } from '../Models/retrun-model';
+import { AddReturn, AddReturnItemRequest, UpdateReturn, UpdateReturnBatchRequest, UpdateReturnItemRequest } from '../Models/retrun-model';
 
 @Injectable({
   providedIn: 'root',
@@ -28,6 +28,33 @@ export class GoodsReturnService {
    * @param pageNumber Page number (1-based)
    * @param pageSize Number of items per page
    */
+  getGoodsReturnOrdersWithFilterationByWarehouse(
+    pageNumber: number,
+    pageSize: number,
+    warehouseId: number,
+    status?: string,
+    postingDate?: string,
+    dueDate?: string
+  ): Observable<any> {
+    const baseUrl = `${this.baseUrl}GoodsReturnOrder/dashboard/warehouse/status/posting-date/due-date/${warehouseId}/${pageNumber}/${pageSize}`;
+
+    let params = new HttpParams();
+
+    if (status) {
+      params = params.set('status', status);
+    }
+    if (postingDate) {
+      params = params.set('postingDate', postingDate);
+    }
+    if (dueDate) {
+      params = params.set('dueDate', dueDate);
+    }
+
+    return this.http.get<any>(baseUrl, {
+      headers: this.headerOption.headers,
+      params: params
+    });
+  }
 
 
   /**
@@ -37,11 +64,26 @@ export class GoodsReturnService {
     return this.http.get<any>(`${this.baseUrl}GoodsReturnOrder/receipt-purchase-order/${ReceiptOrderId}`, this.headerOption);
   }
 
+  getReturnById(id: number): Observable<any> {
+    return this.http.get<any>(`${this.baseUrl}GoodsReturnOrder/${id}`, this.headerOption);
+  }
+
+  createReturn(returnData: AddReturn): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}GoodsReturnOrder`, returnData, this.headerOption);
+  }
+
   /**
    * Update Return
    */
   updateReturn(ReturnId: number, ReturnData: UpdateReturn): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}GoodsReturnOrder/${ReturnId}`, ReturnData, this.headerOption);
+  }
+
+  /**
+   * Delete Return order
+   */
+  deleteReturnOrder(returnId: number): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}GoodsReturnOrder/${returnId}`, this.headerOption);
   }
 
   /**

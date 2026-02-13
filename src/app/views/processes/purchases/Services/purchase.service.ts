@@ -170,12 +170,11 @@ getPurchasesWithFilterationByWarehouse(
   /**
    * Update purchase item
    */
-  updatePurchaseItem(itemData: {
-    purchaseOrderItemId: number;
+  updatePurchaseItem(id:number ,itemData: {
     quantity: number;
     uoMEntry: number;
   }): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}PurchaseOrderItem`, itemData, this.headerOption);
+    return this.http.put<any>(`${this.baseUrl}PurchaseOrderItem/Purchase-item-order/${id}`, itemData, this.headerOption);
   }
 
   /**

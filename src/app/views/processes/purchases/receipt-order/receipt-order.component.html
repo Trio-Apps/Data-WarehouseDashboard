@@ -2,10 +2,17 @@
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0 header-title">Receipt Order - Purchase #{{ purchaseOrderId }}</h4>
-      <button cButton color="secondary" class="header-button" (click)="onBackToPurchases()">
-        <svg cIcon name="cilArrowLeft" class="me-2"></svg>
-        Back
-      </button>
+      <div class="d-flex align-items-center">
+        @if (!receipt) {
+          <button cButton color="secondary" class="header-button me-2" (click)="onAddReceipt()">
+            Add Receipt
+          </button>
+        }
+        <button cButton color="secondary" class="header-button" (click)="onBackToPurchases()">
+          <svg cIcon name="cilArrowLeft" class="me-2"></svg>
+          Back
+        </button>
+      </div>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
@@ -17,13 +24,9 @@
             <span class="text-body-secondary">Loading...</span>
           </div>
         } @else if (!receipt) {
-          <!-- لا يوجد receipt - زر إضافة -->
           <div class="card border-2 border-dashed">
             <div class="card-body text-center py-5">
               <p class="text-muted mb-3">No receipt order found for this purchase</p>
-              <button cButton color="secondary" class="header-button" (click)="onAddReceipt()">
-                Add Receipt Order
-              </button>
             </div>
 
 
@@ -38,18 +41,33 @@
                   <p class="text-muted mb-0 small">Purchase Order ID: {{ receipt.purchaseOrderId }}</p>
                 </div>
                 <div>
-               @if (receipt.status == 'Draft') { 
+               @if (!isApproved(receipt)) { 
                   <button cButton class="me-2" color="warning" size="sm" (click)="onEditReceipt()">
                   <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
                   Edit
                  </button>
-   }
+                 <button cButton class="me-2" color="danger" size="sm" (click)="onDeleteReceipt()">
+                   Delete
+                 </button>
+                 @if (receipt?.canApprove) {
+                    <button cButton class="me-2" color="success" size="sm" (click)="onOpenApprovalModal()">
+                      Approve
+                    </button>
+                  }
+               }
 
    @else{
-     <button  cButton color="danger" size="sm" (click)="onGoReturn()">
-                  <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
-                  Return
-                </button>
+     @if (receipt?.isReturn) {
+       <button  cButton color="danger" size="sm" (click)="onGoReturn()">
+                    <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
+                    Return
+                  </button>
+     }
+     @if (receipt?.canApprove) {
+        <button cButton class="ms-2" color="success" size="sm" (click)="onOpenApprovalModal()">
+          Approve
+        </button>
+      }
   }
                  
            
@@ -83,6 +101,16 @@
                 </c-col>
                 <c-col [md]="3">
                   <div class="mb-2">
+                    <label class="form-label small text-muted">Approval Status</label>
+                    <p class="mb-0">
+                      <span [class]="getApprovalBadgeClass(receipt)">
+                        {{ getApprovalStatusText(receipt) }}
+                      </span>
+                    </p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
                     <label class="form-label small text-muted">Comment</label>
                     <p class="mb-0">{{ receipt.comment || 'No comment' }}</p>
                   </div>
@@ -98,7 +126,7 @@
       <div class="flex-grow-1 d-flex flex-column p-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0">Receipt Items</h5>
-          @if (receipt && receipt.status == 'Draft') {
+          @if (receipt && !isApproved(receipt)) {
             <button cButton color="primary" size="sm" (click)="onAddItem()">
               <svg cIcon name="cilPlus" class="me-2"></svg>
               Add Item
@@ -118,11 +146,11 @@
                 <th scope="col" class="bg-body-tertiary">Quantity</th>
                 <th scope="col" class="bg-body-tertiary">Unit</th>
                 <th scope="col" class="bg-body-tertiary text-center">Batches</th>
-                @if (receipt && receipt.status == 'Draft') {
+                @if (receipt && !isApproved(receipt)) {
                   <th scope="col" class="bg-body-tertiary text-center">Actions</th>
                 }
-                @else{
-               <th scope="col" class="bg-body-tertiary text-center">Return Item</th>
+                @else if (isApproved(receipt)) {
+                 <th scope="col" class="bg-body-tertiary text-center">Return Item</th>
                 }
 
               </tr>
@@ -131,7 +159,7 @@
             <tbody>
               @if (loading) {
                 <tr>
-                  <td [attr.colspan]="receipt && receipt.status == 'Draft' ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="receipt && (!isApproved(receipt) || receipt?.isReturn) ? 8 : 7" class="text-center py-4">
                     <span class="text-body-secondary">Loading...</span>
                   </td>
                 </tr>
@@ -156,7 +184,7 @@
                         <svg cIcon name="cil-layers"></svg>
                       </button>
                     </td>
-                    @if (receipt.status == 'Draft') {
+                    @if (!isApproved(receipt)) {
                       <td class="text-center">
                       <button cButton color="info" size="sm" class="me-2" (click)="onEditItem(item)" title="Edit">
                         <svg cIcon name="cil-pencil"></svg>
@@ -165,7 +193,7 @@
                         <svg cIcon name="cil-trash"></svg>
                       </button>
                     </td> }  
-                    @else {
+                    @else if (isApproved(receipt)) {
                      <td class="text-center">
                       <button cButton color="danger" size="sm" (click)="onAddReturnItem(item)" title="Return Item">
                         <svg cIcon name="cil-item"></svg>
@@ -177,7 +205,7 @@
                 }
               } @else {
                 <tr>
-                  <td [attr.colspan]="receipt && receipt.status == 'Draft' ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="receipt && (!isApproved(receipt) || receipt?.isReturn) ? 8 : 7" class="text-center py-4">
                     <span class="text-body-secondary">No items in this receipt</span>
                   </td>
                 </tr>
@@ -218,3 +246,58 @@
   (visibleChange)="showEditItemModal = $event"
   (itemUpdated)="onItemUpdated()">
 </app-edit-receipt-item-modal>
+
+<c-modal
+  [visible]="showApprovalModal"
+  (visibleChange)="onApprovalVisibleChange($event)"
+  size="lg"
+  alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>Approval</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="mb-3 p-2 bg-light rounded">
+      Are you sure about confirming this order?
+    </div>
+    <c-row [gutter]="3">
+      <c-col [md]="12">
+        <label class="form-label">Comment</label>
+        <textarea
+          class="form-control"
+          rows="3"
+          [value]="approvalComment"
+          (input)="approvalComment = $any($event.target).value"
+          placeholder="Add comment (optional)">
+        </textarea>
+      </c-col>
+    </c-row>
+  </c-modal-body>
+  <c-modal-footer>
+    <button
+      cButton
+      color="secondary"
+      type="button"
+      (click)="onCancelApprovalModal()"
+      [disabled]="approvalSubmitting">
+      Cancel
+    </button>
+    <button
+      cButton
+      color="danger"
+      type="button"
+      class="ms-2"
+      (click)="submitApproval(false)"
+      [disabled]="approvalSubmitting">
+      No
+    </button>
+    <button
+      cButton
+      color="success"
+      type="button"
+      class="ms-2"
+      (click)="submitApproval(true)"
+      [disabled]="approvalSubmitting">
+      Yes
+    </button>
+  </c-modal-footer>
+</c-modal>

@@ -5,18 +5,39 @@
   postingDate: string;
   dueDate: string;
   comment: string;
- isDraft: boolean;
+  supplierId?: number;
+  supplierName?: string;
+  warehouseId?: number;
+  receiptPurchaseOrderId?: number;
+  itemCount?: number;
+  approvalStatus?: string | null;
+  canApprove?: boolean;
+  processApprovalId?: number;
+  isDraft: boolean;
   status: string;
-    createdAt?: string;
+  createdAt?: string;
   updatedAt?: string;
 }
 
- export interface UpdateReturn {
-  
-  goodsReturnOrderId: number;
+export interface AddReturn {
+  postingDate: string;
+  dueDate: string;
   comment: string;
- isDraft: boolean;
- 
+  supplierId: number;
+  warehouseId: number;
+  receiptPurchaseOrderId: number;
+  isDraft: boolean;
+}
+
+export interface UpdateReturn {
+  goodsReturnOrderId: number;
+  postingDate?: string;
+  dueDate?: string;
+  comment: string;
+  supplierId?: number;
+  warehouseId?: number;
+  receiptPurchaseOrderId?: number;
+  isDraft: boolean;
 }
 
 

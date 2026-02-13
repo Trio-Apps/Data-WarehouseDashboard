@@ -7,8 +7,14 @@
   comment: string;
  isDraft: boolean;
   status: string;
+  approvalStatus?: string | null;
+  canApprove?: boolean;
+  approval?: boolean | null;
+  processApprovalId?: number;
+  isReturn?: boolean | null;
     createdAt?: string;
   updatedAt?: string;
+  returnOrderId?:number;
 }
 
 

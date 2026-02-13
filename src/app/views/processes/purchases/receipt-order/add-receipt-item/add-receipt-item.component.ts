@@ -14,11 +14,11 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PurchaseService } from '../Services/purchase.service';
-import { Item } from '../Models/purchase.model';
+import { PurchaseService } from '../../Services/purchase.service';
+import { Item } from '../../Models/purchase.model';
 import { ToastrService } from 'ngx-toastr';
-import { UoMGroup } from '../../barcodes/Models/item-barcode.model';
-import { ReceiptService } from '../Services/receipt.service';
+import { UoMGroup } from '../../../barcodes/Models/item-barcode.model';
+import { ReceiptService } from '../../Services/receipt.service';
 
 @Component({
   selector: 'app-add-receipt-item',
@@ -166,7 +166,7 @@ export class AddReceiptItemComponent implements OnInit {
         this.saving = false;
         this.toastr.success('Item added successfully by barcode', 'Success');
         // العودة لصفحة receipt order
-        this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId]);
+        this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId,this.receiptId]);
         this.cdr.detectChanges();
       },
       error: (err) => {
@@ -201,7 +201,7 @@ export class AddReceiptItemComponent implements OnInit {
         this.saving = false;
         this.toastr.success('Item added successfully', 'Success');
         // العودة لصفحة receipt order
-        this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId]);
+        this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId,this.receiptId]);
         this.cdr.detectChanges();
       },
       error: (err) => {

@@ -37,7 +37,7 @@ export class ShowProcessesComponent implements OnInit {
   ngOnInit(): void {
     this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
   }
-
+// 
   onCardClick(cardType: string): void {
     if (this.warehouseId) {
       // Navigate based on card type
@@ -50,6 +50,9 @@ export class ShowProcessesComponent implements OnInit {
           break;
         case 'sales':
           this.router.navigate(['/processes/sales', this.warehouseId]);
+          break;
+           case 'good_return_order':
+          this.router.navigate(['/processes/purchases/goods-return-orders', this.warehouseId]);
           break;
         default:
           console.log('Card clicked:', cardType);

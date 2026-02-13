@@ -209,7 +209,7 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
       this.toastr.warning('No reference ID found for this process.', 'Warning');
       return;
     }
-
+//       
     switch (processType.toLowerCase()) {
       case 'sales':
         this.router.navigate(['/processes/sales/sales-items', referenceId]);
@@ -218,7 +218,15 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
       case 'purchases':
         this.router.navigate(['/processes/purchases/purchase-items', referenceId]);
         break;
-      default:
+     case 'receipt':
+            this.router.navigate(['/processes/purchases/receipt-order', 0,referenceId]);
+        break;
+
+        case 'goodsreturn':
+            this.router.navigate(['/processes/purchases/goods-return-order', 0, 0, referenceId]);
+        break;
+    
+        default:
         this.toastr.info(`No navigation defined for ${processType}.`, 'Info');
         break;
     }

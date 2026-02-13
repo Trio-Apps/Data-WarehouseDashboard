@@ -7,15 +7,17 @@ import {
   ButtonModule,
   FormModule,
   GridModule,
-  UtilitiesModule
+  UtilitiesModule,
+  ModalModule
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { PurchaseService } from '../Services/purchase.service';
-import { EditReceiptItemModalComponent } from '../edit-receipt-item-modal/edit-receipt-item-modal.component';
 import { ToastrService } from 'ngx-toastr';
 import { ReceiptService } from '../Services/receipt.service';
 import { Receipt, ReceiptItem } from '../Models/receipt';
 import { AddReturnItemModalComponent } from '../goods-return/add-return-item-modal/add-return-item-modal.component';
+import { EditReceiptItemModalComponent } from './edit-receipt-item-modal/edit-receipt-item-modal.component';
+import { ApprovalService } from '../../approval-process/Services/approval.service';
 
 @Component({
   selector: 'app-receipt-order',
@@ -27,6 +29,7 @@ import { AddReturnItemModalComponent } from '../goods-return/add-return-item-mod
     FormModule,
     GridModule,
     UtilitiesModule,
+    ModalModule,
     IconDirective,
     DatePipe,
     EditReceiptItemModalComponent,
@@ -37,6 +40,7 @@ import { AddReturnItemModalComponent } from '../goods-return/add-return-item-mod
 })
 export class ReceiptOrderComponent implements OnInit {
   purchaseOrderId: number = 0;
+  receiptOrderId:number = 0;
   receipt: Receipt | null = null;
   receiptItems: ReceiptItem[] = [];
   loading: boolean = true;
@@ -45,19 +49,24 @@ export class ReceiptOrderComponent implements OnInit {
   showAddReturnItemModal: boolean = false;
   selectedItem: ReceiptItem | null = null;
   selectedItemForReturn: {item: ReceiptItem,receiptId: number} | null = null;
+  showApprovalModal: boolean = false;
+  approvalComment: string = '';
+  approvalSubmitting: boolean = false;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private purchaseService: PurchaseService,
     private receiptService: ReceiptService,
+    private approvalService: ApprovalService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
     this.purchaseOrderId = +this.route.snapshot.paramMap.get('purchaseOrderId')!;
-    if (this.purchaseOrderId) {
+    this.receiptOrderId = +this.route.snapshot.paramMap.get('receiptOrderId')!;
+    if (this.receiptOrderId) {
       this.loadReceipt();
     }
 
@@ -72,15 +81,22 @@ export class ReceiptOrderComponent implements OnInit {
 
   loadReceipt(): void {
     this.loading = true;
-    this.receiptService.getReceiptByPurchaseId(this.purchaseOrderId).subscribe({
+    this.receiptService.getReceiptById(this.receiptOrderId).subscribe({
       next: (res: any) => {
         if (res.data) {
+          console.log("rececipt",res);
           this.receipt = res.data;
                     this.cdr.detectChanges();
          // console.log("receipt",this.receipt);
           if (res.data.warehouseId) {
             this.warehouseId = res.data.warehouseId;
           }
+
+           if (res.data.purchaseOrderId) {
+            this.purchaseOrderId = res.data.purchaseOrderId;
+            console.log("purchase from res",res.data.purchaseOrderId);
+          }
+
           // تحميل عناصر الـ receipt
           if (this.receipt?.receiptPurchaseOrderId) {
             console.log("receipt id",this.receipt.receiptPurchaseOrderId);
@@ -147,11 +163,36 @@ export class ReceiptOrderComponent implements OnInit {
     }
   }
 
+  onDeleteReceipt(): void {
+    if (!this.receipt?.receiptPurchaseOrderId) {
+      return;
+    }
+    if (confirm(`Are you sure you want to delete receipt #${this.receipt.receiptPurchaseOrderId}?`)) {
+      this.receiptService.deleteReceipt(this.receipt.receiptPurchaseOrderId).subscribe({
+        next: () => {
+          this.toastr.success('Receipt deleted successfully', 'Success');
+          this.receipt = null;
+          this.receiptItems = [];
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error deleting receipt:', err);
+          const errorMessage = err.error?.message || 'Error deleting receipt. Please try again.';
+          this.toastr.error(errorMessage, 'Error');
+        }
+      });
+    }
+  }
+
    onGoReturn(): void {
-      console.log("outside")
-    if (this.receipt?.receiptPurchaseOrderId) {
-      console.log("inside")
-      this.router.navigate(['/processes/purchases/goods-return-order',this.receipt.receiptPurchaseOrderId, this.purchaseOrderId]);
+    if (!this.receipt?.receiptPurchaseOrderId) {
+      return;
+    }
+
+    if (this.receipt.returnOrderId) {
+      this.router.navigate(['/processes/purchases/goods-return-order', this.purchaseOrderId, this.receipt.receiptPurchaseOrderId, this.receipt.returnOrderId]);
+    } else {
+      this.router.navigate(['/processes/purchases/goods-return-form', this.purchaseOrderId, this.receipt.receiptPurchaseOrderId]);
     }
   }
 
@@ -174,15 +215,17 @@ export class ReceiptOrderComponent implements OnInit {
     this.showAddReturnItemModal = true;
   }
   onItemUpdated(): void {
-    if (this.receipt?.receiptPurchaseOrderId) {
-      this.loadReceiptItems(this.receipt.receiptPurchaseOrderId);
-    }
+    this.loadReceipt();
+    // if (this.receipt?.receiptPurchaseOrderId) {
+    //   this.loadReceiptItems(this.receipt.receiptPurchaseOrderId);
+    // }
   }
 
   onViewBatches(item: ReceiptItem): void {
     if (item.receiptPurchaseOrderItemId) {
       this.router.navigate(['/processes/purchases/receipt-batches', item.receiptPurchaseOrderItemId, this.purchaseOrderId,item.quantity]);
     }
+
   }
 
   onRemoveItem(item: ReceiptItem): void {
@@ -218,11 +261,11 @@ export class ReceiptOrderComponent implements OnInit {
         next: (res: any) => {
           if (res.data?.warehouseId) {
             this.warehouseId = res.data.warehouseId;
-            this.router.navigate(['/processes/purchases/purchases', this.warehouseId]);
+            this.router.navigate(['/processes/purchases', this.warehouseId]);
           }
         },
         error: () => {
-          this.router.navigate(['/processes/purchases/purchases']);
+          this.router.navigate(['/processes/purchases']);
         }
       });
     }
@@ -244,7 +287,116 @@ export class ReceiptOrderComponent implements OnInit {
         return 'badge bg-secondary';
     }
   }
-getStatusText(receipt: Receipt): string {
-  return receipt.status;
-}
+  getStatusText(receipt: Receipt | null): string {
+    return receipt?.status || 'Unknown';
+  }
+
+  private mapApprovalStatusText(value: string): string {
+    const normalized = value.trim();
+    switch (normalized) {
+      case '1':
+        return 'InProgress';
+      case '2':
+        return 'Approved';
+      case '3':
+        return 'Rejected';
+      default:
+        return normalized;
+    }
+  }
+
+  isApproved(receipt: Receipt | null): boolean {
+    const rawStatus = receipt?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return false;
+    }
+    return this.mapApprovalStatusText(String(rawStatus)) === 'Approved';
+  }
+
+  getApprovalStatusText(receipt: Receipt | null): string {
+    const rawStatus = receipt?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return 'not found';
+    }
+    return this.mapApprovalStatusText(String(rawStatus));
+  }
+
+  getApprovalBadgeClass(receipt: Receipt | null): string {
+    const rawStatus = receipt?.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return 'badge bg-secondary';
+    }
+    const statusText = this.mapApprovalStatusText(String(rawStatus));
+    switch (statusText) {
+      case 'Approved':
+        return 'badge bg-success';
+      case 'Rejected':
+        return 'badge bg-danger';
+      case 'InProgress':
+        return 'badge bg-info';
+      default:
+        return 'badge bg-secondary';
+    }
+  }
+
+  onOpenApprovalModal(): void {
+    if (!this.receipt?.processApprovalId) {
+      this.toastr.warning('Approval data not found', 'Warning');
+      return;
+    }
+    this.approvalComment = '';
+    this.setApprovalModalVisible(true);
+  }
+
+  onCancelApprovalModal(): void {
+    if (this.approvalSubmitting) {
+      return;
+    }
+    this.setApprovalModalVisible(false);
+  }
+
+  onApprovalVisibleChange(visible: boolean): void {
+    this.setApprovalModalVisible(visible);
+  }
+
+  private setApprovalModalVisible(visible: boolean): void {
+    setTimeout(() => {
+      this.showApprovalModal = visible;
+      this.cdr.detectChanges();
+    });
+  }
+
+  private setApprovalSubmitting(value: boolean): void {
+    Promise.resolve().then(() => {
+      this.approvalSubmitting = value;
+      this.cdr.detectChanges();
+    });
+  }
+
+  submitApproval(approved: boolean): void {
+    if (!this.receipt?.processApprovalId) {
+      this.toastr.warning('Approval data not found', 'Warning');
+      return;
+    }
+    this.setApprovalSubmitting(true);
+    const comment = this.approvalComment?.trim();
+    this.approvalService
+      .changeApprovalStatus(approved, this.receipt.processApprovalId, comment || undefined)
+      .subscribe({
+        next: () => {
+          this.toastr.success(
+            approved ? 'Approval sent successfully' : 'Rejection sent successfully',
+            'Success'
+          );
+          this.setApprovalModalVisible(false);
+          this.setApprovalSubmitting(false);
+          this.loadReceipt();
+        },
+        error: (err) => {
+          console.error('Error updating approval status:', err);
+          this.setApprovalSubmitting(false);
+          this.toastr.error('Failed to update approval status. Please try again.', 'Error');
+        }
+      });
+  }
 }

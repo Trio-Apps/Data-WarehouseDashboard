@@ -12,10 +12,10 @@ import {
   FormCheckLabelDirective
 } from '@coreui/angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PurchaseService } from '../Services/purchase.service';
+import { PurchaseService } from '../../Services/purchase.service';
 import { ToastrService } from 'ngx-toastr';
-import { ReceiptService } from '../Services/receipt.service';
-import { Receipt } from '../Models/receipt';
+import { ReceiptService } from '../../Services/receipt.service';
+import { Receipt } from '../../Models/receipt';
 
 @Component({
   selector: 'app-receipt-form',
@@ -157,7 +157,7 @@ export class ReceiptFormComponent implements OnInit {
         this.toastr.success(message, 'Success');
 
         // العودة لصفحة receipt order
-        this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId]);
+        this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId,res.data.receiptPurchaseOrderId]);
 
         this.cdr.detectChanges();
       },
@@ -172,6 +172,6 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId]);
+    this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId,this.receiptId]);
   }
 }

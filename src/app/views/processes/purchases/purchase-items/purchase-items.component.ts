@@ -116,12 +116,13 @@ export class PurchaseItemsComponent implements OnInit {
       next: (res: any) => {
         if (res.data) {
           this.purchase = res.data;
+          console.log("Purchase",res);
      
           if (res.data.warehouseId) {
             this.warehouseId = res.data.warehouseId;
           }
            this.cdr.detectChanges();
-          console.log("by id",this.purchase?.warehouseId);
+         // console.log("by id",this.purchase?.warehouseId);
           this.toastr.success(`Loaded purchase with ${this.items.length} items`, 'Success');         
         }
       },
@@ -132,7 +133,7 @@ export class PurchaseItemsComponent implements OnInit {
 
 
   onAddItem(): void {
-    if (this.isDraft && !this.isApproved(this.purchase)) {
+    if (!this.isApproved(this.purchase)) {
       if (!this.warehouseId && this.purchase?.warehouseId) {
         this.warehouseId = this.purchase.warehouseId;
       }
@@ -143,7 +144,7 @@ export class PurchaseItemsComponent implements OnInit {
         this.toastr.error('Warehouse ID is not available. Please refresh the page.', 'Error');
       }
     } else {
-      this.toastr.warning('Cannot add items to finalized purchases', 'Warning');
+      this.toastr.warning('Cannot add items to approved purchases', 'Warning');
    }
   }
 

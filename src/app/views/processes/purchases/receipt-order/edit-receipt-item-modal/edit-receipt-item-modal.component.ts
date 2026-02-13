@@ -11,10 +11,10 @@ import {
 } from '@coreui/angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { UoMGroup } from '../../barcodes/Models/item-barcode.model';
-import { ReceiptService } from '../Services/receipt.service';
-import { PurchaseService } from '../Services/purchase.service';
-import { ReceiptItem, UpdateReceiptItemRequest } from '../Models/receipt';
+import { UoMGroup } from '../../../barcodes/Models/item-barcode.model';
+import { ReceiptService } from '../../Services/receipt.service';
+import { PurchaseService } from '../../Services/purchase.service';
+import { ReceiptItem, UpdateReceiptItemRequest } from '../../Models/receipt';
 
 @Component({
   selector: 'app-edit-receipt-item-modal',

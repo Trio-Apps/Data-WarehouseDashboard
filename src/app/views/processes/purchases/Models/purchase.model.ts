@@ -19,6 +19,10 @@ export interface Purchase {
   reason?: string;
   processApprovalId?: number;
   processItemIsProgressId?: number;
+  isReceipt?:boolean,
+isReturn?:boolean,
+receiptOrderId?:number,
+returnOrderId?:number,
 }
 
 export interface AddPurchase {
@@ -27,9 +31,7 @@ export interface AddPurchase {
   comment: string;
   supplierId: number;
   warehouseId: number;
-
   isDraft: boolean;
-  
 }
 
 export interface Supplier {

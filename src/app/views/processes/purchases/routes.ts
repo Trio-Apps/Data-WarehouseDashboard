@@ -46,7 +46,7 @@ export const routes: Routes = [
         }
       },
       {
-        path: 'receipt-order/:purchaseOrderId',
+        path: 'receipt-order/:purchaseOrderId/:receiptOrderId',
         loadComponent: () => import('./receipt-order/receipt-order.component').then(m => m.ReceiptOrderComponent),
         data: {
           title: 'Receipt Order'
@@ -54,35 +54,56 @@ export const routes: Routes = [
       },
       {
         path: 'receipt-form/:purchaseOrderId',
-        loadComponent: () => import('./receipt-form/receipt-form.component').then(m => m.ReceiptFormComponent),
+        loadComponent: () => import('./receipt-order/receipt-form/receipt-form.component').then(m => m.ReceiptFormComponent),
         data: {
           title: 'Create Receipt'
         }
       },
       {
         path: 'receipt-form/:purchaseOrderId/:receiptId',
-        loadComponent: () => import('./receipt-form/receipt-form.component').then(m => m.ReceiptFormComponent),
+        loadComponent: () => import('./receipt-order/receipt-form/receipt-form.component').then(m => m.ReceiptFormComponent),
         data: {
           title: 'Edit Receipt'
         }
       },
       {
         path: 'add-receipt-item/:receiptId/:purchaseOrderId',
-        loadComponent: () => import('./add-receipt-item/add-receipt-item.component').then(m => m.AddReceiptItemComponent),
+        loadComponent: () => import('./receipt-order/add-receipt-item/add-receipt-item.component').then(m => m.AddReceiptItemComponent),
         data: {
           title: 'Add Receipt Item'
         }
       },
-       {
-        path: 'goods-return-order/:receiptId/:purchaseOrderId',
+      {
+        path: 'goods-return-orders/:warehouseId',
+        loadComponent: () => import('./goods-return/goods-return-orders/goods-return-orders.component').then(m => m.GoodsReturnOrdersComponent),
+        data: {
+          title: 'Goods Return Orders'
+        }
+      },
+      {
+        path: 'goods-return-order/:purchaseOrderId/:receiptId/:goodsReturnId',
         loadComponent: () => import('./goods-return/goods-return.component').then(m => m.GoodsReturnComponent),
         data: {
           title: 'Goods Return Order'
         }
       },
       {
+        path: 'goods-return-form/:purchaseOrderId/:receiptId',
+        loadComponent: () => import('./goods-return/goods-return-form/goods-return-form.component').then(m => m.GoodsReturnFormComponent),
+        data: {
+          title: 'Create Goods Return'
+        }
+      },
+      {
+        path: 'goods-return-form/:purchaseOrderId/:receiptId/:goodsReturnId',
+        loadComponent: () => import('./goods-return/goods-return-form/goods-return-form.component').then(m => m.GoodsReturnFormComponent),
+        data: {
+          title: 'Edit Goods Return'
+        }
+      },
+      {
         path: 'receipt-batches/:receiptPurchaseOrderItemId/:purchaseOrderId/:itemQuentity',
-        loadComponent: () => import('./receipt-batches/receipt-batches.component').then(m => m.ReceiptBatchesComponent),
+        loadComponent: () => import('./receipt-order/receipt-batches/receipt-batches.component').then(m => m.ReceiptBatchesComponent),
         data: {
           title: 'Receipt Batches'
         }
