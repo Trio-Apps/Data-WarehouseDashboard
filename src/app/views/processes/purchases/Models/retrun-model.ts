@@ -69,7 +69,7 @@ export interface UpdateReturnItemRequest {
 }
 
 export interface ReturnBatch {
-  ReturnReceiptOrderBatchId?: number;
+  goodsReturnOrderBatchId?: number;
   ReturnReceiptOrderItemId: number;
   quantity: number;
   comment?: string;
@@ -77,12 +77,12 @@ export interface ReturnBatch {
   expiryDate: string;
 }
 
-// export interface AddReturnBatchRequest {
-//   ReturnReceiptOrderItemId: number;
-//   quantity: number;
-//   comment?: string;
-//   expiryDate: string;
-// }
+export interface AddReturnBatchRequest {
+  goodsReturnOrderItemId: number;
+  quantity: number;
+  comment?: string;
+  expiryDate: string;
+}
 
 export interface UpdateReturnBatchRequest {
   goodsReturnOrderBatchId: number;

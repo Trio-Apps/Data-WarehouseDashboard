@@ -102,12 +102,12 @@
       <div class="flex-grow-1 d-flex flex-column p-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0">return Items</h5>
-          <!-- @if (return && return?.status == 'Draft') {
+          @if (return && return?.status == 'Draft' && !isApproved(return)) {
             <button cButton color="primary" size="sm" (click)="onAddItem()">
               <svg cIcon name="cilPlus" class="me-2"></svg>
               Add Item
             </button>
-          } -->
+          }
         </div>
 
         <!-- Table Container with Scroll -->
@@ -200,6 +200,7 @@
 <app-edit-return-item-modal
   [visible]="showEditItemModal"
   [item]="selectedItem"
+  [hasReference]="hasReference()"
   (visibleChange)="showEditItemModal = $event"
   (itemUpdated)="onItemUpdated()">
 </app-edit-return-item-modal>

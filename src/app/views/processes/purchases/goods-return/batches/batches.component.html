@@ -1,7 +1,7 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">Receipt Batches - Item #{{ receiptPurchaseOrderItemId }}</h4>
+      <h4 class="mb-0 header-title">Goods Return Item Batches - Item #{{ returnOrderItemId }}</h4>
       <button cButton color="secondary" class="header-button" (click)="onBack()">
         <svg cIcon name="cilArrowLeft" class="me-2"></svg>
         Back
@@ -41,10 +41,10 @@
                   </td>
                 </tr>
               } @else if (batches.length > 0) {
-                @for (batch of batches; track batch.ReturnReceiptOrderBatchId || $index) {
+                @for (batch of batches; track batch.goodsReturnOrderBatchId || $index) {
                   <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ batch.ReturnReceiptOrderBatchId || 'N/A' }}</td>
+                    <td>{{ batch.goodsReturnOrderBatchId || 'N/A' }}</td>
                     <td>{{ batch.batchNumber || 'N/A' }}</td>
                     <td>{{ batch.quantity }}</td>
                     <td>{{ batch.expiryDate | date:'short' }}</td>
@@ -87,11 +87,99 @@
 </div>
 
 
+<!-- Add Batch Modal -->
+<c-modal
+  [visible]="showAddModal"
+  (visibleChange)="$event ? (showAddModal = true) : onCloseAddModal()"
+  size="lg"
+  alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>Add Batch</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <form [formGroup]="addForm" (ngSubmit)="onSubmitAdd()">
+      <c-row [gutter]="3">
+        <!-- Quantity -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Quantity <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="number"
+            step="0.01"
+            formControlName="quantity"
+            placeholder="0.01"
+            class="form-control"
+            [class.is-invalid]="addForm.get('quantity')?.invalid && addForm.get('quantity')?.touched"
+            required>
+          @if (addForm.get('quantity')?.invalid && addForm.get('quantity')?.touched) {
+            <div class="invalid-feedback d-block">
+              Quantity is required and must be greater than 0
+            </div>
+          }
+        </c-col>
+
+        <!-- Expiry Date -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Expiry Date <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="date"
+            formControlName="expiryDate"
+            class="form-control"
+            [class.is-invalid]="addForm.get('expiryDate')?.invalid && addForm.get('expiryDate')?.touched"
+            required>
+          @if (addForm.get('expiryDate')?.invalid && addForm.get('expiryDate')?.touched) {
+            <div class="invalid-feedback d-block">
+              Expiry date is required
+            </div>
+          }
+        </c-col>
+
+        <!-- Comment -->
+        <c-col [md]="12">
+          <label class="form-label">Comment</label>
+          <textarea
+            cFormControl
+            formControlName="comment"
+            rows="3"
+            placeholder="Enter any comments for this batch"
+            class="form-control">
+          </textarea>
+        </c-col>
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button
+      cButton
+      color="secondary"
+      type="button"
+      (click)="onCloseAddModal()"
+      [disabled]="saving">
+      Cancel
+    </button>
+    <button
+      cButton
+      color="primary"
+      type="button"
+      (click)="onSubmitAdd()"
+      [disabled]="addForm.invalid || saving">
+      @if (saving) {
+        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+      }
+      {{ saving ? 'Adding...' : 'Add Batch' }}
+    </button>
+  </c-modal-footer>
+</c-modal>
 
 <!-- Edit Batch Modal -->
 <c-modal
   [visible]="showEditModal"
-  (visibleChange)="showEditModal = $event"
+  (visibleChange)="$event ? (showEditModal = true) : onCloseEditModal()"
   size="lg"
   alignment="center">
   <c-modal-header>
@@ -100,7 +188,7 @@
   <c-modal-body>
     @if (selectedBatch) {
       <div class="mb-3 p-2 bg-light rounded">
-        <strong>Batch ID:</strong> {{ selectedBatch.ReturnReceiptOrderBatchId || 'N/A' }}
+        <strong>Batch ID:</strong> {{ selectedBatch.goodsReturnOrderBatchId }}
       </div>
     }
     <form [formGroup]="editForm" (ngSubmit)="onSubmitEdit()">

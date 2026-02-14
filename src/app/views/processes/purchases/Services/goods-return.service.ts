@@ -3,7 +3,8 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../pages/Services/auth.service';
-import { AddReturn, AddReturnItemRequest, UpdateReturn, UpdateReturnBatchRequest, UpdateReturnItemRequest } from '../Models/retrun-model';
+import { AddReturn, AddReturnBatchRequest, AddReturnItemRequest, UpdateReturn, UpdateReturnBatchRequest, UpdateReturnItemRequest } from '../Models/retrun-model';
+import { AddGeneralItemRequest, UpdateGeneralItemRequest } from '../../Models/general-order';
 
 @Injectable({
   providedIn: 'root',
@@ -102,12 +103,57 @@ export class GoodsReturnService {
     return this.http.post<any>(`${this.baseUrl}GoodsReturnOrderItem/receipt-purchase-order/${ReceiptOrderId}`, itemData, this.headerOption);
   }
 
+     addReceiptItemByBarcode(returnOrderId: number, barcode: string): Observable<any> {
+      const request: AddGeneralItemRequest = {
+        barcode: {
+          barCode: barcode
+        }
+      };
+      return this.http.post<any>(`${this.baseUrl}GoodsReturnOrderItem/witout-reference/goods-return-order/${returnOrderId}/add-barcode-or-no/${true}`, request, this.headerOption);
+    }
+
+    addReturnItemByBarcode(returnOrderId: number, barcode: string): Observable<any> {
+      return this.addReceiptItemByBarcode(returnOrderId, barcode);
+    }
+  
+    /**
+     * Add receipt item manually
+     */
+    addReceiptItemManually(returnOrderId: number, itemData: {
+      uoMEntry: number;
+      quantity: number;
+      itemId: number;
+    }): Observable<any> {
+      const request: AddGeneralItemRequest = {
+        item: itemData
+      };
+      return this.http.post<any>(`${this.baseUrl}GoodsReturnOrderItem/witout-reference/goods-return-order/${returnOrderId}/add-barcode-or-no/${false}`, request, this.headerOption);
+    }
+
+    addReturnItemManually(returnOrderId: number, itemData: {
+      uoMEntry: number;
+      quantity: number;
+      itemId: number;
+    }): Observable<any> {
+      return this.addReceiptItemManually(returnOrderId, itemData);
+    }
+
   /**
    * Update Return item
    */
-  updateReturnItem(ReturnItemId:number, itemData: UpdateReturnItemRequest): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}GoodsReturnOrderItem/${ReturnItemId}`, itemData, this.headerOption);
+  updateReturnItem(returnItemId:number, itemData: UpdateReturnItemRequest): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}GoodsReturnOrderItem/${returnItemId}`, itemData, this.headerOption);
   }
+
+
+  
+    /**
+     * Update receipt item
+     */
+    updateReturnItemWithoutReference(returnItemId:number, itemData: UpdateGeneralItemRequest): Observable<any> {
+      return this.http.put<any>(`${this.baseUrl}GoodsReturnOrderItem/witout-reference/${returnItemId}`, itemData, this.headerOption);
+    }
+  
 
   /**
    * Delete Return item
@@ -126,9 +172,9 @@ export class GoodsReturnService {
   /**
    * Add Return batch
    */
-  // addReturnBatch(ReturnItemId: number, batchData: AddReturnBatchRequest): Observable<any> {
-  //   return this.http.post<any>(`${this.baseUrl}GoodsReturnOrderBatch/${ReturnItemId}`, batchData, this.headerOption);
-  // }
+  addReturnBatch(returnItemId: number, batchData: AddReturnBatchRequest): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}GoodsReturnOrderBatch/goods-return-order-item/${returnItemId}`, batchData, this.headerOption);
+  }
 
   /**
    * Update Return batch

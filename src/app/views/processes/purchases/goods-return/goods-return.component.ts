@@ -143,8 +143,14 @@ export class GoodsReturnComponent implements OnInit {
   }
 
   onAddItem(): void {
-    if (this.return?.returnReceiptOrderId) {
-      this.router.navigate(['/processes/purchases/add-return-item', this.return.returnReceiptOrderId, this.receiptOrderId]);
+    if (this.return?.goodsReturnOrderId) {
+      this.router.navigate([
+        '/processes/purchases/add-goods-return-item',
+        this.return.goodsReturnOrderId,
+        this.purchaseOrderId,
+        this.receiptOrderId,
+        this.warehouseId || this.return.warehouseId || 0
+      ]);
     } else {
       this.toastr.warning('Please create return first', 'Warning');
     }
@@ -153,6 +159,10 @@ export class GoodsReturnComponent implements OnInit {
   onEditItem(item: ReturnItem): void {
     this.selectedItem = { ...item };
     this.showEditItemModal = true;
+  }
+
+  hasReference(): boolean {
+    return this.return?.receiptPurchaseOrderId !== null && this.return?.receiptPurchaseOrderId !== undefined;
   }
 
   onEditReturn(): void {

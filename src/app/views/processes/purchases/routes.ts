@@ -102,6 +102,13 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'add-goods-return-item/:goodsReturnId/:purchaseOrderId/:receiptOrderId/:warehouseId',
+        loadComponent: () => import('./goods-return/add-goods-return-item/add-goods-return-item.component').then(m => m.AddGoodsReturnItemComponent),
+        data: {
+          title: 'Add Goods Return Item'
+        }
+      },
+      {
         path: 'receipt-batches/:receiptPurchaseOrderItemId/:purchaseOrderId/:itemQuentity',
         loadComponent: () => import('./receipt-order/receipt-batches/receipt-batches.component').then(m => m.ReceiptBatchesComponent),
         data: {

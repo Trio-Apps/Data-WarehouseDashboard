@@ -11,11 +11,10 @@ import {
 } from '@coreui/angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
-import { ReceiptItem, UpdateReceiptItemRequest } from '../../Models/receipt';
 import { UoMGroup } from '../../../barcodes/Models/item-barcode.model';
-import { PurchaseService } from '../../Services/purchase.service';
 import { GoodsReturnService } from '../../Services/goods-return.service';
 import { ReturnItem, UpdateReturnItemRequest } from '../../Models/retrun-model';
+import { UpdateGeneralItemRequest } from '../../../Models/general-order';
 
 
 @Component({
@@ -37,6 +36,7 @@ import { ReturnItem, UpdateReturnItemRequest } from '../../Models/retrun-model';
 export class EditReturnItemModalComponent implements OnInit, OnChanges {
   @Input() visible: boolean = false;
   @Input() item: ReturnItem | null = null;
+  @Input() hasReference: boolean = true;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() itemUpdated = new EventEmitter<void>();
 
@@ -68,6 +68,7 @@ export class EditReturnItemModalComponent implements OnInit, OnChanges {
     this.editForm = this.fb.group({
       goodsReturnOrderItemId: [0, Validators.required],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
+      uoMEntry: [0, Validators.required],
       comment: ['']
     });
   }
@@ -78,6 +79,7 @@ export class EditReturnItemModalComponent implements OnInit, OnChanges {
       this.editForm.patchValue({
         goodsReturnOrderItemId: itemId,
         quantity: this.item.quantity || 0.01,
+        uoMEntry: this.item.uoMEntry || 0,
         comment: this.item.comment || ''
       });
 
@@ -94,9 +96,10 @@ export class EditReturnItemModalComponent implements OnInit, OnChanges {
 
   resetForm(): void {
     this.editForm.reset({
-      receiptPurchaseOrderItemId: 0,
+      goodsReturnOrderItemId: 0,
       quantity: 0.01,
-      uoMEntry: ''
+      uoMEntry: 0,
+      comment: ''
     });
   
   }
@@ -110,13 +113,19 @@ export class EditReturnItemModalComponent implements OnInit, OnChanges {
     this.saving = true;
     const formValue = this.editForm.value;
 
-    const itemData: UpdateReturnItemRequest = {
-      goodsReturnOrderItemId: formValue.goodsReturnOrderItemId,
-      quantity: formValue.quantity,
-      comment: formValue.comment
-    };
-     console.log("updating item data",itemData);
-    this.returnService.updateReturnItem(itemData.goodsReturnOrderItemId, itemData).subscribe({
+    const returnItemId = formValue.goodsReturnOrderItemId;
+    const request$ = this.hasReference
+      ? this.returnService.updateReturnItem(returnItemId, {
+          goodsReturnOrderItemId: returnItemId,
+          quantity: formValue.quantity,
+          comment: formValue.comment
+        } as UpdateReturnItemRequest)
+      : this.returnService.updateReturnItemWithoutReference(returnItemId, {
+          quantity: formValue.quantity,
+          uoMEntry: formValue.uoMEntry
+        } as UpdateGeneralItemRequest);
+
+    request$.subscribe({
       next: (res: any) => {
         console.log('Receipt item updated:', res);
         this.saving = false;
