@@ -51,6 +51,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
   @Input() visible: boolean = false;
   @Input() user: User | null = null;
   @Input() isEditMode: boolean = false;
+  @Input() saving: boolean = false;
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() save = new EventEmitter<User>();
   @Output() cancel = new EventEmitter<void>();

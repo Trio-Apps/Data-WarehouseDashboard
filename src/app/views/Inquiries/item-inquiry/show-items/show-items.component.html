@@ -16,6 +16,7 @@
           <thead class="table-header">
             <tr>
               <th scope="col" class="bg-body-tertiary">#</th>
+              <th scope="col" class="bg-body-tertiary">Item Code</th>
               <th scope="col" class="bg-body-tertiary">Item Name</th>
               <th scope="col" class="bg-body-tertiary">Quantity</th>
               <th scope="col" class="bg-body-tertiary">Price</th>
@@ -34,8 +35,9 @@
               @for (item of paginatedItems; track item.itemId || $index) {
                 <tr>
                   <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
-                  <td>{{ item?.itemName|| 'N/A' }}</td>
-                  <td>{{ item?.inStock  || 'N/A' }}</td>
+                  <td>{{ item?.itemCode || 'N/A' }}</td>
+                  <td>{{ item?.itemName || 'N/A' }}</td>
+                  <td>{{ item?.inStock || 'N/A' }}</td>
                   <td>{{ item?.salesPrice || 'N/A' }}</td>
                   <td class="text-center">
                     <button cButton color="info" size="sm" class="btn-soft" (click)="onDetails(item.itemId)">
