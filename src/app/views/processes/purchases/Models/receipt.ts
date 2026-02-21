@@ -1,12 +1,16 @@
 
-    export interface Receipt {
+export interface Receipt {
   receiptPurchaseOrderId?: number;
   purchaseOrderId: number;
+  warehouseId?: number;
   postingDate: string;
   dueDate: string;
   comment: string;
- isDraft: boolean;
+  isDraft: boolean;
   status: string;
+  itemCount?: number;
+  supplierName?:string;
+  supplierCode?:string;
   approvalStatus?: string | null;
   canApprove?: boolean;
   approval?: boolean | null;
@@ -17,6 +21,21 @@
   returnOrderId?:number;
 }
 
+export interface ReceiptResponse {
+  success: boolean;
+  message: string;
+  data: {
+    data: Receipt[];
+    hasNext: boolean;
+    hasPrevious: boolean;
+    pageNumber: number;
+    pageSize: number;
+    totalPages: number;
+    totalRecords: number;
+  };
+  errors: any;
+}
+
 
 export interface ReceiptItem {
   receiptPurchaseOrderItemId?: number;
@@ -24,6 +43,7 @@ export interface ReceiptItem {
   itemId: number;
   uoMEntry: number;
   quantity: number;
+  unitPrice: number;
   barCode?: string;
   itemName?: string;
   itemCode?: string;
@@ -39,6 +59,7 @@ export interface AddReceiptItemRequest {
   item?: {
     uoMEntry: number;
     quantity: number;
+    UnitPrice?: number;
     receiptPurchaseOrderId: number;
     itemId: number;
   };
@@ -48,6 +69,7 @@ export interface UpdateReceiptItemRequest {
   receiptPurchaseOrderItemId: number;
   quantity: number;
   uoMEntry: number;
+  UnitPrice?: number;
 }
 
 export interface ReceiptBatch {
@@ -61,6 +83,7 @@ export interface ReceiptBatch {
 
 export interface AddReceiptBatchRequest {
   receiptPurchaseOrderItemId: number;
+  BatchNumber: string;
   quantity: number;
   comment?: string;
   expiryDate: string;
@@ -68,6 +91,7 @@ export interface AddReceiptBatchRequest {
 
 export interface UpdateReceiptBatchRequest {
   receiptPurchaseOrderBatchId: number;
+  BatchNumber: string;
   quantity: number;
   comment?: string;
   expiryDate: string;

@@ -23,9 +23,9 @@ export interface AddReturn {
   postingDate: string;
   dueDate: string;
   comment: string;
-  supplierId: number;
+  supplierId?: number;
   warehouseId: number;
-  receiptPurchaseOrderId: number;
+  receiptPurchaseOrderId?: number;
   isDraft: boolean;
 }
 
@@ -45,6 +45,7 @@ export interface ReturnItem {
   returnReceiptOrderItemId?: number;
   goodsReturnOrderItemId?: number;
   goodsReturnOrderId?: number;
+  receiptPurchaseOrderItemId?: number;
   itemId: number;
   uoMEntry: number;
   quantity: number;
@@ -81,6 +82,7 @@ export interface AddReturnBatchRequest {
   goodsReturnOrderItemId: number;
   quantity: number;
   comment?: string;
+  batchNumber?: string;
   expiryDate: string;
 }
 

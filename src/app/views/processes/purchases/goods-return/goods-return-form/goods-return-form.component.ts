@@ -46,6 +46,7 @@ export class GoodsReturnFormComponent implements OnInit {
   suppliers: Supplier[] = [];
   loading: boolean = false;
   saving: boolean = false;
+  returnOrder: Return | null = null;
 
   constructor(
     private fb: FormBuilder,
@@ -65,7 +66,7 @@ export class GoodsReturnFormComponent implements OnInit {
     this.warehouseId = +(this.route.snapshot.queryParamMap.get('warehouseId') || 0);
 
     this.initializeForm();
-    this.loadSuppliers();
+    this.configureFormForWithoutReference();
 
     if (this.isEditMode && this.goodsReturnId) {
       this.loadReturn();
@@ -79,9 +80,19 @@ export class GoodsReturnFormComponent implements OnInit {
       postingDate: ['', Validators.required],
       dueDate: ['', Validators.required],
       comment: [''],
-      supplierId: ['', Validators.required],
+      supplierId: [''],
       isDraft: [true]
     });
+  }
+
+  private configureFormForWithoutReference(): void {
+    if (this.receiptOrderId !== 0) {
+      return;
+    }
+
+    this.form.get('supplierId')?.setValidators([Validators.required]);
+    this.form.get('supplierId')?.updateValueAndValidity();
+    this.loadSuppliers();
   }
 
   private loadWarehouseFromPurchase(): void {
@@ -104,17 +115,25 @@ export class GoodsReturnFormComponent implements OnInit {
     });
   }
 
-  loadSuppliers(): void {
+  private loadSuppliers(): void {
     this.loading = true;
     this.purchaseService.getSuppliers().subscribe({
       next: (res: any) => {
-        if (res.data) {
-          this.suppliers = res.data.map((s: any) => ({
-            supplierId: s.supplierId,
-            supplierName: s.supplierName,
-            supplierCode: s.supplierCode
-          }));
-        }
+        const rawSuppliers = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res)
+          ? res
+          : [];
+
+        this.suppliers = rawSuppliers
+          .map((s: any) => ({
+            supplierId: s.supplierId ?? s.id ?? s.SupplierId,
+            supplierName: s.supplierName ?? s.name ?? s.SupplierName ?? '',
+            supplierCode: s.supplierCode ?? s.code ?? s.SupplierCode ?? ''
+          }))
+          .filter((s: Supplier) => !!s.supplierId);
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -134,22 +153,22 @@ export class GoodsReturnFormComponent implements OnInit {
     this.returnService.getReturnById(this.goodsReturnId).subscribe({
       next: (res: any) => {
         if (res.data) {
-          const returnOrder: Return = res.data;
-          const postingDateStr = returnOrder.postingDate
-            ? new Date(returnOrder.postingDate).toISOString().split('T')[0]
+          this.returnOrder = res.data;
+          const postingDateStr = this.returnOrder?.postingDate
+            ? new Date(this.returnOrder?.postingDate).toISOString().split('T')[0]
             : null;
-          const dueDateStr = returnOrder.dueDate
-            ? new Date(returnOrder.dueDate).toISOString().split('T')[0]
+          const dueDateStr = this.returnOrder?.dueDate
+            ? new Date(this.returnOrder?.dueDate).toISOString().split('T')[0]
             : null;
 
-          this.warehouseId = returnOrder.warehouseId || 0;
+          this.warehouseId = this.returnOrder?.warehouseId || 0;
 
           this.form.patchValue({
             postingDate: postingDateStr,
             dueDate: dueDateStr,
-            comment: returnOrder.comment || '',
-            supplierId: returnOrder.supplierId || null,
-            isDraft: returnOrder.isDraft !== undefined ? returnOrder.isDraft : true
+            comment: this.returnOrder?.comment || '',
+            supplierId: this.returnOrder?.supplierId || null,
+            isDraft: this.returnOrder?.isDraft !== undefined ? this.returnOrder?.isDraft : true
           });
         }
         this.loading = false;
@@ -178,15 +197,18 @@ export class GoodsReturnFormComponent implements OnInit {
   }
 
   onSubmit(): void {
+    this.saveReturn(false);
+  }
+
+  onSubmitWithDefaultLines(): void {
+    this.saveReturn(true);
+  }
+
+  private saveReturn(useDefaultLines: boolean): void {
     if (this.form.invalid) {
       this.toastr.error('Please fill in all required fields', 'Validation Error');
       return;
     }
-
-    // if (!this.warehouseId) {
-    //   this.toastr.error('Warehouse is required to create return order', 'Validation Error');
-    //   return;
-    // }
 
     this.saving = true;
     const formValue = this.form.value;
@@ -195,19 +217,36 @@ export class GoodsReturnFormComponent implements OnInit {
       postingDate: this.formatDateToISOString(formValue.postingDate),
       dueDate: this.formatDateToISOString(formValue.dueDate),
       comment: formValue.comment,
-      supplierId: +formValue.supplierId,
       isDraft: formValue.isDraft
     };
 
+    const withoutReferenceData = {
+      warehouseId: this.warehouseId,
+      supplierId: +formValue.supplierId,
+      ...payloadBase
+    };
+
+    const withReferenceData = {
+      warehouseId: this.warehouseId,
+      receiptPurchaseOrderId: this.receiptOrderId,
+      ...payloadBase
+    };
+
     const operation = this.isEditMode && this.goodsReturnId
-      ? this.returnService.updateReturn(this.goodsReturnId, {
-          goodsReturnOrderId: this.goodsReturnId,
-          ...payloadBase
-        } as UpdateReturn)
-      : this.returnService.createReturn({
-         warehouseId: this.warehouseId,
-          ...payloadBase
-        } as AddReturn);
+      ? this.receiptOrderId === 0
+        ? this.returnService.updateReturn(this.goodsReturnId, {
+            goodsReturnOrderId: this.goodsReturnId,
+            ...withoutReferenceData
+          } as UpdateReturn)
+        : this.returnService.updateReturn(this.goodsReturnId, {
+            goodsReturnOrderId: this.goodsReturnId,
+            ...withReferenceData
+          } as UpdateReturn)
+      : this.receiptOrderId === 0
+      ? this.returnService.createReturnWithOutReference(withoutReferenceData as AddReturn)
+      : useDefaultLines
+      ? this.returnService.createReturnWithDefaultItems(withReferenceData as AddReturn)
+      : this.returnService.createReturn(withReferenceData as AddReturn);
 
     operation.subscribe({
       next: (res: any) => {

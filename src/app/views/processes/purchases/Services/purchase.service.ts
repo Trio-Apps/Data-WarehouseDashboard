@@ -44,6 +44,7 @@ getPurchasesWithFilterationByWarehouse(
   pageNumber: number,
   pageSize: number,
   warehouseId: number,
+  supplierId?:number,
   liveStatus?:string,
   status?: string,
   postingDate?: string,
@@ -55,6 +56,9 @@ getPurchasesWithFilterationByWarehouse(
   let params = new HttpParams();
 
 
+  if (supplierId) {
+    params = params.set('supplierId', supplierId);
+  }
   if (status) {
     params = params.set('status', status);
   }
@@ -151,6 +155,7 @@ getPurchasesWithFilterationByWarehouse(
   addItemManually(purchaseOrderId: number, itemData: {
     uoMEntry: number;
     quantity: number;
+    UnitPrice?: number;
     purchaseOrderId: number;
     itemId: number;
   }): Observable<any> {
@@ -173,6 +178,7 @@ getPurchasesWithFilterationByWarehouse(
   updatePurchaseItem(id:number ,itemData: {
     quantity: number;
     uoMEntry: number;
+    UnitPrice?: number;
   }): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}PurchaseOrderItem/Purchase-item-order/${id}`, itemData, this.headerOption);
   }

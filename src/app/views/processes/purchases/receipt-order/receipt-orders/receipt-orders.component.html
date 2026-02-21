@@ -1,15 +1,14 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">Purchases - Warehouse #{{ warehouseId }}</h4>
-      <button cButton color="primary" class="header-button" (click)="onAddPurchase()">
+      <h4 class="mb-0 header-title">Receipt Orders - Warehouse #{{ warehouseId }}</h4>
+      <button cButton color="primary" class="header-button" (click)="onAddReceipt()">
         <svg cIcon name="cil-plus" class="me-2"></svg>
-        Add Purchase
+        Add Receipt
       </button>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
-      <!-- Table Container with Scroll -->
       <div class="table-container">
         <table [hover]="true" [striped]="true" cTable class="mb-0">
           <thead class="table-header">
@@ -24,8 +23,7 @@
               <th scope="col" class="bg-body-tertiary">Comment</th>
               <th scope="col" class="bg-body-tertiary">Items Count</th>
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
-
-              <th scope="col" class="bg-body-tertiary text-center">Receipt</th>
+              <th scope="col" class="bg-body-tertiary text-center">Return</th>
             </tr>
           </thead>
 
@@ -36,58 +34,53 @@
                 <span class="text-body-secondary">Loading...</span>
               </td>
             </tr>
-            } @else if (paginatedPurchases.length > 0) {
-            @for (purchase of paginatedPurchases; track purchase.purchaseOrderId || $index) {
+            } @else if (paginatedReceipts.length > 0) {
+            @for (receipt of paginatedReceipts; track receipt.receiptPurchaseOrderId || $index) {
             <tr>
               <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
-              <td>{{ purchase.purchaseOrderId }}</td>
-              <td>{{ purchase.supplier?.supplierName || 'N/A' }}</td>
-              <td>{{ purchase.postingDate | date:'short' }}</td>
-              <td>{{ purchase.dueDate | date:'short' }}</td>
+              <td>{{ receipt.receiptPurchaseOrderId }}</td>
+              <td>{{ receipt.supplierName || 'N/A' }}</td>
+              <td>{{ receipt.postingDate | date:'short' }}</td>
+              <td>{{ receipt.dueDate | date:'short' }}</td>
               <td>
-                <span [class]="getStatusBadgeClass(purchase)">
-                  {{ getStatusText(purchase) }}
+                <span [class]="getStatusBadgeClass(receipt)">
+                  {{ getStatusText(receipt) }}
                 </span>
               </td>
               <td>
-                <span [class]="getApprovalBadgeClass(purchase)">
-                  {{ getApprovalStatusText(purchase) }}
+                <span [class]="getApprovalBadgeClass(receipt)">
+                  {{ getApprovalStatusText(receipt) }}
                 </span>
               </td>
-              <td>{{ purchase.comment || 'No comment' }}</td>
-              <td>{{ purchase.itemCount}}</td>
+              <td>{{ receipt.comment || 'No comment' }}</td>
+              <td>{{ receipt?.itemCount || 0 }}</td>
               <td class="text-center">
-                <button cButton color="info" size="sm" class="me-2" (click)="onViewPurchaseItems(purchase)"
-                  title="View Items">
+                <button cButton color="info" size="sm" class="me-2" (click)="onViewReceiptOrder(receipt)"
+                  title="View Receipt">
                   <svg cIcon name="cil-list"></svg>
                 </button>
 
-                @if (!isApproved(purchase)) {
-                <!-- <button cButton color="warning" size="sm" class="me-2" (click)="onEditPurchase(purchase)" title="Edit">
-                  <svg cIcon name="cil-pencil"></svg>
-                </button> -->
-                <button cButton color="danger" size="sm" (click)="onDeletePurchase(purchase)" title="Delete">
+                @if (!isApproved(receipt)) {
+                <button cButton color="danger" size="sm" (click)="onDeleteReceipt(receipt)" title="Delete">
                   <svg cIcon name="cil-trash"></svg>
                 </button>
                 }
-
               </td>
               <td class="text-center">
-                @if (isApproved(purchase) && purchase.status == "Completed") {
-                <button cButton color="success" size="sm" class="me-2" (click)="onViewReceiptOrder(purchase)"
-                  title="View Receipt">
-                  <svg cIcon name="cil-receipt"></svg>
+                @if (isApproved(receipt) && receipt.status == "Processing") {
+                <button cButton color="danger" size="sm" class="me-2" (click)="onViewReturnOrder(receipt)"
+                  title="View Return">
+                  <svg cIcon name="cil-return"></svg>
+                  <!-- <svg cIcon name="cil-list"></svg> -->
                 </button>
                 }
-
-
               </td>
             </tr>
             }
             } @else {
             <tr>
               <td colspan="11" class="text-center py-4">
-                <span class="text-body-secondary">No purchases found</span>
+                <span class="text-body-secondary">No receipts found</span>
               </td>
             </tr>
             }
@@ -95,7 +88,6 @@
         </table>
       </div>
 
-      <!-- Pagination -->
       @if (totalPages > 0) {
       <div class="pagination-container p-3 border-top">
         <nav aria-label="Page navigation">
@@ -125,70 +117,57 @@
         <div class="text-body-secondary small text-center">
           Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }}
           of
-          {{ totalItems }} purchases
+          {{ totalItems }} receipts
         </div>
       </div>
       }
     </c-card-body>
 
-    <!-- Form Section Below Table -->
     <div class="form-section p-3 border-top">
-      <!-- <div>{{form.value | json}}</div> -->
       <form [formGroup]="form" (ngSubmit)="onSearch()">
         <c-row [gutter]="3">
-          <!-- Status Filter -->
           <c-col [md]="2">
             <label class="form-label">Status</label>
             <select cFormControl formControlName="status" class="form-select">
               <option value="">-- All Statuses --</option>
-              
-
               <option value="Draft">Draft</option>
               <option value="Processing">Processing</option>
               <option value="Completed">Completed</option>
               <option value="PartiallyFailed">PartiallyFailed</option>
+              <option value="Final">Final</option>
             </select>
           </c-col>
 
-          <!-- Supplier Filter -->
           <c-col [md]="2">
             <label class="form-label">Supplier</label>
             <select cFormControl formControlName="supplierId" class="form-select">
               <option value="">-- All Suppliers --</option>
               @for (supplier of suppliers; track supplier.supplierId) {
-                <option [value]="supplier.supplierId">
-                  {{ supplier.supplierCode || supplier.supplierName }}
-                </option>
+              <option [value]="supplier.supplierId">
+                {{ supplier.supplierCode || supplier.supplierName }}
+              </option>
               }
             </select>
           </c-col>
 
-          <!-- Posting Date Filter -->
           <c-col [md]="2">
             <label class="form-label">Posting Date</label>
             <input cFormControl type="date" formControlName="postingDate" class="form-control" />
           </c-col>
 
-          <!-- Due Date Filter -->
           <c-col [md]="2">
             <label class="form-label">Due Date</label>
             <input cFormControl type="date" formControlName="dueDate" class="form-control" />
           </c-col>
 
-          <!-- liveStatus Filter -->
           <c-col [md]="2">
             <label class="form-label" for="liveStatus">Live Status</label>
             <select id="liveStatus" class="form-select" formControlName="liveStatus" cFormControl>
-
               <option value="">-- All Live Status --</option>
-              <option value="receipt">Receipt</option>
               <option value="return">Return</option>
-
             </select>
           </c-col>
 
-
-          <!-- Action Buttons -->
           <c-col [md]="2" class="d-flex align-items-end">
             <button cButton color="primary" type="submit" class="w-100">
               Search

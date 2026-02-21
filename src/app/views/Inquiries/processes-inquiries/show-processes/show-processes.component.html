@@ -19,10 +19,22 @@
             </c-card-body>
           </c-card>
         </c-col>
-
-        <!-- Receipt Order -->
+ <!-- Receipt Order -->
         <c-col [xs]="12" [md]="3">
-          <c-card class="process-card h-100" (click)="onCardClick('good_return_order')">
+          <c-card class="process-card h-100" (click)="onCardClick('receipt')">
+            <c-card-body class="text-center">
+              <div class="icon-wrap icon-green">
+                <svg cIcon name="cil-inbox" size="3xl" class="process-icon"></svg>
+              </div>
+              <h5 class="card-title">Receipt Order</h5>
+              <p class="card-text">Receipt Return</p>
+            </c-card-body>
+          </c-card>
+        </c-col>
+
+        <!-- Goods Return Order -->
+        <c-col [xs]="12" [md]="3">
+          <c-card class="process-card h-100" (click)="onCardClick('goods-return')">
             <c-card-body class="text-center">
               <div class="icon-wrap icon-green">
                 <svg cIcon name="cil-inbox" size="3xl" class="process-icon"></svg>

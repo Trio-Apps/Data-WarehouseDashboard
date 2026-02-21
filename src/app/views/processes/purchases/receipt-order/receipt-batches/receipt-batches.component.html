@@ -1,7 +1,7 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">Receipt Batches - Item #{{ receiptPurchaseOrderItemId }}</h4>
+      <h4 class="mb-0 header-title">Receipt Batches - Item #{{ receiptItemId }}</h4>
       <button cButton color="secondary" class="header-button" (click)="onBack()">
         <svg cIcon name="cilArrowLeft" class="me-2"></svg>
         Back
@@ -98,6 +98,26 @@
   <c-modal-body>
     <form [formGroup]="addForm" (ngSubmit)="onSubmitAdd()">
       <c-row [gutter]="3">
+        <!-- Batch Number -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Batch Number <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="BatchNumber"
+            placeholder="Enter batch number"
+            class="form-control"
+            [class.is-invalid]="addForm.get('BatchNumber')?.invalid && addForm.get('BatchNumber')?.touched"
+            required>
+          @if (addForm.get('BatchNumber')?.invalid && addForm.get('BatchNumber')?.touched) {
+            <div class="invalid-feedback d-block">
+              Batch Number is required
+            </div>
+          }
+        </c-col>
+
         <!-- Quantity -->
         <c-col [md]="6">
           <label class="form-label">
@@ -192,6 +212,26 @@
     }
     <form [formGroup]="editForm" (ngSubmit)="onSubmitEdit()">
       <c-row [gutter]="3">
+        <!-- Batch Number -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Batch Number <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="BatchNumber"
+            placeholder="Enter batch number"
+            class="form-control"
+            [class.is-invalid]="editForm.get('BatchNumber')?.invalid && editForm.get('BatchNumber')?.touched"
+            required>
+          @if (editForm.get('BatchNumber')?.invalid && editForm.get('BatchNumber')?.touched) {
+            <div class="invalid-feedback d-block">
+              Batch Number is required
+            </div>
+          }
+        </c-col>
+
         <!-- Quantity -->
         <c-col [md]="6">
           <label class="form-label">

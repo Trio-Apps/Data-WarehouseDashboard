@@ -64,14 +64,12 @@ export class AddReceiptItemComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.receiptId = +this.route.snapshot.paramMap.get('receiptId')!;
-    this.purchaseOrderId = +this.route.snapshot.paramMap.get('purchaseOrderId')!;
+    this.receiptId = +(this.route.snapshot.paramMap.get('receiptId') || 0);
+    this.purchaseOrderId = +(this.route.snapshot.paramMap.get('purchaseOrderId') || 0);
+    this.warehouseId = +(this.route.snapshot.queryParamMap.get('warehouseId') || 0);
 
     this.initializeForms();
-    
-   
-          this.loadItems();
-       
+    this.loadItems();
   }
 
   initializeForms(): void {
@@ -83,6 +81,7 @@ export class AddReceiptItemComponent implements OnInit {
       itemId: ['', Validators.required],
       uoMEntry: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(0.01)]],
+      unitPrice: [0, [Validators.required, Validators.min(0)]],
     });
 
     // Listen to item selection changes
@@ -97,26 +96,57 @@ export class AddReceiptItemComponent implements OnInit {
   }
 
   loadItems(): void {
+    if (this.purchaseOrderId > 0) {
+      this.loadItemsByPurchase();
+      return;
+    }
+
+    if (this.warehouseId > 0) {
+      this.loadItemsByWarehouse();
+      return;
+    }
+
+    this.items = [];
+    this.toastr.warning('Warehouse is not available. Please open this page from receipt order.', 'Warning');
+    this.cdr.detectChanges();
+  }
+
+  private loadItemsByPurchase(): void {
     this.loading = true;
     this.purchaseService.getAllItemsbyPurchaseId(this.purchaseOrderId).subscribe({
-      next: (res: any) => {
-        if (res.data) {
-          this.items = res.data.map((item: any) => ({
-            itemId: item.itemId,
-            itemName: item.itemName,
-            itemCode: item.itemCode
-          }));
-        }
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading items:', err);
-        this.loading = false;
-        this.toastr.error('Failed to load items. Please try again.', 'Error');
-        this.cdr.detectChanges();
-      }
+      next: (res: any) => this.handleItemsResponse(res),
+      error: (err) => this.handleItemsError(err)
     });
+  }
+
+  private loadItemsByWarehouse(): void {
+    this.loading = true;
+    this.purchaseService.getItemsByWarehouse(this.warehouseId).subscribe({
+      next: (res: any) => this.handleItemsResponse(res),
+      error: (err) => this.handleItemsError(err)
+    });
+  }
+
+  private handleItemsResponse(res: any): void {
+    if (res.data) {
+      this.items = res.data.map((item: any) => ({
+        itemId: item.itemId,
+        itemName: item.itemName,
+        itemCode: item.itemCode
+      }));
+    } else {
+      this.items = [];
+    }
+    this.loading = false;
+    this.cdr.detectChanges();
+  }
+
+  private handleItemsError(err: any): void {
+    console.error('Error loading items:', err);
+    this.items = [];
+    this.loading = false;
+    this.toastr.error('Failed to load items. Please try again.', 'Error');
+    this.cdr.detectChanges();
   }
 
   loadUomGroups(itemId: number): void {
@@ -148,7 +178,7 @@ export class AddReceiptItemComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId]);
+    this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId,this.receiptId]);
   }
 
   onAddByBarcode(): void {
@@ -191,6 +221,7 @@ export class AddReceiptItemComponent implements OnInit {
     const itemData = {
       uoMEntry: formValue.uoMEntry,
       quantity: formValue.quantity,
+      UnitPrice: formValue.unitPrice,
       receiptPurchaseOrderId: this.receiptId,
       itemId: formValue.itemId
     };

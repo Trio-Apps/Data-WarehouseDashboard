@@ -99,6 +99,38 @@
   <c-modal-body>
     <form [formGroup]="addForm" (ngSubmit)="onSubmitAdd()">
       <c-row [gutter]="3">
+        @if (shouldShowReceiptBatchSelect()) {
+          <c-col [md]="12">
+            <label class="form-label">Load From Receipt Batch</label>
+            <select
+              cSelect
+              class="form-select"
+              formControlName="selectedReceiptBatchId"
+              (change)="onReceiptBatchSelectionChange($any($event.target).value)">
+              <option value="">Manual Entry</option>
+              @for (receiptBatch of receiptBatchOptions; track receiptBatch.receiptPurchaseOrderBatchId) {
+                <option [value]="receiptBatch.receiptPurchaseOrderBatchId">
+                  {{ receiptBatch.batchNumber || ('Batch #' + receiptBatch.receiptPurchaseOrderBatchId) }}
+                </option>
+              }
+            </select>
+            @if (loadingReceiptBatchOptions) {
+              <small class="text-body-secondary">Loading receipt batches...</small>
+            }
+          </c-col>
+        }
+
+        <!-- Batch Number -->
+        <c-col [md]="6">
+          <label class="form-label">Batch Number</label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="batchNumber"
+            placeholder="Enter batch number"
+            class="form-control">
+        </c-col>
+
         <!-- Quantity -->
         <c-col [md]="6">
           <label class="form-label">

@@ -39,6 +39,28 @@
           <small class="form-text text-muted">Quantity to purchase</small>
         </c-col>
 
+        <!-- Unit Price -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Unit Price <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="number"
+            step="0.01"
+            formControlName="unitPrice"
+            placeholder="0.00"
+            class="form-control"
+            [class.is-invalid]="editForm.get('unitPrice')?.invalid && editForm.get('unitPrice')?.touched"
+            required>
+          @if (editForm.get('unitPrice')?.invalid && editForm.get('unitPrice')?.touched) {
+            <div class="invalid-feedback d-block">
+              Unit price is required and must be 0 or greater
+            </div>
+          }
+          <small class="form-text text-muted">Price per unit</small>
+        </c-col>
+
         <!-- UoM Entry -->
         <c-col [md]="6">
           <label class="form-label">

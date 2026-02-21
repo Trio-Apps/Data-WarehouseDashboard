@@ -75,7 +75,27 @@
                 </div>
                
               </div>
+
+              
               <c-row [gutter]="3">
+                 <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Document Date</label>
+                    <p class="mb-0">{{ receipt?.createdAt | date:'short' }}</p>
+                  </div>
+                </c-col>
+                   <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Supplier Code</label>
+                    <p class="mb-0">{{ receipt?.supplierCode}}</p>
+                  </div>
+                </c-col>
+                 <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Supplier Name</label>
+                    <p class="mb-0">{{ receipt?.supplierName}}</p>
+                  </div>
+                </c-col>
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Posting Date</label>
@@ -144,6 +164,7 @@
                 <th scope="col" class="bg-body-tertiary">Item Name</th>
                 <th scope="col" class="bg-body-tertiary">Barcode</th>
                 <th scope="col" class="bg-body-tertiary">Quantity</th>
+                <th scope="col" class="bg-body-tertiary">Unit Price</th>
                 <th scope="col" class="bg-body-tertiary">Unit</th>
                 <th scope="col" class="bg-body-tertiary text-center">Batches</th>
                 @if (receipt && !isApproved(receipt)) {
@@ -178,6 +199,7 @@
                     <td>{{ item.itemName || 'N/A' }}</td>
                     <td>{{ item.barCode || 'N/A' }}</td>
                     <td>{{ item.quantity }}</td>
+                    <td>{{ item.unitPrice }}</td>
                     <td>{{ item.unitName || 'N/A' }}</td>
                     <td class="text-center">
                       <button cButton color="success" size="sm" (click)="onViewBatches(item)" title="View Batches">

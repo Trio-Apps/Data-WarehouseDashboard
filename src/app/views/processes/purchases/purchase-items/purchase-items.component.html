@@ -21,7 +21,7 @@
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
-                  <h6 class="card-title">Purchase Order #{{ purchase?.purchaseOrderId }}</h6>
+                  <h6 class="card-title">Purchase Order Number {{ purchase?.purchaseOrderId }}</h6>
                 </div>
                 <div>
                   @if (!isApproved(purchase)) {
@@ -44,6 +44,24 @@
                 </div>
               </div>
               <c-row [gutter]="3">
+                 <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Document Date</label>
+                    <p class="mb-0">{{ purchase?.createdAt | date:'short' }}</p>
+                  </div>
+                </c-col>
+                   <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Supplier Code</label>
+                    <p class="mb-0">{{ purchase?.supplierCode}}</p>
+                  </div>
+                </c-col>
+                 <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Supplier Name</label>
+                    <p class="mb-0">{{ purchase?.supplierName}}</p>
+                  </div>
+                </c-col>
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Posting Date</label>
@@ -93,7 +111,7 @@
           <h5 class="mb-0">Purchase Items</h5>
           @if (purchase && !isApproved(purchase)) {
             <button cButton color="primary" size="sm" (click)="onAddItem()">
-              <svg cIcon name="cilPlus" class="me-2"></svg>
+              <svg cIcon name="cil-plus" class="me-2"></svg>
               Add Item
             </button>
           }
@@ -108,6 +126,7 @@
                 <th scope="col" class="bg-body-tertiary">Item Name</th>
                 <th scope="col" class="bg-body-tertiary">Barcode</th>
                 <th scope="col" class="bg-body-tertiary">Quantity</th>
+                <th scope="col" class="bg-body-tertiary">Price</th>
                 <th scope="col" class="bg-body-tertiary">Unit</th>
                 @if (purchase && !isApproved(purchase)) {
                   <th scope="col" class="bg-body-tertiary text-center">Actions</th>
@@ -130,6 +149,7 @@
                     <td>{{ item.itemName }}</td>
                     <td>{{ item.barCode || 'N/A' }}</td>
                     <td>{{ item.quantity }}</td>
+                    <td>{{ item.unitPrice }}</td>
                     <td>{{ item.unitName || 'N/A' }}</td>
                     @if (purchase && !isApproved(purchase)) {
                       <td class="text-center">

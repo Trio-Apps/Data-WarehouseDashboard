@@ -16,6 +16,7 @@ import { PurchaseService } from '../../Services/purchase.service';
 import { ToastrService } from 'ngx-toastr';
 import { ReceiptService } from '../../Services/receipt.service';
 import { Receipt } from '../../Models/receipt';
+import { Supplier } from '../../Models/purchase.model';
 
 @Component({
   selector: 'app-receipt-form',
@@ -39,6 +40,8 @@ export class ReceiptFormComponent implements OnInit {
   isEditMode: boolean = false;
   receiptId: number | null = null;
   purchaseOrderId: number = 0;
+  warehouseId: number = 0;
+  suppliers: Supplier[] = [];
   loading: boolean = false;
   saving: boolean = false;
 
@@ -53,12 +56,14 @@ export class ReceiptFormComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.purchaseOrderId = +this.route.snapshot.paramMap.get('purchaseOrderId')!;
-    this.receiptId = +this.route.snapshot.paramMap.get('receiptId')! || null;
+    this.purchaseOrderId = +(this.route.snapshot.paramMap.get('purchaseOrderId') || 0);
+    this.receiptId = +(this.route.snapshot.paramMap.get('receiptId') || 0);
+    this.warehouseId = +(this.route.snapshot.queryParamMap.get('warehouseId') || 0);
 
     this.isEditMode = !!this.receiptId;
 
     this.initializeForm();
+    this.configureFormForWithoutReference();
 
     if (this.isEditMode && this.receiptId) {
       this.loadReceipt();
@@ -70,7 +75,52 @@ export class ReceiptFormComponent implements OnInit {
       postingDate: ['', Validators.required],
       dueDate: ['', Validators.required],
       comment: [''],
-      isDraft: [true]
+      isDraft: [true],
+      supplierId: [''],
+      warehouseId: [null]
+    });
+  }
+
+  private configureFormForWithoutReference(): void {
+    if (this.purchaseOrderId !== 0) {
+      return;
+    }
+
+    this.form.get('supplierId')?.setValidators([Validators.required]);
+    this.form.get('warehouseId')?.setValidators([Validators.required, Validators.min(1)]);
+    this.form.patchValue({
+      warehouseId: this.warehouseId > 0 ? this.warehouseId : null
+    });
+    this.form.get('supplierId')?.updateValueAndValidity();
+    this.form.get('warehouseId')?.updateValueAndValidity();
+    this.loadSuppliers();
+  }
+
+  private loadSuppliers(): void {
+    this.purchaseService.getSuppliers().subscribe({
+      next: (res: any) => {
+        const rawSuppliers = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res)
+          ? res
+          : [];
+
+        this.suppliers = rawSuppliers
+          .map((s: any) => ({
+            supplierId: s.supplierId ?? s.id ?? s.SupplierId,
+            supplierName: s.supplierName ?? s.name ?? s.SupplierName ?? '',
+            supplierCode: s.supplierCode ?? s.code ?? s.SupplierCode ?? ''
+          }))
+          .filter((s: Supplier) => !!s.supplierId);
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading suppliers:', err);
+        this.toastr.error('Failed to load suppliers. Please try again.', 'Error');
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -78,23 +128,24 @@ export class ReceiptFormComponent implements OnInit {
     if (!this.receiptId) return;
 
     this.loading = true;
-    this.receiptService.getReceiptByPurchaseId(this.purchaseOrderId).subscribe({
+    this.receiptService.getReceiptById(this.receiptId).subscribe({
       next: (res: any) => {
         if (res.data) {
           const receipt = res.data;
-          // Format dates for input type="date" (YYYY-MM-DD format)
-          const postingDateStr = receipt.postingDate 
-            ? new Date(receipt.postingDate).toISOString().split('T')[0] 
+          const postingDateStr = receipt.postingDate
+            ? new Date(receipt.postingDate).toISOString().split('T')[0]
             : null;
-          const dueDateStr = receipt.dueDate 
-            ? new Date(receipt.dueDate).toISOString().split('T')[0] 
+          const dueDateStr = receipt.dueDate
+            ? new Date(receipt.dueDate).toISOString().split('T')[0]
             : null;
 
           this.form.patchValue({
             postingDate: postingDateStr,
             dueDate: dueDateStr,
             comment: receipt.comment || '',
-            isDraft: receipt.isDraft !== undefined ? receipt.isDraft : false
+            isDraft: receipt.isDraft !== undefined ? receipt.isDraft : false,
+            supplierId: receipt.supplierId || null,
+            warehouseId: receipt.warehouseId || (this.warehouseId > 0 ? this.warehouseId : null)
           });
         }
         this.loading = false;
@@ -111,19 +162,27 @@ export class ReceiptFormComponent implements OnInit {
 
   private formatDateToISOString(date: string | Date): string {
     if (!date) return '';
-    
+
     if (typeof date === 'string') {
       return `${date}T00:00:00.000Z`;
     }
-    
+
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
-    
+
     return `${year}-${month}-${day}T00:00:00.000Z`;
   }
 
   onSubmit(): void {
+    this.saveReceipt(false);
+  }
+
+  onSubmitWithDefaultLines(): void {
+    this.saveReceipt(true);
+  }
+
+  private saveReceipt(useDefaultLines: boolean): void {
     if (this.form.invalid) {
       this.toastr.error('Please fill in all required fields', 'Validation Error');
       return;
@@ -142,22 +201,36 @@ export class ReceiptFormComponent implements OnInit {
       dueDate: formattedDueDate,
       comment: formValue.comment,
       isDraft: formValue.isDraft,
-      status:""
+      status: ''
+    };
+
+    const withoutReferenceData = {
+      receiptPurchaseOrderId: this.receiptId,
+      postingDate: formattedPostingDate,
+      dueDate: formattedDueDate,
+      comment: formValue.comment,
+      isDraft: formValue.isDraft,
+      supplierId: +formValue.supplierId
     };
 
     const operation = this.isEditMode
-      ? this.receiptService.updateReceipt(this.receiptId!, receiptData)
+      ? this.purchaseOrderId === 0
+        ? this.receiptService.updateReceipt(this.receiptId!, withoutReferenceData)
+        : this.receiptService.updateReceipt(this.receiptId!, receiptData)
+      : this.purchaseOrderId === 0
+      ? this.receiptService.createReceiptWithoutReference(withoutReferenceData)
+      : useDefaultLines
+      ? this.receiptService.createReceiptWithDefaultItems(receiptData)
       : this.receiptService.createReceipt(receiptData);
 
     operation.subscribe({
       next: (res: any) => {
         this.saving = false;
-
         const message = this.isEditMode ? 'Receipt updated successfully' : 'Receipt created successfully';
         this.toastr.success(message, 'Success');
 
-        // العودة لصفحة receipt order
-        this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId,res.data.receiptPurchaseOrderId]);
+        const savedReceiptId = res?.data?.receiptPurchaseOrderId || this.receiptId || 0;
+        this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId, savedReceiptId]);
 
         this.cdr.detectChanges();
       },
@@ -172,6 +245,16 @@ export class ReceiptFormComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId,this.receiptId]);
+    if (this.purchaseOrderId === 0) {
+      this.router.navigate(['/processes/purchases/receipt-orders', this.warehouseId || 0]);
+      return;
+    }
+
+    if (this.receiptId == 0) {
+      this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId, 0]);
+      return;
+    }
+
+    this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId, this.receiptId]);
   }
 }

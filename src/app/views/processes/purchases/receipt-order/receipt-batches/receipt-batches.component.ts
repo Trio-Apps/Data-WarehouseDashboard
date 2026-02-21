@@ -35,8 +35,9 @@ import { ToastrService } from 'ngx-toastr';
   styleUrl: './receipt-batches.component.scss',
 })
 export class ReceiptBatchesComponent implements OnInit {
-  receiptPurchaseOrderItemId: number = 0;
+  receiptItemId: number = 0;
   purchaseOrderId: number = 0;
+  receiptOrderId: number = 0;
   quantity: number = 0;
   receiptItem: ReceiptItem | null = null;
   batches: ReceiptBatch[] = [];
@@ -62,16 +63,18 @@ export class ReceiptBatchesComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.receiptPurchaseOrderItemId = +this.route.snapshot.paramMap.get('receiptPurchaseOrderItemId')!;
+    this.receiptOrderId = +this.route.snapshot.paramMap.get('receiptOrderId')!;
+    this.receiptItemId = +this.route.snapshot.paramMap.get('receiptItemId')!;
     this.purchaseOrderId = +this.route.snapshot.paramMap.get('purchaseOrderId')!;
     this.quantity = +this.route.snapshot.paramMap.get('itemQuentity')!;
-    
+    console.log("re",this.receiptOrderId);
     this.initializeForms();
     this.loadBatches();
   }
 
   initializeForms(): void {
     this.addForm = this.fb.group({
+      BatchNumber: ['', Validators.required],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
       comment: [''],
       expiryDate: ['', Validators.required]
@@ -79,6 +82,7 @@ export class ReceiptBatchesComponent implements OnInit {
 
     this.editForm = this.fb.group({
       receiptPurchaseOrderBatchId: [0, Validators.required],
+      BatchNumber: ['', Validators.required],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
       comment: [''],
       expiryDate: ['', Validators.required]
@@ -87,7 +91,7 @@ export class ReceiptBatchesComponent implements OnInit {
 
   loadBatches(): void {
     this.loading = true;
-    this.receiptService.getReceiptBatchesByItemId(this.receiptPurchaseOrderItemId).subscribe({
+    this.receiptService.getReceiptBatchesByItemId(this.receiptItemId).subscribe({
       next: (res: any) => {
         if (res.data) {
           this.batches = Array.isArray(res.data) ? res.data : [];
@@ -114,6 +118,7 @@ export class ReceiptBatchesComponent implements OnInit {
   onAddBatch(): void {
     this.showAddModal = true;
     this.addForm.reset({
+      BatchNumber: '',
       quantity: 0.01,
       comment: '',
       expiryDate: ''
@@ -131,6 +136,7 @@ export class ReceiptBatchesComponent implements OnInit {
     
     this.editForm.patchValue({
       receiptPurchaseOrderBatchId: batch.receiptPurchaseOrderBatchId || 0,
+      BatchNumber: batch.batchNumber || '',
       quantity: batch.quantity,
       comment: batch.comment || '',
       expiryDate: expiryDateStr
@@ -171,13 +177,14 @@ export class ReceiptBatchesComponent implements OnInit {
       : '';
 
     const batchData: AddReceiptBatchRequest = {
-      receiptPurchaseOrderItemId: this.receiptPurchaseOrderItemId,
+      receiptPurchaseOrderItemId: this.receiptItemId,
+      BatchNumber: formValue.BatchNumber || '',
       quantity: formValue.quantity,
       comment: formValue.comment || '',
       expiryDate: expiryDateISO
     };
 
-    this.receiptService.addReceiptBatch(this.receiptPurchaseOrderItemId,batchData).subscribe({
+    this.receiptService.addReceiptBatch(this.receiptItemId,batchData).subscribe({
       next: (res: any) => {
         this.saving = false;
         this.toastr.success('Batch added successfully', 'Success');
@@ -211,6 +218,7 @@ export class ReceiptBatchesComponent implements OnInit {
 
     const batchData: UpdateReceiptBatchRequest = {
       receiptPurchaseOrderBatchId: formValue.receiptPurchaseOrderBatchId,
+      BatchNumber: formValue.BatchNumber || '',
       quantity: formValue.quantity,
       comment: formValue.comment || '',
       expiryDate: expiryDateISO
@@ -238,6 +246,7 @@ export class ReceiptBatchesComponent implements OnInit {
   onCloseAddModal(): void {
     this.showAddModal = false;
     this.addForm.reset({
+      BatchNumber: '',
       quantity: 0.01,
       comment: '',
       expiryDate: ''
@@ -249,6 +258,7 @@ export class ReceiptBatchesComponent implements OnInit {
     this.selectedBatch = null;
     this.editForm.reset({
       receiptPurchaseOrderBatchId: 0,
+      BatchNumber: '',
       quantity: 0.01,
       comment: '',
       expiryDate: ''
@@ -256,10 +266,12 @@ export class ReceiptBatchesComponent implements OnInit {
   }
 
   onBack(): void {
-    this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId]);
+
+    this.router.navigate(['/processes/purchases/receipt-order',this.purchaseOrderId, this.receiptOrderId]);
   }
 
   getTotalQuantity(): number {
     return this.batches.reduce((total, batch) => total + batch.quantity, 0);
   }
+
 }

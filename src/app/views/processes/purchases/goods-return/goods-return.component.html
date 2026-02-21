@@ -1,11 +1,18 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">return Order - Purchase #{{ purchaseOrderId }}</h4>
-      <button cButton color="secondary" class="header-button" (click)="onBackToReceipts()">
-        <svg cIcon name="cilArrowLeft" class="me-2"></svg>
-        Back
-      </button>
+      <h4 class="mb-0 header-title">return Order - Receipt #{{ return?.receiptPurchaseOrderId || receiptOrderId }}</h4>
+      <div class="d-flex align-items-center">
+        @if (!return) {
+          <button cButton color="secondary" class="header-button me-2" (click)="onAddReturn()">
+            Add Return
+          </button>
+        }
+        <button cButton color="secondary" class="header-button" (click)="onBackToReceipts()">
+          <svg cIcon name="cilArrowLeft" class="me-2"></svg>
+          Back
+        </button>
+      </div>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
@@ -16,8 +23,13 @@
           <div class="text-center py-4">
             <span class="text-body-secondary">Loading...</span>
           </div>
-        } 
-         @else {
+        } @else if (!return) {
+          <div class="card border-2 border-dashed">
+            <div class="card-body text-center py-5">
+              <p class="text-muted mb-3">No return order found for this receipt</p>
+            </div>
+          </div>
+        } @else {
           <!-- يوجد return - عرضه مع إمكانية التعديل -->
           <div class="card">
             <div class="card-body">
@@ -102,7 +114,7 @@
       <div class="flex-grow-1 d-flex flex-column p-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0">return Items</h5>
-          @if (return && return?.status == 'Draft' && !isApproved(return)) {
+          @if (return && !isApproved(return)) {
             <button cButton color="primary" size="sm" (click)="onAddItem()">
               <svg cIcon name="cilPlus" class="me-2"></svg>
               Add Item
@@ -259,4 +271,3 @@
     </button>
   </c-modal-footer>
 </c-modal>
-

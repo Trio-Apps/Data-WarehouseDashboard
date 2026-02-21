@@ -2,10 +2,16 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../../environments/environment';
-import { Purchase, Supplier, PurchaseResponse, AddItemRequest, Item } from '../Models/purchase.model';
+import { Purchase, Supplier, AddItemRequest, Item } from '../Models/purchase.model';
 import { AuthService } from '../../../pages/Services/auth.service';
 import { UoMGroupResponse } from '../../barcodes/Models/item-barcode.model';
-import { AddReceiptItemRequest, UpdateReceiptItemRequest, AddReceiptBatchRequest, UpdateReceiptBatchRequest } from '../Models/receipt';
+import {
+  AddReceiptItemRequest,
+  UpdateReceiptItemRequest,
+  AddReceiptBatchRequest,
+  UpdateReceiptBatchRequest,
+  ReceiptResponse
+} from '../Models/receipt';
 
 @Injectable({
   providedIn: 'root',
@@ -31,6 +37,42 @@ export class ReceiptService {
    * @param pageSize Number of items per page
    */
 
+getReceiptsWithFilterationByWarehouse(
+  pageNumber: number,
+  pageSize: number,
+  warehouseId: number,
+  supplierId?:number,
+  liveStatus?:string,
+  status?: string,
+  postingDate?: string,
+  dueDate?: string
+): Observable<ReceiptResponse> {
+  const baseUrl = `${this.baseUrl}ReceiptPurchaseOrder/dashboard/warehouse/status/posting-date/due-date/${warehouseId}/${pageNumber}/${pageSize}`;
+  // إعداد الـ query parameters
+  let params = new HttpParams();
+
+  if (supplierId) {
+    params = params.set('supplierId', supplierId);
+  }
+  if (status) {
+    params = params.set('status', status);
+  }
+  if (postingDate) {
+    params = params.set('postingDate', postingDate);
+  }
+  if (dueDate) {
+    params = params.set('dueDate', dueDate);
+  }
+   
+   
+ if (liveStatus) {
+    params = params.set('liveStatus', liveStatus);
+  }
+  return this.http.get<ReceiptResponse>(baseUrl, {
+    headers: this.headerOption.headers,
+    params: params
+  });
+}
 
   /**
    * Get receipt by purchase order ID
@@ -48,14 +90,23 @@ export class ReceiptService {
   createReceipt(receiptData: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}ReceiptPurchaseOrder`, receiptData, this.headerOption);
   }
+  
+  createReceiptWithDefaultItems(receiptData: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}ReceiptPurchaseOrder/with-default-items`, receiptData, this.headerOption);
+  }
 
+ createReceiptWithoutReference(receiptData: any): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}ReceiptPurchaseOrder/without-reference`, receiptData, this.headerOption);
+  }
   /**
    * Update receipt
    */
   updateReceipt(receiptId: number, receiptData: any): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}ReceiptPurchaseOrder/${receiptId}`, receiptData, this.headerOption);
   }
-
+updateReceiptWithoutReference(receiptId: number, receiptData: any): Observable<any> {
+    return this.http.put<any>(`${this.baseUrl}ReceiptPurchaseOrder/without-reference/${receiptId}`, receiptData, this.headerOption);
+  }
   /**
    * Delete receipt
    */
@@ -69,6 +120,9 @@ export class ReceiptService {
   getReceiptItemsByReceiptId(receiptId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}ReceiptPurchaseOrderItem/receipt-purchase-order/${receiptId}`, this.headerOption);
   }
+
+
+
 
   /**
    * Add receipt item by barcode
@@ -88,6 +142,7 @@ export class ReceiptService {
   addReceiptItemManually(receiptPurchaseOrderId: number, itemData: {
     uoMEntry: number;
     quantity: number;
+    UnitPrice?: number;
     receiptPurchaseOrderId: number;
     itemId: number;
   }): Observable<any> {

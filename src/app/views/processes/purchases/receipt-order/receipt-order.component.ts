@@ -44,7 +44,6 @@ export class ReceiptOrderComponent implements OnInit {
   receipt: Receipt | null = null;
   receiptItems: ReceiptItem[] = [];
   loading: boolean = true;
-  warehouseId: number = 0;
   showEditItemModal: boolean = false;
   showAddReturnItemModal: boolean = false;
   selectedItem: ReceiptItem | null = null;
@@ -72,8 +71,8 @@ export class ReceiptOrderComponent implements OnInit {
 
     // إعادة تحميل البيانات عند العودة من صفحة أخرى
     this.route.params.subscribe(params => {
-      const newPurchaseOrderId = +params['purchaseOrderId'];
-      if (newPurchaseOrderId && newPurchaseOrderId === this.purchaseOrderId) {
+      const newReceiptOrderId = +params['receiptOrderId'];
+      if (newReceiptOrderId && newReceiptOrderId === this.receiptOrderId) {
         this.loadReceipt();
       }
     });
@@ -86,16 +85,7 @@ export class ReceiptOrderComponent implements OnInit {
         if (res.data) {
           console.log("rececipt",res);
           this.receipt = res.data;
-                    this.cdr.detectChanges();
-         // console.log("receipt",this.receipt);
-          if (res.data.warehouseId) {
-            this.warehouseId = res.data.warehouseId;
-          }
-
-           if (res.data.purchaseOrderId) {
-            this.purchaseOrderId = res.data.purchaseOrderId;
-            console.log("purchase from res",res.data.purchaseOrderId);
-          }
+          this.cdr.detectChanges();
 
           // تحميل عناصر الـ receipt
           if (this.receipt?.receiptPurchaseOrderId) {
@@ -152,7 +142,7 @@ export class ReceiptOrderComponent implements OnInit {
   }
 
   onAddReceipt(): void {
-    this.router.navigate(['/processes/purchases/receipt-form', this.purchaseOrderId]);
+    this.router.navigate(['/processes/purchases/receipt-form', this.purchaseOrderId,0]);
   }
 
   onEditReceipt(): void {
@@ -198,8 +188,10 @@ export class ReceiptOrderComponent implements OnInit {
 
   onAddItem(): void {
     if (this.receipt?.receiptPurchaseOrderId) {
-      // receiptPurchaseOrderId هو الـ receipt ID، و purchaseOrderId هو receiptPurchaseOrderId
-      this.router.navigate(['/processes/purchases/add-receipt-item', this.receipt.receiptPurchaseOrderId, this.purchaseOrderId]);
+      this.router.navigate(
+        ['/processes/purchases/add-receipt-item', this.purchaseOrderId, this.receipt.receiptPurchaseOrderId],
+        { queryParams: { warehouseId: this.receipt.warehouseId || 0 } }
+      );
     } else {
       this.toastr.warning('Please create receipt first', 'Warning');
     }
@@ -216,16 +208,12 @@ export class ReceiptOrderComponent implements OnInit {
   }
   onItemUpdated(): void {
     this.loadReceipt();
-    // if (this.receipt?.receiptPurchaseOrderId) {
-    //   this.loadReceiptItems(this.receipt.receiptPurchaseOrderId);
-    // }
   }
 
   onViewBatches(item: ReceiptItem): void {
     if (item.receiptPurchaseOrderItemId) {
-      this.router.navigate(['/processes/purchases/receipt-batches', item.receiptPurchaseOrderItemId, this.purchaseOrderId,item.quantity]);
+      this.router.navigate(['/processes/purchases/receipt-batches', this.purchaseOrderId,this.receiptOrderId, item.receiptPurchaseOrderItemId,item.quantity]);
     }
-
   }
 
   onRemoveItem(item: ReceiptItem): void {
@@ -253,21 +241,10 @@ export class ReceiptOrderComponent implements OnInit {
   }
 
   onBackToPurchases(): void {
-    if (this.warehouseId) {
-      this.router.navigate(['/processes/purchases', this.warehouseId]);
+    if (this.purchaseOrderId) {
+      this.router.navigate(['/processes/purchases', this.receipt?.warehouseId]);
     } else {
-      // محاولة الحصول على warehouseId من الـ purchase
-      this.purchaseService.getPurchaseById(this.purchaseOrderId).subscribe({
-        next: (res: any) => {
-          if (res.data?.warehouseId) {
-            this.warehouseId = res.data.warehouseId;
-            this.router.navigate(['/processes/purchases', this.warehouseId]);
-          }
-        },
-        error: () => {
-          this.router.navigate(['/processes/purchases']);
-        }
-      });
+      this.router.navigate(['/processes/purchases/receipt-orders', this.receipt?.warehouseId]);
     }
   }
 

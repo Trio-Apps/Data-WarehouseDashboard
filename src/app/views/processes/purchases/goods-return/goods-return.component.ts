@@ -43,6 +43,7 @@ export class GoodsReturnComponent implements OnInit {
   return: Return | null = null;
   returnItems: ReturnItem[] = [];
   loading: boolean = true;
+  director:string = "";
   warehouseId: number = 0;
   showEditItemModal: boolean = false;
   selectedItem: ReturnItem | null = null;
@@ -63,6 +64,7 @@ export class GoodsReturnComponent implements OnInit {
     this.receiptOrderId = +this.route.snapshot.paramMap.get('receiptId')!;
     this.purchaseOrderId = +this.route.snapshot.paramMap.get('purchaseOrderId')!;
     this.goodsReturnId = +this.route.snapshot.paramMap.get('goodsReturnId')!;
+    this.director = (this.route.snapshot.queryParamMap.get('director') || "");
 
     if (this.goodsReturnId) {
       this.loadreturn();
@@ -122,6 +124,7 @@ export class GoodsReturnComponent implements OnInit {
       next: (res: any) => {
         if (res.data) {
           this.returnItems = Array.isArray(res.data) ? res.data : (res.data.data || []);
+        console.log("return items: ",this.returnItems);
         } else {
           this.returnItems = [];
         }
@@ -206,7 +209,14 @@ export class GoodsReturnComponent implements OnInit {
 
   onViewBatches(item: ReturnItem): void {
     if (item.goodsReturnOrderItemId) {
-      this.router.navigate(['/processes/purchases/return-batches', item.goodsReturnOrderItemId, this.receiptOrderId, this.purchaseOrderId, item.quantity]);
+      this.router.navigate(
+        ['/processes/purchases/return-batches', item.goodsReturnOrderItemId, this.receiptOrderId, this.purchaseOrderId, item.quantity],
+        {
+          queryParams: {
+            receiptItemId: item.receiptPurchaseOrderItemId || 0
+          }
+        }
+      );
     }
   }
 
@@ -231,6 +241,10 @@ export class GoodsReturnComponent implements OnInit {
   }
 
   onBackToReceipts(): void {
+    if(this.director == "without-reference"){
+          this.router.navigate(['/processes/purchases/receipt-orders', this.warehouseId]);
+        return;
+    }
     if (this.receiptOrderId) {
       this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId, this.receiptOrderId]);
     } else {

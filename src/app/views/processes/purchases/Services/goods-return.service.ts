@@ -68,9 +68,15 @@ export class GoodsReturnService {
   getReturnById(id: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}GoodsReturnOrder/${id}`, this.headerOption);
   }
-
-  createReturn(returnData: AddReturn): Observable<any> {
+createReturn(returnData: AddReturn): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}GoodsReturnOrder`, returnData, this.headerOption);
+  }
+  createReturnWithOutReference(returnData: AddReturn): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}GoodsReturnOrder/without-reference`, returnData, this.headerOption);
+  }
+
+   createReturnWithDefaultItems(returnData: AddReturn): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}GoodsReturnOrder/with-default-items`, returnData, this.headerOption);
   }
 
   /**

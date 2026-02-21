@@ -12,6 +12,7 @@ export interface Purchase {
   updatedAt?: string;
   supplier?: Supplier;
   supplierName?:string;
+  supplierCode?:string;
   items?: PurchaseItem[];
   canApprove?: boolean;
   approval?: boolean | null;
@@ -46,6 +47,7 @@ export interface PurchaseItem {
   itemId: number;
   uoMEntry: number;
   quantity: number;
+  unitPrice: number;
   purchaseOrderId?: number;
   barCode?: string;
   itemName: string;
@@ -83,6 +85,7 @@ export interface AddItemRequest {
   item?: {
     uoMEntry: number;
     quantity: number;
+    UnitPrice?: number;
     purchaseOrderId: number;
     itemId: number;
   };
@@ -92,6 +95,7 @@ export interface UpdateItemRequest {
   purchaseOrderItemId: number;
   quantity: number;
   uoMEntry: number;
+  UnitPrice?: number;
 }
 
 

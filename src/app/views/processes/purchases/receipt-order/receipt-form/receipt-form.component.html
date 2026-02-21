@@ -1,7 +1,14 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">{{ isEditMode ? 'Edit' : 'Create' }} Receipt Order - Purchase #{{ purchaseOrderId }}</h4>
+      <h4 class="mb-0 header-title">
+        {{ isEditMode ? 'Edit' : 'Create' }} Receipt Order
+        @if (purchaseOrderId) {
+          - Purchase #{{ purchaseOrderId }}
+        } @else {
+          - Without Reference
+        }
+      </h4>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
@@ -50,6 +57,35 @@
                   </div>
                 }
               </c-col>
+
+              <!-- Comment -->
+              @if (!purchaseOrderId) {
+                <c-col [md]="12">
+                  <label class="form-label">
+                    Supplier <span class="text-danger">*</span>
+                  </label>
+                  <select
+                    cFormControl
+                    formControlName="supplierId"
+                    class="form-select"
+                    [class.is-invalid]="form.get('supplierId')?.invalid && form.get('supplierId')?.touched"
+                    required>
+                    <option value="">-- Select Supplier --</option>
+                    @for (supplier of suppliers; track supplier.supplierId) {
+                      <option [value]="supplier.supplierId">
+                        {{ supplier.supplierCode || supplier.supplierName }}
+                      </option>
+                    }
+                  </select>
+                  @if (form.get('supplierId')?.invalid && form.get('supplierId')?.touched) {
+                    <div class="invalid-feedback d-block">
+                      Supplier is required
+                    </div>
+                  }
+                </c-col>
+
+              
+              }
 
               <!-- Comment -->
               <c-col [md]="12">
@@ -105,6 +141,19 @@
         }
         {{ saving ? 'Saving...' : (isEditMode ? 'Update Receipt' : 'Create Receipt') }}
       </button>
+      @if (!isEditMode && purchaseOrderId) {
+        <button
+          cButton
+          color="success"
+          type="button"
+          (click)="onSubmitWithDefaultLines()"
+          [disabled]="form.invalid || saving">
+          @if (saving) {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          }
+          Create Receipt With Default Lines
+        </button>
+      }
     </c-card-footer>
   </c-card>
 </div>

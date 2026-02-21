@@ -64,7 +64,8 @@ export class EditItemModalComponent implements OnInit, OnChanges {
     this.editForm = this.fb.group({
       purchaseOrderItemId: [0, Validators.required],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
-      uoMEntry: ['', [Validators.required]]
+      uoMEntry: ['', [Validators.required]],
+      unitPrice: [0, [Validators.required, Validators.min(0)]]
     });
   }
 
@@ -77,7 +78,8 @@ export class EditItemModalComponent implements OnInit, OnChanges {
       this.editForm.patchValue({
         purchaseOrderItemId: itemId,
         quantity: this.item.quantity || 0.01,
-        uoMEntry: currentUoMEntry
+        uoMEntry: currentUoMEntry,
+        unitPrice: this.item.unitPrice || 0
       });
 
       // Load UoM groups for this item
@@ -130,7 +132,8 @@ export class EditItemModalComponent implements OnInit, OnChanges {
     this.editForm.reset({
       purchaseOrderItemId: 0,
       quantity: 0.01,
-      uoMEntry: ''
+      uoMEntry: '',
+      unitPrice: 0
     });
     this.uomGroups = [];
   }
@@ -147,9 +150,11 @@ export class EditItemModalComponent implements OnInit, OnChanges {
     const itemData: UpdateItemRequest = {
       purchaseOrderItemId: formValue.purchaseOrderItemId,
       quantity: formValue.quantity,
-      uoMEntry: formValue.uoMEntry
+      uoMEntry: formValue.uoMEntry,
+      UnitPrice: formValue.unitPrice
     };
 
+console.log("update Form",itemData);
     this.purchaseService.updatePurchaseItem(itemData.purchaseOrderItemId, itemData).subscribe({
       next: (res: any) => {
         console.log('Item updated:', res);

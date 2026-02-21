@@ -57,19 +57,11 @@ export class PurchaseItemsComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    // getPurchaseById
-    this.purchaseOrderId = +this.route.snapshot.paramMap.get('purchaseOrderId')!;
-    //console.log(this.purchaseOrderId);
-    if (this.purchaseOrderId) {
-      this.loadItemsPurchase();
-      this.loadPurchase();
-    }
-
-    // إعادة تحميل البيانات عند العودة من صفحة أخرى
+    // Load once per route param change (prevents duplicate initial requests)
     this.route.params.subscribe(params => {
       const newPurchaseOrderId = +params['purchaseOrderId'];
-      if (newPurchaseOrderId && newPurchaseOrderId === this.purchaseOrderId) {
-        // إعادة تحميل البيانات عند العودة
+      if (newPurchaseOrderId && newPurchaseOrderId !== this.purchaseOrderId) {
+        this.purchaseOrderId = newPurchaseOrderId;
         this.loadItemsPurchase();
         this.loadPurchase();
       }
@@ -78,13 +70,14 @@ export class PurchaseItemsComponent implements OnInit {
 
   loadItemsPurchase(): void {
     this.loading = true;
-    this.purchaseService.getItemsbyPurchaseId(this.purchaseOrderId).subscribe({
+    this.purchaseService.getAllItemsbyPurchaseId(this.purchaseOrderId).subscribe({
       next: (res: any) => {
         if (res.data) {
-          this.purchase = res.data;
           console.log(res.data);
-          this.items = res.data.data || [];
-          console.log(this.items );
+          this.items = Array.isArray(res.data)
+            ? res.data
+            : (Array.isArray(res.data.data) ? res.data.data : []);
+          //console.log(this.items );
 
           // حفظ warehouseId إذا كان موجوداً في البيانات
           if (res.data.warehouseId) {
@@ -94,8 +87,6 @@ export class PurchaseItemsComponent implements OnInit {
           if (res.meta == 'Draft') {
             this.isDraft = true;
           }
-
-          this.loadPurchase();
           this.toastr.success(`Loaded purchase with ${this.items.length} items`, 'Success');         
         }
         this.loading = false;
@@ -124,6 +115,7 @@ export class PurchaseItemsComponent implements OnInit {
            this.cdr.detectChanges();
          // console.log("by id",this.purchase?.warehouseId);
           this.toastr.success(`Loaded purchase with ${this.items.length} items`, 'Success');         
+       // this.loadItemsPurchase();
         }
       },
       error: (err) => { 
@@ -149,10 +141,7 @@ export class PurchaseItemsComponent implements OnInit {
   }
 
   onEditItem(item: PurchaseItem): void {
-    if (!this.isDraft || this.isApproved(this.purchase)) {
-      this.toastr.warning('Cannot edit items in finalized purchases', 'Warning');
-      return;
-    }
+   
 
     this.selectedItem = { ...item };
     this.showEditItemModal = true;
@@ -170,6 +159,7 @@ export class PurchaseItemsComponent implements OnInit {
 
   onItemUpdated(): void {
     this.loadItemsPurchase(); // Reload to show updated items
+    this.loadPurchase(); // Keep purchase header data in sync
   }
 
   onRemoveItem(item: PurchaseItem): void {
@@ -238,13 +228,18 @@ export class PurchaseItemsComponent implements OnInit {
     const status = purchase.status.toLowerCase();
     if (status === 'draft' || status.includes('draft')) {
       return 'badge bg-warning';
-    } else if (status === 'finalized' || status.includes('final')) {
+    } else if (status === 'completed' || status.includes('completed')) {
       return 'badge bg-success';
-    } else if (status === 'pending' || status.includes('pending')) {
+    } else if (status === 'processing' || status.includes('processing')) {
       return 'badge bg-info';
-    } else {
+    }
+    else if (status === 'partiallyfailed' || status.includes('partiallyfailed')) {
+      return 'badge bg-danger';
+    }
+    else {
       return 'badge bg-secondary';
     }
+    
   }
 
   getStatusText(purchase: Purchase | null): string {

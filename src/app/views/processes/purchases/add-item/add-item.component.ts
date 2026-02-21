@@ -77,6 +77,7 @@ export class AddItemComponent implements OnInit {
       itemId: ['', Validators.required],
       uoMEntry: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(0.01)]],
+      unitPrice: [0, [Validators.required, Validators.min(0)]],
     });
 
     // Listen to item selection changes
@@ -187,6 +188,7 @@ export class AddItemComponent implements OnInit {
     const itemData = {
       uoMEntry: formValue.uoMEntry,
       quantity: formValue.quantity,
+      UnitPrice: formValue.unitPrice,
       purchaseOrderId: this.purchaseOrderId,
       itemId: formValue.itemId
     };

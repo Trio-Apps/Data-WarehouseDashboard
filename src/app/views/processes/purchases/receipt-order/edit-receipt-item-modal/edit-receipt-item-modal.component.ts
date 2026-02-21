@@ -66,7 +66,8 @@ export class EditReceiptItemModalComponent implements OnInit, OnChanges {
     this.editForm = this.fb.group({
       receiptPurchaseOrderItemId: [0, Validators.required],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
-      uoMEntry: ['', [Validators.required]]
+      uoMEntry: ['', [Validators.required]],
+      unitPrice: [0, [Validators.required, Validators.min(0)]]
     });
   }
 
@@ -78,7 +79,8 @@ export class EditReceiptItemModalComponent implements OnInit, OnChanges {
       this.editForm.patchValue({
         receiptPurchaseOrderItemId: itemId,
         quantity: this.item.quantity || 0.01,
-        uoMEntry: currentUoMEntry
+        uoMEntry: currentUoMEntry,
+        unitPrice: this.item.unitPrice || 0
       });
 
       // Load UoM groups for this item
@@ -131,7 +133,8 @@ export class EditReceiptItemModalComponent implements OnInit, OnChanges {
     this.editForm.reset({
       receiptPurchaseOrderItemId: 0,
       quantity: 0.01,
-      uoMEntry: ''
+      uoMEntry: '',
+      unitPrice: 0
     });
     this.uomGroups = [];
   }
@@ -148,7 +151,8 @@ export class EditReceiptItemModalComponent implements OnInit, OnChanges {
     const itemData: UpdateReceiptItemRequest = {
       receiptPurchaseOrderItemId: formValue.receiptPurchaseOrderItemId,
       quantity: formValue.quantity,
-      uoMEntry: formValue.uoMEntry
+      uoMEntry: formValue.uoMEntry,
+      UnitPrice: formValue.unitPrice
     };
      console.log("updating item data",itemData);
     this.receiptService.updateReceiptItem(itemData.receiptPurchaseOrderItemId, itemData).subscribe({

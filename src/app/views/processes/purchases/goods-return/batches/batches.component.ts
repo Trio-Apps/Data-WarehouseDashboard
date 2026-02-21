@@ -15,6 +15,16 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { ToastrService } from 'ngx-toastr';
 import { GoodsReturnService } from '../../Services/goods-return.service';
 import { AddReturnBatchRequest, ReturnBatch, UpdateReturnBatchRequest } from '../../Models/retrun-model';
+import { ReceiptService } from '../../Services/receipt.service';
+
+interface ReceiptPurchaseOrderBatchOption {
+  receiptPurchaseOrderBatchId: number;
+  receiptPurchaseOrderItemId: number;
+  quantity: number;
+  comment?: string | null;
+  batchNumber?: string | null;
+  expiryDate?: string | null;
+}
 
 @Component({
   selector: 'app-batches',
@@ -36,10 +46,13 @@ import { AddReturnBatchRequest, ReturnBatch, UpdateReturnBatchRequest } from '..
 })
 export class BatchesComponent implements OnInit {
   receiptOrderId: number = 0;
+  receiptItemId: number = 0;
   purchaseOrderId: number = 0;
   returnOrderItemId: number = 0;
   quantity: number = 0;
   batches: ReturnBatch[] = [];
+  receiptBatchOptions: ReceiptPurchaseOrderBatchOption[] = [];
+  loadingReceiptBatchOptions: boolean = false;
   loading: boolean = true;
   saving: boolean = false;
 
@@ -54,6 +67,7 @@ export class BatchesComponent implements OnInit {
     private route: ActivatedRoute,
     private location: Location,
     private returnService: GoodsReturnService,
+    private receiptService: ReceiptService,
     private fb: FormBuilder,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
@@ -63,6 +77,7 @@ export class BatchesComponent implements OnInit {
     this.receiptOrderId = +this.route.snapshot.paramMap.get('receiptOrderId')!;
     this.purchaseOrderId = +this.route.snapshot.paramMap.get('purchaseOrderId')!;
     this.returnOrderItemId = +this.route.snapshot.paramMap.get('returnOrderItemId')!;
+    this.receiptItemId = +(this.route.snapshot.queryParamMap.get('receiptItemId') || 0);
     this.quantity = +this.route.snapshot.paramMap.get('itemQuentity')!;
 
     this.initializeForms();
@@ -71,6 +86,8 @@ export class BatchesComponent implements OnInit {
 
   initializeForms(): void {
     this.addForm = this.fb.group({
+      selectedReceiptBatchId: [''],
+      batchNumber: [''],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
       comment: [''],
       expiryDate: ['', Validators.required]
@@ -106,10 +123,16 @@ export class BatchesComponent implements OnInit {
   onAddBatch(): void {
     this.showAddModal = true;
     this.addForm.reset({
+      selectedReceiptBatchId: '',
+      batchNumber: '',
       quantity: 0.01,
       comment: '',
       expiryDate: ''
     });
+
+    if (this.shouldShowReceiptBatchSelect()) {
+      this.loadReceiptBatchOptions();
+    }
   }
 
   onEditBatch(batch: ReturnBatch): void {
@@ -160,6 +183,7 @@ export class BatchesComponent implements OnInit {
 
     const batchData: AddReturnBatchRequest = {
       goodsReturnOrderItemId: this.returnOrderItemId,
+      batchNumber: formValue.batchNumber || '',
       quantity: formValue.quantity,
       comment: formValue.comment || '',
       expiryDate: expiryDateISO
@@ -219,6 +243,8 @@ export class BatchesComponent implements OnInit {
   onCloseAddModal(): void {
     this.showAddModal = false;
     this.addForm.reset({
+      selectedReceiptBatchId: null,
+      batchNumber: '',
       quantity: 0.01,
       comment: '',
       expiryDate: ''
@@ -242,5 +268,70 @@ export class BatchesComponent implements OnInit {
 
   getTotalQuantity(): number {
     return this.batches.reduce((total, batch) => total + batch.quantity, 0);
+  }
+
+  shouldShowReceiptBatchSelect(): boolean {
+    return this.receiptOrderId > 0;
+  }
+
+  onReceiptBatchSelectionChange(selectedValue: string): void {
+    const selectedId = Number(selectedValue);
+    if (!selectedId) {
+      this.addForm.patchValue({
+        batchNumber: '',
+        quantity: 0.01,
+        comment: '',
+        expiryDate: ''
+      });
+      return;
+    }
+
+    const selectedBatch = this.receiptBatchOptions.find(batch => batch.receiptPurchaseOrderBatchId === selectedId);
+    if (!selectedBatch) {
+      return;
+    }
+
+    const expiryDateStr = this.formatDateForInput(selectedBatch.expiryDate);
+
+    this.addForm.patchValue({
+
+      batchNumber: selectedBatch.batchNumber || '',
+      quantity: selectedBatch.quantity && selectedBatch.quantity > 0 ? selectedBatch.quantity : 0.01,
+      comment: selectedBatch.comment || '',
+      expiryDate: expiryDateStr
+    });
+  }
+
+  private loadReceiptBatchOptions(): void {
+    const receiptItemId = this.receiptItemId > 0 ? this.receiptItemId : this.returnOrderItemId;
+    if (receiptItemId <= 0) {
+      this.receiptBatchOptions = [];
+      return;
+    }
+
+    this.loadingReceiptBatchOptions = true;
+    this.receiptService.getReceiptBatchesByItemId(receiptItemId).subscribe({
+      next: (res: any) => {
+        this.receiptBatchOptions = res?.data && Array.isArray(res.data) ? res.data : [];
+        this.loadingReceiptBatchOptions = false;
+                console.log("receipt batches", this.receiptBatchOptions );
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading receipt batches:', err);
+        this.receiptBatchOptions = [];
+        this.loadingReceiptBatchOptions = false;
+        this.toastr.error('Failed to load receipt batches. You can still add manually.', 'Error');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  private formatDateForInput(dateValue?: string | null): string {
+    if (!dateValue) {
+      return '';
+    }
+    return new Date(dateValue).toISOString().split('T')[0];
   }
 }
