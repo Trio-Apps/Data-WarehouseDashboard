@@ -2,10 +2,16 @@
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0 header-title">Purchases - Warehouse #{{ warehouseId }}</h4>
-      <button cButton color="primary" class="header-button" (click)="onAddPurchase()">
-        <svg cIcon name="cil-plus" class="me-2"></svg>
-        Add Purchase
-      </button>
+      <div class="d-flex align-items-center gap-2">
+        <button cButton color="primary" class="header-button" (click)="onAddPurchase()">
+          <svg cIcon name="cil-plus" class="me-2"></svg>
+          Add Purchase
+        </button>
+        <button cButton color="secondary" class="header-button" (click)="onBackToShowProcesses()">
+          <svg cIcon name="cil-arrow-left" class="me-2"></svg>
+          Back
+        </button>
+      </div>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">

@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule,Location } from '@angular/common';
 import {
   ButtonModule,
   CardModule,
@@ -50,6 +50,7 @@ export class GoodsReturnFormComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
+    private location: Location,
     private returnService: GoodsReturnService,
     private purchaseService: PurchaseService,
     private route: ActivatedRoute,
@@ -270,14 +271,16 @@ export class GoodsReturnFormComponent implements OnInit {
   }
 
   onCancel(): void {
-    if (this.goodsReturnId) {
-      this.router.navigate(['/processes/purchases/goods-return-order', this.purchaseOrderId, this.receiptOrderId, this.goodsReturnId]);
-      return;
-    }
-    if (this.receiptOrderId) {
-      this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId, this.receiptOrderId]);
-      return;
-    }
-    this.router.navigate(['/processes/purchases/goods-return-orders', this.warehouseId]);
+        this.location.back();
+
+    // if (this.goodsReturnId) {
+    //   this.router.navigate(['/processes/purchases/goods-return-order', this.purchaseOrderId, this.receiptOrderId, this.goodsReturnId]);
+    //   return;
+    // }
+    // if (this.receiptOrderId) {
+    //   this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId, this.receiptOrderId]);
+    //   return;
+    // }
+    // this.router.navigate(['/processes/purchases/goods-return-orders', this.warehouseId]);
   }
 }

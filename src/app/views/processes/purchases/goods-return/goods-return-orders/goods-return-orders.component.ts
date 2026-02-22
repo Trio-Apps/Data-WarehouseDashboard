@@ -308,6 +308,10 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
     );
   }
 
+  onBackToShowProcesses(): void {
+    this.router.navigate(['inquiries/show-processes', this.warehouseId]);
+  }
+
   getStatusBadgeClass(returnOrder: GoodsReturnOrderListItem): string {
     switch (returnOrder.status) {
       case 'Draft':

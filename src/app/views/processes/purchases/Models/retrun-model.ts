@@ -6,6 +6,7 @@
   dueDate: string;
   comment: string;
   supplierId?: number;
+  supplierCode?:string;
   supplierName?: string;
   warehouseId?: number;
   receiptPurchaseOrderId?: number;

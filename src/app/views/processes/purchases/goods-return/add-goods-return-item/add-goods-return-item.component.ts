@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule,Location } from '@angular/common';
 import {
   ButtonModule,
   FormModule,
@@ -58,6 +58,7 @@ export class AddGoodsReturnItemComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
+    private location: Location,
     private purchaseService: PurchaseService,
     private goodsReturnService: GoodsReturnService,
     private cdr: ChangeDetectorRef,
@@ -154,12 +155,14 @@ export class AddGoodsReturnItemComponent implements OnInit {
   }
 
   onCancel(): void {
-    this.router.navigate([
-      '/processes/purchases/goods-return-order',
-      this.purchaseOrderId,
-      this.receiptOrderId,
-      this.goodsReturnId
-    ]);
+    // this.router.navigate([
+    //   '/processes/purchases/goods-return-order',
+    //   this.purchaseOrderId,
+    //   this.receiptOrderId,
+    //   this.goodsReturnId
+    // ]);
+            this.location.back();
+
   }
 
   onAddByBarcode(): void {

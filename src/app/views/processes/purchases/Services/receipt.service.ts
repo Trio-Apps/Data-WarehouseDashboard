@@ -105,7 +105,7 @@ getReceiptsWithFilterationByWarehouse(
     return this.http.put<any>(`${this.baseUrl}ReceiptPurchaseOrder/${receiptId}`, receiptData, this.headerOption);
   }
 updateReceiptWithoutReference(receiptId: number, receiptData: any): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}ReceiptPurchaseOrder/without-reference/${receiptId}`, receiptData, this.headerOption);
+    return this.http.put<any>(`${this.baseUrl}ReceiptPurchaseOrder/${receiptId}`, receiptData, this.headerOption);
   }
   /**
    * Delete receipt
