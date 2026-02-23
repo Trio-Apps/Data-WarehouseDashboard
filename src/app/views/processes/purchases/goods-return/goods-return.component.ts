@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe,Location } from '@angular/common';
 import {
   TableModule,
   CardModule,
@@ -57,7 +57,8 @@ export class GoodsReturnComponent implements OnInit {
     private returnService: GoodsReturnService,
     private approvalService: ApprovalService,
     private cdr: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private location :Location
   ) {}
 
   ngOnInit(): void {
@@ -239,17 +240,24 @@ export class GoodsReturnComponent implements OnInit {
       }
     }
   }
+  
+  onBackToReceipt(): void {
+  
+    if (this.receiptOrderId) {
+     this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId, this.receiptOrderId]);
+    } 
+  }
 
   onBackToReceipts(): void {
-    if(this.director == "without-reference"){
-          this.router.navigate(['/processes/purchases/receipt-orders', this.warehouseId]);
-        return;
-    }
+
     if (this.receiptOrderId) {
-      this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId, this.receiptOrderId]);
-    } else {
-      this.router.navigate(['/processes/purchases/goods-return-orders', this.warehouseId]);
-    }
+    this.router.navigate(['/processes/purchases/receipt-orders', this.warehouseId]);
+    } 
+  }
+    onBackToReturns(): void {
+
+     this.router.navigate(['/processes/purchases/goods-return-orders', this.warehouseId]);
+    
   }
 
   getTotalQuantity(): number {

@@ -1,187 +1,233 @@
-import { Component, DestroyRef, DOCUMENT, effect, inject, OnInit, Renderer2, signal, WritableSignal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule } from '@angular/forms';
-import { ChartOptions } from 'chart.js';
+import { CommonModule } from '@angular/common';
+import { Component, OnInit } from '@angular/core';
+import { Router } from '@angular/router';
 import {
-  AvatarComponent,
-  ButtonDirective,
-  ButtonGroupComponent,
   CardBodyComponent,
   CardComponent,
-  CardFooterComponent,
   CardHeaderComponent,
   ColComponent,
-  FormCheckLabelDirective,
+  DropdownComponent,
+  DropdownDividerDirective,
+  DropdownItemDirective,
+  DropdownMenuDirective,
+  DropdownToggleDirective,
   GutterDirective,
-  ProgressComponent,
   RowComponent,
-  TableDirective
+  ButtonDirective
 } from '@coreui/angular';
-import { ChartjsComponent } from '@coreui/angular-chartjs';
 import { IconDirective } from '@coreui/icons-angular';
+import { AuthService } from '../pages/Services/auth.service';
+import { SapAuthService } from '../settings/Auth/Services/sap-auth.service';
+import { DashboardService } from './Services/dashboard.service';
+import { DashboardHomeInfo, DashboardSyncResponse } from './Models/dashboard.model';
 
-import { WidgetsBrandComponent } from '../widgets/widgets-brand/widgets-brand.component';
-import { WidgetsDropdownComponent } from '../widgets/widgets-dropdown/widgets-dropdown.component';
-import { DashboardChartsData, IChartProps } from './dashboard-charts-data';
-
-interface IUser {
-  name: string;
-  state: string;
-  registered: string;
-  country: string;
-  usage: number;
-  period: string;
-  payment: string;
-  activity: string;
-  avatar: string;
-  status: string;
-  color: string;
+interface ModuleTile {
+  title: string;
+  description: string;
+  icon: string;
+  iconClass: string;
+  route?: string;
+  permissions?: string[];
+  disabled?: boolean;
+  isAuthorized?: boolean;
 }
 
 @Component({
   templateUrl: 'dashboard.component.html',
   styleUrls: ['dashboard.component.scss'],
-  imports: [WidgetsDropdownComponent, CardComponent, CardBodyComponent, RowComponent, ColComponent, ButtonDirective, IconDirective, ReactiveFormsModule, ButtonGroupComponent, FormCheckLabelDirective, ChartjsComponent, CardFooterComponent, GutterDirective, ProgressComponent, WidgetsBrandComponent, CardHeaderComponent, TableDirective, AvatarComponent]
+  imports: [
+    CommonModule,
+    CardComponent,
+    CardBodyComponent,
+    CardHeaderComponent,
+    RowComponent,
+    ColComponent,
+    GutterDirective,
+    ButtonDirective,
+    DropdownComponent,
+    DropdownToggleDirective,
+    DropdownMenuDirective,
+    DropdownItemDirective,
+    DropdownDividerDirective,
+    IconDirective
+  ]
 })
 export class DashboardComponent implements OnInit {
+  userDisplayName = 'User';
+  connectedDatabase = '';
+  lastSyncAt: string | null = null;
+  syncing = false;
+  loadingHome = false;
 
-  readonly #destroyRef: DestroyRef = inject(DestroyRef);
-  readonly #document: Document = inject(DOCUMENT);
-  readonly #renderer: Renderer2 = inject(Renderer2);
-  readonly #chartsData: DashboardChartsData = inject(DashboardChartsData);
-
-  public users: IUser[] = [
+  moduleTiles: ModuleTile[] = [
     {
-      name: 'Yiorgos Avraamu',
-      state: 'New',
-      registered: 'Jan 1, 2021',
-      country: 'Us',
-      usage: 50,
-      period: 'Jun 11, 2021 - Jul 10, 2021',
-      payment: 'Mastercard',
-      activity: '10 sec ago',
-      avatar: './assets/images/avatars/1.jpg',
-      status: 'success',
-      color: 'success'
+      title: 'Master Data',
+      description: 'Core items and catalogs',
+      icon: 'cilLayers',
+      iconClass: 'icon-emerald',
+      route: '/items/items',
+      permissions: ['Items.Get']
     },
     {
-      name: 'Avram Tarasios',
-      state: 'Recurring ',
-      registered: 'Jan 1, 2021',
-      country: 'Br',
-      usage: 10,
-      period: 'Jun 11, 2021 - Jul 10, 2021',
-      payment: 'Visa',
-      activity: '5 minutes ago',
-      avatar: './assets/images/avatars/2.jpg',
-      status: 'danger',
-      color: 'info'
+      title: 'Purchasing',
+      description: 'Purchase orders & receipts',
+      icon: 'cilBasket',
+      iconClass: 'icon-green',
+      route: '/inquiries/processes-inquiry',
+      permissions: ['Warehouses.Get']
     },
     {
-      name: 'Quintin Ed',
-      state: 'New',
-      registered: 'Jan 1, 2021',
-      country: 'In',
-      usage: 74,
-      period: 'Jun 11, 2021 - Jul 10, 2021',
-      payment: 'Stripe',
-      activity: '1 hour ago',
-      avatar: './assets/images/avatars/3.jpg',
-      status: 'warning',
-      color: 'warning'
+      title: 'Outbound Deliveries',
+      description: 'Sales & deliveries flow',
+      icon: 'cilShareBoxed',
+      iconClass: 'icon-blue',
+      route: '/inquiries/processes-inquiry',
+      permissions: ['Warehouses.Get']
     },
     {
-      name: 'Enéas Kwadwo',
-      state: 'Sleep',
-      registered: 'Jan 1, 2021',
-      country: 'Fr',
-      usage: 98,
-      period: 'Jun 11, 2021 - Jul 10, 2021',
-      payment: 'Paypal',
-      activity: 'Last month',
-      avatar: './assets/images/avatars/4.jpg',
-      status: 'secondary',
-      color: 'danger'
+      title: 'Production',
+      description: 'Manufacturing processes',
+      icon: 'cilTask',
+      iconClass: 'icon-orange',
+      disabled: true,
+      permissions: ['Warehouses.Get']
     },
     {
-      name: 'Agapetus Tadeáš',
-      state: 'New',
-      registered: 'Jan 1, 2021',
-      country: 'Es',
-      usage: 22,
-      period: 'Jun 11, 2021 - Jul 10, 2021',
-      payment: 'ApplePay',
-      activity: 'Last week',
-      avatar: './assets/images/avatars/5.jpg',
-      status: 'success',
-      color: 'primary'
+      title: 'Inventory',
+      description: 'Stock visibility & checks',
+      icon: 'cilGrid',
+      iconClass: 'icon-mint',
+      route: '/inquiries/items-inquiry',
+      permissions: ['Warehouses.Get']
     },
     {
-      name: 'Friderik Dávid',
-      state: 'New',
-      registered: 'Jan 1, 2021',
-      country: 'Pl',
-      usage: 43,
-      period: 'Jun 11, 2021 - Jul 10, 2021',
-      payment: 'Amex',
-      activity: 'Yesterday',
-      avatar: './assets/images/avatars/6.jpg',
-      status: 'info',
-      color: 'dark'
+      title: 'Printing',
+      description: 'Barcode labels & output',
+      icon: 'cilPrint',
+      iconClass: 'icon-purple',
+      route: '/barcodes/barcodes',
+      permissions: ['Items.Get']
+    },
+    {
+      title: 'Reports',
+      description: 'KPIs and analytics',
+      icon: 'cilSpreadsheet',
+      iconClass: 'icon-red',
+      disabled: true
+    },
+    {
+      title: 'Exporting',
+      description: 'Share and export data',
+      icon: 'cilCloudDownload',
+      iconClass: 'icon-blue',
+      disabled: true
     }
   ];
 
-  public mainChart: IChartProps = { type: 'line' };
-  public mainChartRef: WritableSignal<any> = signal(undefined);
-  #mainChartRefEffect = effect(() => {
-    if (this.mainChartRef()) {
-      this.setChartStyles();
-    }
-  });
-  public chart: Array<IChartProps> = [];
-  public trafficRadioGroup = new FormGroup({
-    trafficRadio: new FormControl('Month')
-  });
+  constructor(
+    private authService: AuthService,
+    private sapAuthService: SapAuthService,
+    private dashboardService: DashboardService,
+    private router: Router
+  ) {}
 
   ngOnInit(): void {
-    this.initCharts();
-    this.updateChartOnColorModeChange();
+    this.setUserDisplayName();
+    this.loadHomeInfo();
+    this.loadSelectedDatabase();
+    this.applyAuthorization();
   }
 
-  initCharts(): void {
-    this.mainChartRef()?.stop();
-    this.mainChart = this.#chartsData.mainChart;
+  get visibleModuleTiles(): ModuleTile[] {
+    return this.moduleTiles.filter((tile) => tile.isAuthorized);
   }
 
-  setTrafficPeriod(value: string): void {
-    this.trafficRadioGroup.setValue({ trafficRadio: value });
-    this.#chartsData.initMainChart(value);
-    this.initCharts();
-  }
-
-  handleChartRef($chartRef: any) {
-    if ($chartRef) {
-      this.mainChartRef.set($chartRef);
+  onModuleClick(tile: ModuleTile): void {
+    if (!tile.isAuthorized || tile.disabled || !tile.route) {
+      return;
     }
+    this.router.navigate([tile.route]);
   }
 
-  updateChartOnColorModeChange() {
-    const unListen = this.#renderer.listen(this.#document.documentElement, 'ColorSchemeChange', () => {
-      this.setChartStyles();
-    });
-
-    this.#destroyRef.onDestroy(() => {
-      unListen();
-    });
-  }
-
-  setChartStyles() {
-    if (this.mainChartRef()) {
-      setTimeout(() => {
-        const options: ChartOptions = { ...this.mainChart.options };
-        const scales = this.#chartsData.getScales();
-        this.mainChartRef().options.scales = { ...options.scales, ...scales };
-        this.mainChartRef().update();
-      });
+  onSyncData(): void {
+    if (this.syncing) {
+      return;
     }
+    this.syncing = true;
+    this.dashboardService.syncData().subscribe({
+      next: (res: DashboardSyncResponse) => {
+        this.lastSyncAt = res.lastSyncAt || new Date().toISOString();
+        this.syncing = false;
+      },
+      error: () => {
+        this.syncing = false;
+      }
+    });
+  }
+
+  onLogout(): void {
+    this.authService.logOut();
+  }
+
+  private setUserDisplayName(): void {
+    this.userDisplayName =
+      this.authService.getUserName() ||
+      this.authService.getName() ||
+      this.authService.getEmail() ||
+      'User';
+  }
+
+  private loadHomeInfo(): void {
+    this.loadingHome = true;
+    this.dashboardService.getHomeInfo().subscribe({
+      next: (info: DashboardHomeInfo) => {
+        if (info?.userName) {
+          this.userDisplayName = info.userName;
+        }
+        if (info?.databaseName) {
+          this.connectedDatabase = info.databaseName;
+        }
+        if (info?.lastSyncAt) {
+          this.lastSyncAt = info.lastSyncAt;
+        }
+        this.loadingHome = false;
+      },
+      error: () => {
+        this.loadingHome = false;
+      }
+    });
+  }
+
+  private loadSelectedDatabase(): void {
+    this.sapAuthService.getSelectedSap().subscribe({
+      next: (res: any) => {
+        const selected = res?.data ?? res;
+        const databaseName = selected?.companyDB || selected?.name || '';
+        if (databaseName) {
+          this.connectedDatabase = databaseName;
+        }
+      },
+      error: () => {
+        // Keep current value from home info or local storage.
+      }
+    });
+  }
+
+  private applyAuthorization(): void {
+    const currentPermissions = this.authService.getPermissions();
+    this.moduleTiles = this.moduleTiles.map((tile) => ({
+      ...tile,
+      isAuthorized: this.isModuleAuthorized(tile, currentPermissions)
+    }));
+  }
+
+  private isModuleAuthorized(tile: ModuleTile, currentPermissions: string[]): boolean {
+    if (currentPermissions.length === 0) {
+      return true;
+    }
+    if (!tile.permissions || tile.permissions.length === 0) {
+      return true;
+    }
+    return this.authService.hasAnyPermission(tile.permissions);
   }
 }

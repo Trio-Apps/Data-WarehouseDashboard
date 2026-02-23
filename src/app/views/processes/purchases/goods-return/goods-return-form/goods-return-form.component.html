@@ -56,7 +56,7 @@
                 }
               </c-col>
 
-              @if (!receiptOrderId) {
+              @if ( (isEditMode && !this.returnOrder?.receiptPurchaseOrderId) || (!isEditMode && !this.receiptOrderId)) {
                 <c-col [md]="12">
                   <label class="form-label">
                     Supplier <span class="text-danger">*</span>

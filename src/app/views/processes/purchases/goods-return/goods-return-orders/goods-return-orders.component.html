@@ -45,7 +45,7 @@
             <tr>
               <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
               <td>{{ returnOrder.goodsReturnOrderId }}</td>
-              <td>{{ returnOrder.supplierName || 'N/A' }}</td>
+              <td>{{ returnOrder.supplierCode || 'N/A' }}</td>
               <td>{{ returnOrder.postingDate | date:'short' }}</td>
               <td>{{ returnOrder.dueDate | date:'short' }}</td>
               <td>
@@ -126,7 +126,7 @@
     <div class="form-section p-3 border-top">
       <form [formGroup]="form" (ngSubmit)="onSearch()">
         <c-row [gutter]="3">
-          <c-col [md]="4">
+          <c-col [md]="3">
             <label class="form-label">Status</label>
             <select cFormControl formControlName="status" class="form-select">
               <option value="">-- All Statuses --</option>
@@ -137,11 +137,23 @@
           </c-col>
 
           <c-col [md]="3">
+            <label class="form-label">Supplier</label>
+            <select cFormControl formControlName="supplierId" class="form-select">
+              <option value="">-- All Suppliers --</option>
+              @for (supplier of suppliers; track supplier.supplierId) {
+              <option [value]="supplier.supplierId">
+                {{ supplier.supplierCode || supplier.supplierName }}
+              </option>
+              }
+            </select>
+          </c-col>
+
+          <c-col [md]="2">
             <label class="form-label">Posting Date</label>
             <input cFormControl type="date" formControlName="postingDate" class="form-control" />
           </c-col>
 
-          <c-col [md]="3">
+          <c-col [md]="2">
             <label class="form-label">Due Date</label>
             <input cFormControl type="date" formControlName="dueDate" class="form-control" />
           </c-col>

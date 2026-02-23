@@ -210,6 +210,7 @@ export class ReceiptFormComponent implements OnInit {
       dueDate: formattedDueDate,
       comment: formValue.comment,
       isDraft: formValue.isDraft,
+      warehouseId: this.warehouseId,
       supplierId: +formValue.supplierId
     };
 

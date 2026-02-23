@@ -95,16 +95,18 @@ getReceiptsWithFilterationByWarehouse(
     return this.http.post<any>(`${this.baseUrl}ReceiptPurchaseOrder/with-default-items`, receiptData, this.headerOption);
   }
 
- createReceiptWithoutReference(receiptData: any): Observable<any> {
+  createReceiptWithoutReference(receiptData: any): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}ReceiptPurchaseOrder/without-reference`, receiptData, this.headerOption);
   }
+  
   /**
    * Update receipt
    */
+
   updateReceipt(receiptId: number, receiptData: any): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}ReceiptPurchaseOrder/${receiptId}`, receiptData, this.headerOption);
   }
-updateReceiptWithoutReference(receiptId: number, receiptData: any): Observable<any> {
+  updateReceiptWithoutReference(receiptId: number, receiptData: any): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}ReceiptPurchaseOrder/${receiptId}`, receiptData, this.headerOption);
   }
   /**

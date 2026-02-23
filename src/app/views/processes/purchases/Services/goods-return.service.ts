@@ -33,6 +33,7 @@ export class GoodsReturnService {
     pageNumber: number,
     pageSize: number,
     warehouseId: number,
+    supplierId?: number,
     status?: string,
     postingDate?: string,
     dueDate?: string
@@ -41,6 +42,9 @@ export class GoodsReturnService {
 
     let params = new HttpParams();
 
+    if (supplierId) {
+      params = params.set('supplierId', supplierId);
+    }
     if (status) {
       params = params.set('status', status);
     }

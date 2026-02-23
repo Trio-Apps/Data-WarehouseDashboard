@@ -322,21 +322,10 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
   }
 
   onViewReturnOrder(receipt: Receipt): void {
-    console.log("inside");
-    if(receipt.returnOrderId){
-          console.log("order");
-
+  
  this.router.navigate([
-        '/processes/purchases/goods-return-order',0 ,receipt.receiptPurchaseOrderId,receipt.returnOrderId],
-       { queryParams: { director: 'without-reference' } });
-    }
-    else{
-         console.log("order-empty");
-       this.router.navigate([
-        '/processes/purchases/goods-return-order',0 ,receipt.receiptPurchaseOrderId,0],
-       { queryParams: { director: 'without-reference' } });
-    }
-   
+        '/processes/purchases/goods-return-order',0 ,receipt.receiptPurchaseOrderId,receipt.returnOrderId],);
+    
   }
 
   onAddReceipt(): void {

@@ -271,7 +271,7 @@ export class BatchesComponent implements OnInit {
   }
 
   shouldShowReceiptBatchSelect(): boolean {
-    return this.receiptOrderId > 0;
+    return this.receiptItemId > 0;
   }
 
   onReceiptBatchSelectionChange(selectedValue: string): void {
@@ -303,14 +303,16 @@ export class BatchesComponent implements OnInit {
   }
 
   private loadReceiptBatchOptions(): void {
-    const receiptItemId = this.receiptItemId > 0 ? this.receiptItemId : this.returnOrderItemId;
-    if (receiptItemId <= 0) {
+ //   const receiptItemId = this.receiptItemId > 0 ? this.receiptItemId : this.returnOrderItemId;
+    if (this.receiptItemId <= 0) {
       this.receiptBatchOptions = [];
+      console.log("batch not found", this.receiptItemId);
       return;
     }
+      console.log("batch", this.receiptItemId);
 
     this.loadingReceiptBatchOptions = true;
-    this.receiptService.getReceiptBatchesByItemId(receiptItemId).subscribe({
+    this.receiptService.getReceiptBatchesByItemId(this.receiptItemId).subscribe({
       next: (res: any) => {
         this.receiptBatchOptions = res?.data && Array.isArray(res.data) ? res.data : [];
         this.loadingReceiptBatchOptions = false;

@@ -234,7 +234,7 @@ export class GoodsReturnFormComponent implements OnInit {
     };
 
     const operation = this.isEditMode && this.goodsReturnId
-      ? this.receiptOrderId === 0
+      ? this.returnOrder?.receiptPurchaseOrderId === 0
         ? this.returnService.updateReturn(this.goodsReturnId, {
             goodsReturnOrderId: this.goodsReturnId,
             ...withoutReferenceData
@@ -254,9 +254,9 @@ export class GoodsReturnFormComponent implements OnInit {
         this.saving = false;
         const message = this.isEditMode ? 'Return order updated successfully' : 'Return order created successfully';
         this.toastr.success(message, 'Success');
-
-        const returnId = this.goodsReturnId || res?.data?.goodsReturnOrderId || res?.data?.returnOrderId;
-        this.router.navigate(['/processes/purchases/goods-return-order', this.purchaseOrderId, this.receiptOrderId, returnId]);
+        this.returnOrder = res.data;
+        //const returnId = this.goodsReturnId || res?.data?.goodsReturnOrderId || res?.data?.returnOrderId;
+        this.router.navigate(['/processes/purchases/goods-return-order', this.purchaseOrderId, this.returnOrder?.receiptPurchaseOrderId,this.returnOrder?.goodsReturnOrderId]);
         console.log("goods", res);
         this.cdr.detectChanges();
       },
@@ -271,8 +271,21 @@ export class GoodsReturnFormComponent implements OnInit {
   }
 
   onCancel(): void {
-        this.location.back();
-
+       // this.location.back();
+       if(this.isEditMode)
+ this.router.navigate([
+        '/processes/purchases/goods-return-order',0 ,this.receiptOrderId,this.goodsReturnId],);
+        else{
+          if(this.warehouseId)
+          {
+             this.router.navigate(['/processes/purchases/goods-return-orders',this.warehouseId],);
+          return;
+            }
+           this.router.navigate([
+        '/processes/purchases/goods-return-order',0 ,this.receiptOrderId,0],);
+     
+        }
+    
     // if (this.goodsReturnId) {
     //   this.router.navigate(['/processes/purchases/goods-return-order', this.purchaseOrderId, this.receiptOrderId, this.goodsReturnId]);
     //   return;

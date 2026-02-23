@@ -8,10 +8,23 @@
             Add Return
           </button>
         }
-        <button cButton color="secondary" class="header-button" (click)="onBackToReceipts()">
+        @if(receiptOrderId){
+        <button cButton color="secondary" class="header-button me-2" (click)="onBackToReceipt()">
           <svg cIcon name="cilArrowLeft" class="me-2"></svg>
-          Back
+          Back To GRPO
         </button>
+        <button cButton color="secondary" class="header-button me-2" (click)="onBackToReceipts()">
+          <svg cIcon name="cilArrowLeft" class="me-2"></svg>
+          Back To GRPOs
+        </button>
+        }
+        @else{
+        <button cButton color="secondary" class="header-button me-2" (click)="onBackToReturns()">
+          <svg cIcon name="cilArrowLeft" class="me-2"></svg>
+           Back
+        </button>
+        }
+      
       </div>
     </c-card-header>
 

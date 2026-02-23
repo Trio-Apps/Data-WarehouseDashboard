@@ -1,6 +1,6 @@
 import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CommonModule, DatePipe } from '@angular/common';
+import { CommonModule, DatePipe, Location } from '@angular/common';
 import {
   TableModule,
   CardModule,
@@ -59,7 +59,8 @@ export class ReceiptOrderComponent implements OnInit {
     private receiptService: ReceiptService,
     private approvalService: ApprovalService,
     private cdr: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private location:Location
   ) {}
 
   ngOnInit(): void {
@@ -71,9 +72,12 @@ export class ReceiptOrderComponent implements OnInit {
 
     // إعادة تحميل البيانات عند العودة من صفحة أخرى
     this.route.params.subscribe(params => {
+      console.log("param");
       const newReceiptOrderId = +params['receiptOrderId'];
       if (newReceiptOrderId && newReceiptOrderId === this.receiptOrderId) {
         this.loadReceipt();
+              console.log("param2");
+
       }
     });
   }
@@ -242,7 +246,8 @@ export class ReceiptOrderComponent implements OnInit {
 
   onBackToPurchases(): void {
     if (this.purchaseOrderId) {
-      this.router.navigate(['/processes/purchases', this.receipt?.warehouseId]);
+       this.location.back();
+     // this.router.navigate(['/processes/purchases', this.receipt?.warehouseId]);
     } else {
       this.router.navigate(['/processes/purchases/receipt-orders', this.receipt?.warehouseId]);
     }

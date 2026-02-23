@@ -17,6 +17,8 @@ import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
 import { GoodsReturnService } from '../../Services/goods-return.service';
 import { Return } from '../../Models/retrun-model';
+import { PurchaseService } from '../../Services/purchase.service';
+import { Supplier } from '../../Models/purchase.model';
 import { ApprovalService } from '../../../approval-process/Services/approval.service';
 
 type GoodsReturnOrderListItem = Return & {
@@ -55,6 +57,7 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
   form!: FormGroup;
   returns: GoodsReturnOrderListItem[] = [];
   filteredReturns: GoodsReturnOrderListItem[] = [];
+  suppliers: Supplier[] = [];
   warehouseId: number = 0;
 
   // Pagination
@@ -72,6 +75,7 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
 
   // Filter fields
   filterStatus: string = '';
+  filterSupplierId: number | null = null;
   filterPostingDate: Date | null = null;
   filterDueDate: Date | null = null;
 
@@ -89,12 +93,14 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
     private router: Router,
     private fb: FormBuilder,
     private returnService: GoodsReturnService,
+    private purchaseService: PurchaseService,
     private approvalService: ApprovalService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {
     this.form = this.fb.group({
       status: [''],
+      supplierId: [''],
       postingDate: [null],
       dueDate: [null]
     });
@@ -102,6 +108,7 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
+    this.loadSuppliers();
 
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
       if (this.isSearching) {
@@ -111,17 +118,20 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
       const page = params['page'] ? +params['page'] : 1;
       const pageSize = params['pageSize'] ? +params['pageSize'] : 10;
       const status = params['status'] || '';
+      const supplierId = params['supplierId'] ? +params['supplierId'] : null;
       const postingDate = params['postingDate'] || '';
       const dueDate = params['dueDate'] || '';
 
       this.currentPage = page >= 1 ? page : 1;
       this.itemsPerPage = pageSize >= 1 ? pageSize : 10;
       this.filterStatus = status;
+      this.filterSupplierId = supplierId;
       this.filterPostingDate = postingDate ? new Date(postingDate) : null;
       this.filterDueDate = dueDate ? new Date(dueDate) : null;
 
       this.form.patchValue({
         status: status,
+        supplierId: supplierId ?? '',
         postingDate: postingDate || null,
         dueDate: dueDate || null
       });
@@ -145,6 +155,7 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
 
     const formValue = this.form.value;
+    const supplierId = formValue.supplierId ? +formValue.supplierId : undefined;
     const postingDateStr = formValue.postingDate || undefined;
     const dueDateStr = formValue.dueDate || undefined;
 
@@ -152,6 +163,7 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
       this.currentPage,
       this.itemsPerPage,
       this.warehouseId,
+      supplierId,
       this.filterStatus || undefined,
       postingDateStr,
       dueDateStr
@@ -215,6 +227,7 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
 
     const formValue = this.form.value;
     this.filterStatus = formValue.status || '';
+    this.filterSupplierId = formValue.supplierId ? +formValue.supplierId : null;
     this.filterPostingDate = formValue.postingDate ? new Date(formValue.postingDate) : null;
     this.filterDueDate = formValue.dueDate ? new Date(formValue.dueDate) : null;
 
@@ -238,6 +251,9 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
     if (formValue.status) {
       queryParams.status = formValue.status;
     }
+    if (formValue.supplierId) {
+      queryParams.supplierId = formValue.supplierId;
+    }
     if (formValue.postingDate) {
       queryParams.postingDate = formValue.postingDate;
     }
@@ -249,6 +265,35 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
       relativeTo: this.route,
       queryParams: queryParams,
       replaceUrl: true
+    });
+  }
+
+  loadSuppliers(): void {
+    this.purchaseService.getSuppliers().subscribe({
+      next: (res: any) => {
+        const rawSuppliers = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res?.data?.data)
+            ? res.data.data
+            : Array.isArray(res)
+              ? res
+              : [];
+
+        this.suppliers = rawSuppliers
+          .map((s: any) => ({
+            supplierId: s.supplierId ?? s.id ?? s.SupplierId,
+            supplierName: s.supplierName ?? s.name ?? s.SupplierName ?? '',
+            supplierCode: s.supplierCode ?? s.code ?? s.SupplierCode ?? ''
+          }))
+          .filter((s: Supplier) => !!s.supplierId);
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading suppliers:', err);
+        this.toastr.error('Failed to load suppliers. Please try again.', 'Error');
+        this.cdr.detectChanges();
+      }
     });
   }
 

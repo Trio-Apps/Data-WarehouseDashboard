@@ -1,111 +1,72 @@
-<app-widgets-dropdown />
-<c-card class="my-4">
-  <c-card-body>
-    <c-row>
-      <c-col sm="5">
-        <h4 class="card-title mb-0" id="traffic">Traffic</h4>
-        <div class="small text-body-secondary">January - December 2023</div>
-      </c-col>
-      <c-col class="d-none d-md-block" sm="7">
-        <button cButton class="float-end" color="primary" aria-label="Download">
-          <svg cIcon name="cilCloudDownload"></svg>
-        </button>
-        <form [formGroup]="trafficRadioGroup">
-          <c-button-group class="float-end me-3" role="group">
-            <input
-              class="btn-check"
-              formControlName="trafficRadio"
-              type="radio"
-              value="Day"
-              id="dayRadio"
-            />
-            <label
-              (click)="setTrafficPeriod('Day')"
-              cButton
-              cFormCheckLabel
-              color="secondary"
-              variant="outline"
-              for="dayRadio"
-            >
-              Day
-            </label>
-            <input
-              class="btn-check"
-              formControlName="trafficRadio"
-              type="radio"
-              value="Month"
-              id="radioMonth"
-            />
-            <label
-              (click)="setTrafficPeriod('Month')"
-              cButton
-              cFormCheckLabel
-              color="secondary"
-              variant="outline"
-              for="radioMonth"
-            >
-              Month
-            </label>
-            <input
-              class="btn-check"
-              formControlName="trafficRadio"
-              type="radio"
-              value="Year"
-              id="radioYear"
-            />
-            <label
-              (click)="setTrafficPeriod('Year')"
-              cButton
-              cFormCheckLabel
-              color="secondary"
-              variant="outline"
-              for="radioYear"
-            >
-              Year
-            </label>
-          </c-button-group>
-        </form>
-      </c-col>
-    </c-row>
-    <c-chart
-      [data]="mainChart.data"
-      [height]="300"
-      [style.marginTop.px]="40"
-      [options]="mainChart.options"
-      [type]="mainChart.type"
-      (chartRef)="handleChartRef($event)"
-    >
-      Main chart
-    </c-chart>
-  </c-card-body>
-  <c-card-footer>
-    <c-row class="text-center mb-2" [xl]="5" [lg]="4" [sm]="2" [xs]="1" [gutter]="4">
-      <c-col>
-        <div class="text-body-secondary">Visits</div>
-        <strong>29.703 Users (40%)</strong>
-        <c-progress class="mt-2" thin color="success" value="40" aria-label="User visits" />
-      </c-col>
-      <c-col>
-        <div class="text-body-secondary">Unique</div>
-        <div class="fw-semibold text-truncate">24.093 Users (20%)</div>
-        <c-progress class="mt-2" thin color="info" value="20" aria-label="Unique users" />
-      </c-col>
-      <c-col>
-        <div class="text-body-secondary">Page views</div>
-        <div class="fw-semibold text-truncate">78.706 Views (60%)</div>
-        <c-progress class="mt-2" thin color="warning" value="60" aria-label="Page views" />
-      </c-col>
-      <c-col>
-        <div class="text-body-secondary">New Users</div>
-        <div class="fw-semibold text-truncate">22.123 Users (80%)</div>
-        <c-progress class="mt-2" thin color="danger" value="80" aria-label="New users" />
-      </c-col>
-      <c-col class="d-none d-xl-block">
-        <div class="text-body-secondary">Bounce Rate</div>
-        <div class="fw-semibold text-truncate">Average Rate (40.15%)</div>
-        <c-progress class="mt-2" thin value="40" aria-label="Bounce rate" />
-      </c-col>
-    </c-row>
-  </c-card-footer>
-</c-card>
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header">
+      <div class="header-main">
+        <div class="header-text">
+          <h4 class="mb-1 header-title">Home</h4>
+          <div class="header-meta">
+            <span class="meta-item">
+              <svg cIcon name="cilUser" class="me-2"></svg>
+              {{ userDisplayName }}
+            </span>
+            <span class="meta-item">
+              <svg cIcon name="cilFile" class="me-2"></svg>
+              {{ connectedDatabase || 'No database selected' }}
+            </span>
+          </div>
+          <div class="header-sub" *ngIf="lastSyncAt">
+            Last sync: {{ lastSyncAt | date: 'medium' }}
+          </div>
+        </div>
+        <div class="header-actions">
+          <c-dropdown>
+            <button cButton cDropdownToggle color="light" variant="outline" class="action-button" [caret]="false">
+              <svg cIcon name="cilOptions" class="me-2"></svg>
+              Actions
+            </button>
+            <ul cDropdownMenu class="actions-menu">
+              <li>
+                <button cDropdownItem (click)="onSyncData()" [disabled]="syncing">
+                  <svg cIcon name="cilCloudDownload" class="me-2"></svg>
+                  {{ syncing ? 'Syncing...' : 'Sync Data' }}
+                </button>
+              </li>
+              <li><hr cDropdownDivider /></li>
+              <li>
+                <button cDropdownItem (click)="onLogout()">
+                  <svg cIcon name="cilAccountLogout" class="me-2"></svg>
+                  Logout
+                </button>
+              </li>
+            </ul>
+          </c-dropdown>
+        </div>
+      </div>
+    </c-card-header>
 
+    <c-card-body class="flex-grow-1 d-flex flex-column p-4">
+      <c-row [gutter]="3" class="process-grid">
+        <c-col [xs]="12" [md]="3" *ngFor="let module of visibleModuleTiles">
+          <c-card
+            class="process-card h-100"
+            [class.disabled-card]="module.disabled"
+            (click)="onModuleClick(module)"
+          >
+            <c-card-body class="text-center">
+              <div class="icon-wrap" [ngClass]="module.iconClass">
+                <svg cIcon [name]="module.icon" size="3xl" class="process-icon"></svg>
+              </div>
+              <h5 class="card-title">{{ module.title }}</h5>
+              <p class="card-text">{{ module.description }}</p>
+              <span class="badge bg-secondary" *ngIf="module.disabled">Coming soon</span>
+            </c-card-body>
+          </c-card>
+        </c-col>
+      </c-row>
+
+      <div class="empty-state" *ngIf="visibleModuleTiles.length === 0">
+        No modules available for your account.
+      </div>
+    </c-card-body>
+  </c-card>
+</div>
