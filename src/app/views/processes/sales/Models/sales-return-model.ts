@@ -1,29 +1,43 @@
-
- export interface Return {
+export interface Return {
   salesOrderId?: number;
   salesReturnOrderId: number;
   postingDate: string;
   dueDate: string;
   comment: string;
+  customerId?: number;
+  customerCode?: string;
+  customerName?: string;
+  warehouseId?: number;
+  itemCount?: number;
+  approvalStatus?: string | null;
+  canApprove?: boolean;
+  processApprovalId?: number;
   isDraft: boolean;
   status: string;
   createdAt?: string;
   updatedAt?: string;
-  canApprove?: boolean;
-  approval?: boolean | null;
-  approvalStatus?: string | null;
-  reason?: string;
-  processApprovalId?: number;
-  processItemIsProgressId?: number;
 }
 
- export interface UpdateReturn {
-  salesReturnOrderId: number;
+export interface AddReturn {
+  postingDate: string;
+  dueDate: string;
   comment: string;
- isDraft: boolean;
- 
+  customerId?: number;
+  warehouseId: number;
+  salesOrderId?: number;
+  isDraft: boolean;
 }
 
+export interface UpdateReturn {
+  salesReturnOrderId: number;
+  postingDate?: string;
+  dueDate?: string;
+  comment: string;
+  customerId?: number;
+  warehouseId?: number;
+  salesOrderId?: number;
+  isDraft: boolean;
+}
 
 export interface ReturnItem {
   salesOrderItemId?: number;
@@ -39,7 +53,6 @@ export interface ReturnItem {
   comment?: string;
 }
 
-
 export interface AddReturnItemRequest {
   salesOrderItemId: number;
   quantity: number;
@@ -49,7 +62,7 @@ export interface AddReturnItemRequest {
 export interface UpdateReturnItemRequest {
   salesReturnOrderItemId: number;
   quantity: number;
-  comment: number;
+  comment: string;
 }
 
 export interface ReturnBatch {
@@ -61,16 +74,16 @@ export interface ReturnBatch {
   expiryDate: string;
 }
 
-// export interface AddReturnBatchRequest {
-//   ReturnReceiptOrderItemId: number;
-//   quantity: number;
-//   comment?: string;
-//   expiryDate: string;
-// }
+export interface AddReturnBatchRequest {
+  salesReturnOrderItemId: number;
+  batchNumber: string;
+  quantity: number;
+  comment?: string;
+  expiryDate: string;
+}
 
 export interface UpdateReturnBatchRequest {
   salesReturnOrderBatchId: number;
   quantity: number;
   comment?: string;
 }
-

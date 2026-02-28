@@ -98,6 +98,26 @@
   <c-modal-body>
     <form [formGroup]="addForm" (ngSubmit)="onSubmitAdd()">
       <c-row [gutter]="3">
+        <!-- Batch Number -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Batch Number <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="BatchNumber"
+            placeholder="Enter batch number"
+            class="form-control"
+            [class.is-invalid]="addForm.get('BatchNumber')?.invalid && addForm.get('BatchNumber')?.touched"
+            required>
+          @if (addForm.get('BatchNumber')?.invalid && addForm.get('BatchNumber')?.touched) {
+            <div class="invalid-feedback d-block">
+              Batch Number is required
+            </div>
+          }
+        </c-col>
+
         <!-- Quantity -->
         <c-col [md]="6">
           <label class="form-label">
@@ -192,6 +212,26 @@
     }
     <form [formGroup]="editForm" (ngSubmit)="onSubmitEdit()">
       <c-row [gutter]="3">
+        <!-- Batch Number -->
+        <c-col [md]="6">
+          <label class="form-label">
+            Batch Number <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="text"
+            formControlName="BatchNumber"
+            placeholder="Enter batch number"
+            class="form-control"
+            [class.is-invalid]="editForm.get('BatchNumber')?.invalid && editForm.get('BatchNumber')?.touched"
+            required>
+          @if (editForm.get('BatchNumber')?.invalid && editForm.get('BatchNumber')?.touched) {
+            <div class="invalid-feedback d-block">
+              Batch Number is required
+            </div>
+          }
+        </c-col>
+
         <!-- Quantity -->
         <c-col [md]="6">
           <label class="form-label">

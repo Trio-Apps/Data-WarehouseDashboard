@@ -37,9 +37,8 @@ import { SalesService } from '../Services/sales.service';
 export class SalesBatchesComponent implements OnInit {
   salesOrderId: number = 0;
   salesOrderItemId: number = 0;
-  purchaseOrderId: number = 0;
   quantity: number = 0;
-  receiptItem: SalesItem | null = null;
+  salesItem: SalesItem | null = null;
   batches: SalesBatch[] = [];
   loading: boolean = true;
   saving: boolean = false;
@@ -73,6 +72,7 @@ export class SalesBatchesComponent implements OnInit {
 
   initializeForms(): void {
     this.addForm = this.fb.group({
+      BatchNumber: ['', Validators.required],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
       comment: [''],
       expiryDate: ['', Validators.required]
@@ -80,6 +80,7 @@ export class SalesBatchesComponent implements OnInit {
 
     this.editForm = this.fb.group({
       salesOrderBatchId: [0, Validators.required],
+      BatchNumber: ['', Validators.required],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
       comment: [''],
       expiryDate: ['', Validators.required]
@@ -91,9 +92,8 @@ export class SalesBatchesComponent implements OnInit {
     this.salesService.getSalesBatchesByItemId(this.salesOrderItemId).subscribe({
       next: (res: any) => {
         if (res.data) {
-          console.log("Batches",res.data);
           this.batches = Array.isArray(res.data) ? res.data : [];
-          // Get receipt item info from first batch if available
+          // Get sales item info from first batch if available
           if (this.batches.length > 0 && this.batches[0].salesOrderItemId) {
             // You can load item details here if needed
           }
@@ -117,6 +117,7 @@ export class SalesBatchesComponent implements OnInit {
   onAddBatch(): void {
     this.showAddModal = true;
     this.addForm.reset({
+      BatchNumber: '',
       quantity: 0.01,
       comment: '',
       expiryDate: ''
@@ -132,6 +133,7 @@ export class SalesBatchesComponent implements OnInit {
       : '';
     this.editForm.patchValue({
       salesOrderBatchId: batch.salesOrderBatchId || 0,
+      BatchNumber: batch.batchNumber || '',
       quantity: batch.quantity,
       comment: batch.comment || '',
       expiryDate: expiryDateStr
@@ -162,7 +164,7 @@ export class SalesBatchesComponent implements OnInit {
       this.toastr.error('Please fill in all required fields', 'Validation Error');
       return;
     }
-    console.log("Adding batch",this.salesOrderItemId);
+
     this.saving = true;
     const formValue = this.addForm.value;
 
@@ -173,6 +175,7 @@ export class SalesBatchesComponent implements OnInit {
 
     const batchData: AddSalesBatchRequest = {
       salesOrderItemId: this.salesOrderItemId,
+      BatchNumber: formValue.BatchNumber || '',
       quantity: formValue.quantity,
       comment: formValue.comment || '',
       expiryDate: expiryDateISO
@@ -212,12 +215,12 @@ export class SalesBatchesComponent implements OnInit {
 
     const batchData: UpdateSalesBatchRequest = {
       salesOrderBatchId: formValue.salesOrderBatchId,
+      BatchNumber: formValue.BatchNumber || '',
       quantity: formValue.quantity,
       comment: formValue.comment || '',
       expiryDate: expiryDateISO
     };
 
-    console.log("batchData.salesOrderBatchId",batchData.salesOrderBatchId);
     this.salesService.updateSalesBatch(batchData.salesOrderBatchId, batchData).subscribe({
       next: (res: any) => {
         this.saving = false;
@@ -240,6 +243,7 @@ export class SalesBatchesComponent implements OnInit {
   onCloseAddModal(): void {
     this.showAddModal = false;
     this.addForm.reset({
+      BatchNumber: '',
       quantity: 0.01,
       comment: '',
       expiryDate: ''
@@ -250,7 +254,8 @@ export class SalesBatchesComponent implements OnInit {
     this.showEditModal = false;
     this.selectedBatch = null;
     this.editForm.reset({
-      receiptPurchaseOrderBatchId: 0,
+      salesOrderBatchId: 0,
+      BatchNumber: '',
       quantity: 0.01,
       comment: '',
       expiryDate: ''

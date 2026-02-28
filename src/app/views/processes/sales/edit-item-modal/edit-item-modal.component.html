@@ -14,8 +14,8 @@
     }
     <form [formGroup]="editForm" (ngSubmit)="onUpdate()">
       <c-row [gutter]="3">
-        <!-- Purchase Order Item ID (Hidden) -->
-        <input type="hidden" formControlName="purchaseOrderItemId">
+        <!-- Sales Order Item ID (Hidden) -->
+        <input type="hidden" formControlName="saleOrderItemId">
 
         <!-- Quantity -->
         <c-col [md]="6">
@@ -36,7 +36,7 @@
               Quantity is required and must be greater than 0
             </div>
           }
-          <small class="form-text text-muted">Quantity to purchase</small>
+          <small class="form-text text-muted">Quantity to sell</small>
         </c-col>
 
         <!-- UoM Entry -->

@@ -100,7 +100,7 @@ export class ShowItemsComponent implements OnInit, OnDestroy {
       const skip = (this.currentPage);
             this.inquiryService.getItemsByWarehouseIdWithItemCodeAndName(this.warehouseId,this.itemCode,this.itemName, skip, this.itemsPerPage).subscribe({
         next: (res: any) => {
-          console.log(res);
+          console.log("loading items: ",res);
 
           // Extract data from response
           if (res.data) {
@@ -117,6 +117,7 @@ export class ShowItemsComponent implements OnInit, OnDestroy {
 
             this.filteredItems = this.items;
             this.loading = false
+             this.cdr.detectChanges(); // ✅
 
 
             // Get pagination info from backend
@@ -144,12 +145,16 @@ export class ShowItemsComponent implements OnInit, OnDestroy {
         error: (err) => {
           console.error('Error loading items:', err);
           this.loading = false;
+          this.cdr.detectChanges(); // ✅
           this.items = [];
           this.filteredItems = [];
           this.totalItems = 0;
           this.totalPages = 0;
           this.hasNext = false;
           this.hasPrevious = false;
+          this.cdr.detectChanges(); // ✅
+
+          
         }
       });
     }

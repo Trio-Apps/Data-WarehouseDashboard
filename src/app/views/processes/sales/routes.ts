@@ -7,10 +7,6 @@ export const routes: Routes = [
       title: 'Processes'
     },
     children: [
-
-
-
-
       {
         path: 'add-item/:salesOrderId/:warehouseId',
         loadComponent: () => import('./add-item/add-item.component').then(m => m.AddItemComponent),
@@ -27,7 +23,8 @@ export const routes: Routes = [
       },
       {
         path: 'sales-items/:salesOrderId',
-        loadComponent: () => import('./sales-items/sales-items.component').then(m => m.SalesItemsComponent),
+        loadComponent: () =>
+          import('./sales-items/sales-items.component').then((m) => m.SalesItemsComponent),
         data: {
           title: 'Sales Items'
         }
@@ -38,9 +35,21 @@ export const routes: Routes = [
         data: {
           title: 'Create Sales'
         }
-      }
-      ,
-
+      },
+      {
+        path: 'sales-return-orders/:warehouseId',
+        loadComponent: () => import('./sales-return/sales-return-orders/sales-return-orders.component').then(m => m.SalesReturnOrdersComponent),
+        data: {
+          title: 'Sales Return Orders'
+        }
+      },
+      {
+        path: 'sales-return-order/:salesOrderId/:salesReturnId',
+        loadComponent: () => import('./sales-return/sales-return.component').then(m => m.SalesReturnComponent),
+        data: {
+          title: 'Sales Return Order'
+        }
+      },
       {
         path: 'sales-return-order/:salesOrderId',
         loadComponent: () => import('./sales-return/sales-return.component').then(m => m.SalesReturnComponent),
@@ -48,7 +57,27 @@ export const routes: Routes = [
           title: 'Sales Return Order'
         }
       },
-
+      {
+        path: 'sales-return-form/:salesOrderId/:salesReturnId',
+        loadComponent: () => import('./sales-return/sales-return-form/sales-return-form.component').then(m => m.SalesReturnFormComponent),
+        data: {
+          title: 'Edit Sales Return'
+        }
+      },
+      {
+        path: 'sales-return-form/:salesOrderId',
+        loadComponent: () => import('./sales-return/sales-return-form/sales-return-form.component').then(m => m.SalesReturnFormComponent),
+        data: {
+          title: 'Create Sales Return'
+        }
+      },
+      {
+        path: 'add-sales-return-item/:salesReturnId/:salesOrderId/:warehouseId',
+        loadComponent: () => import('./sales-return/add-sales-return-item/add-sales-return-item.component').then(m => m.AddSalesReturnItemComponent),
+        data: {
+          title: 'Add Sales Return Item'
+        }
+      },
       {
         path: 'sales-batches/:salesOrderId/:salesOrderItemId/:itemQuantity',
         loadComponent: () => import('./sales-batches/sales-batches.component').then(m => m.SalesBatchesComponent),
@@ -56,16 +85,13 @@ export const routes: Routes = [
           title: 'Sales Batches'
         }
       },
-
       {
-        path: 'return-batches/:returnOrderItemId/:salesOrderId/:itemQuantity',
+        path: 'return-batches/:salesOrderId/:salesReturnId/:returnOrderItemId/:itemQuantity',
         loadComponent: () => import('./sales-return/batches/batches.component').then(m => m.BatchesComponent),
         data: {
           title: 'Return Batches'
         }
       },
-
-
       {
         path: ':warehouseId',
         loadComponent: () => import('./sales.component').then(m => m.SalesComponent),
@@ -76,4 +102,3 @@ export const routes: Routes = [
     ]
   }
 ];
-

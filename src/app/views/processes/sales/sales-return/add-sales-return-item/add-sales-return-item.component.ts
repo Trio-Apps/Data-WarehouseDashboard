@@ -1,46 +1,48 @@
-import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, ChangeDetectorRef } from '@angular/core';
+import { ActivatedRoute } from '@angular/router';
+import { CommonModule, Location } from '@angular/common';
 import {
-  ModalModule,
   ButtonModule,
   FormModule,
   CardModule,
-  UtilitiesModule
+  GridModule,
+  UtilitiesModule,
+  GutterDirective,
+  FormCheckComponent,
+  FormCheckInputDirective,
+  FormCheckLabelDirective
 } from '@coreui/angular';
+import { IconDirective } from '@coreui/icons-angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { MatSelectModule } from '@angular/material/select';
-import { MatInputModule } from '@angular/material/input';
-import { MatFormFieldModule } from '@angular/material/form-field';
-import { MatTabsModule } from '@angular/material/tabs';
-import { SalesService } from '../Services/sales.service';
-import { Item } from '../Models/sales-model';
+import { SalesService } from '../../Services/sales.service';
+import { Item } from '../../Models/sales-model';
 import { ToastrService } from 'ngx-toastr';
-import { UoMGroup } from '../../barcodes/Models/item-barcode.model';
+import { UoMGroup } from '../../../barcodes/Models/item-barcode.model';
+import { SalesReturnService } from '../../Services/sales-return.service';
 
 @Component({
-  selector: 'app-add-item-modal',
+  selector: 'app-add-sales-return-item',
   imports: [
     CommonModule,
-    ModalModule,
     ButtonModule,
     FormModule,
     CardModule,
+    GridModule,
     UtilitiesModule,
     ReactiveFormsModule,
-    MatFormFieldModule,
-    MatInputModule,
-    MatSelectModule,
-    MatTabsModule
+    GutterDirective,
+    FormCheckComponent,
+    FormCheckInputDirective,
+    FormCheckLabelDirective,
+    IconDirective
   ],
-  templateUrl: './add-item-modal.component.html',
-  styleUrl: './add-item-modal.component.scss',
+  templateUrl: './add-sales-return-item.component.html',
+  styleUrl: './add-sales-return-item.component.scss',
 })
-export class AddItemModalComponent implements OnInit {
-  @Input() visible: boolean = false;
-  @Input() salesOrderId: number = 0;
-  @Input() warehouseId: number = 0;
-  @Output() visibleChange = new EventEmitter<boolean>();
-  @Output() itemAdded = new EventEmitter<void>();
+export class AddSalesReturnItemComponent implements OnInit {
+  salesReturnId: number = 0;
+  salesOrderId: number = 0;
+  warehouseId: number = 0;
 
   barcodeForm!: FormGroup;
   manualForm!: FormGroup;
@@ -49,15 +51,23 @@ export class AddItemModalComponent implements OnInit {
   loading: boolean = false;
   saving: boolean = false;
   loadingUomGroups: boolean = false;
+  activeTab: 'barcode' | 'manual' = 'barcode';
 
   constructor(
+    private route: ActivatedRoute,
     private fb: FormBuilder,
+    private location: Location,
     private salesService: SalesService,
+    private salesReturnService: SalesReturnService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
   ) {}
 
   ngOnInit(): void {
+    this.salesReturnId = +this.route.snapshot.paramMap.get('salesReturnId')!;
+    this.salesOrderId = +this.route.snapshot.paramMap.get('salesOrderId')!;
+    this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
+
     this.initializeForms();
     this.loadItems();
   }
@@ -73,7 +83,6 @@ export class AddItemModalComponent implements OnInit {
       quantity: [1, [Validators.required, Validators.min(0.01)]],
     });
 
-    // Listen to item selection changes
     this.manualForm.get('itemId')?.valueChanges.subscribe((itemId) => {
       if (itemId) {
         this.loadUomGroups(itemId);
@@ -85,8 +94,13 @@ export class AddItemModalComponent implements OnInit {
   }
 
   loadItems(): void {
-    if (!this.warehouseId) return;
+    if (!this.warehouseId) {
+      this.items = [];
+      this.toastr.error('Warehouse is missing. Please go back and open Add Item again.', 'Error');
+      return;
+    }
 
+    this.loading = true;
     this.salesService.getItemsByWarehouse(this.warehouseId).subscribe({
       next: (res: any) => {
         if (res.data) {
@@ -95,8 +109,9 @@ export class AddItemModalComponent implements OnInit {
             itemName: item.itemName,
             itemCode: item.itemCode
           }));
+        } else {
+          this.items = [];
         }
-
         this.loading = false;
         this.cdr.detectChanges();
       },
@@ -109,12 +124,6 @@ export class AddItemModalComponent implements OnInit {
     });
   }
 
-  onClose(): void {
-    this.visible = false;
-    this.visibleChange.emit(false);
-    this.resetForms();
-  }
-
   loadUomGroups(itemId: number): void {
     this.loadingUomGroups = true;
     this.uomGroups = [];
@@ -124,7 +133,6 @@ export class AddItemModalComponent implements OnInit {
       next: (res: any) => {
         if (res.success && res.data) {
           this.uomGroups = res.data;
-          // Auto-select first UoM if available
           if (this.uomGroups.length > 0) {
             this.manualForm.patchValue({ uoMEntry: this.uomGroups[0].uomEntry });
           }
@@ -143,16 +151,8 @@ export class AddItemModalComponent implements OnInit {
     });
   }
 
-  resetForms(): void {
-    this.barcodeForm.reset({
-      barCode: ''
-    });
-    this.manualForm.reset({
-      itemId: '',
-      uoMEntry: '',
-      quantity: 1
-    });
-    this.uomGroups = [];
+  onCancel(): void {
+    this.location.back();
   }
 
   onAddByBarcode(): void {
@@ -164,16 +164,15 @@ export class AddItemModalComponent implements OnInit {
     this.saving = true;
     const barcode = this.barcodeForm.value.barCode;
 
-    this.salesService.addItemByBarcode(this.salesOrderId, barcode).subscribe({
+    this.salesReturnService.addReturnItemByBarcode(this.salesReturnId, barcode).subscribe({
       next: () => {
         this.saving = false;
         this.toastr.success('Item added successfully by barcode', 'Success');
-        this.itemAdded.emit();
-        this.onClose();
+        this.onCancel();
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error adding item by barcode:', err);
+        console.error('Error adding return item by barcode:', err);
         this.saving = false;
         const errorMessage = err.error?.message || 'Error adding item. Please try again.';
         this.toastr.error(errorMessage, 'Error');
@@ -194,30 +193,23 @@ export class AddItemModalComponent implements OnInit {
     const itemData = {
       uoMEntry: formValue.uoMEntry,
       quantity: formValue.quantity,
-      salesOrderId: this.salesOrderId,
       itemId: formValue.itemId
     };
 
-    this.salesService.addItemManually(this.salesOrderId, itemData).subscribe({
+    this.salesReturnService.addReturnItemManually(this.salesReturnId, itemData).subscribe({
       next: () => {
         this.saving = false;
         this.toastr.success('Item added successfully', 'Success');
-        this.itemAdded.emit();
-        this.onClose();
+        this.onCancel();
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error adding item manually:', err);
+        console.error('Error adding return item manually:', err);
         this.saving = false;
         const errorMessage = err.error?.message || 'Error adding item. Please try again.';
         this.toastr.error(errorMessage, 'Error');
         this.cdr.detectChanges();
       }
     });
-  }
-
-  displayItemName(itemId: number | null): string {
-    const item = this.items.find(i => i.itemId === itemId);
-    return item ? `${item.itemName} (${item.itemCode})` : '';
   }
 }

@@ -2,10 +2,16 @@
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0 header-title">Sales - Warehouse #{{ warehouseId }}</h4>
-      <button cButton color="primary" class="header-button" (click)="onAddSale()">
-        <svg cIcon name="cil-plus" class="me-2"></svg>
-        Add Sale Order
-      </button>
+      <div class="d-flex align-items-center gap-2">
+        <button cButton color="primary" class="header-button" (click)="onAddSale()">
+          <svg cIcon name="cil-plus" class="me-2"></svg>
+          Add Sale Order
+        </button>
+        <button cButton color="secondary" class="header-button" (click)="onBackToShowProcesses()">
+          <svg cIcon name="cil-arrow-left" class="me-2"></svg>
+          Back
+        </button>
+      </div>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
@@ -16,7 +22,7 @@
             <tr>
               <th scope="col" class="bg-body-tertiary">#</th>
               <th scope="col" class="bg-body-tertiary">ID</th>
-              <th scope="col" class="bg-body-tertiary">customer</th>
+              <th scope="col" class="bg-body-tertiary">Customer</th>
               <th scope="col" class="bg-body-tertiary">Posting Date</th>
               <th scope="col" class="bg-body-tertiary">Due Date</th>
               <th scope="col" class="bg-body-tertiary">Status</th>
@@ -24,13 +30,14 @@
               <th scope="col" class="bg-body-tertiary">Comment</th>
               <th scope="col" class="bg-body-tertiary">Items Count</th>
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+              <th scope="col" class="bg-body-tertiary text-center">Return</th>
             </tr>
           </thead>
 
           <tbody>
             @if (loading) {
             <tr>
-              <td colspan="10" class="text-center py-4">
+              <td colspan="11" class="text-center py-4">
                 <span class="text-body-secondary">Loading...</span>
               </td>
             </tr>
@@ -39,7 +46,7 @@
             <tr>
               <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
               <td>{{ sale.salesOrderId }}</td>
-              <td>{{ sale.customer?.customerName || 'N/A' }}</td>
+              <td>{{ sale.customer?.customerCode || 'N/A' }}</td>
               <td>{{ sale.postingDate | date:'short' }}</td>
               <td>{{ sale.dueDate | date:'short' }}</td>
               <td>
@@ -70,12 +77,20 @@
                 }
 
               </td>
+              <td class="text-center">
+                @if (isApproved(sale) && sale.status == "Processing") {
+                <button cButton color="danger" size="sm" class="me-2" (click)="onViewSalesReturn(sale)"
+                  title="View Return">
+                  <svg cIcon name="cil-receipt"></svg>
+                </button>
+                }
+              </td>
             
             </tr>
             }
             } @else {
             <tr>
-              <td colspan="10" class="text-center py-4">
+              <td colspan="11" class="text-center py-4">
                 <span class="text-body-secondary">No Sales found</span>
               </td>
             </tr>
@@ -126,13 +141,27 @@
       <form [formGroup]="form" (ngSubmit)="onSearch()">
         <c-row [gutter]="3">
           <!-- Status Filter -->
-          <c-col [md]="3">
+          <c-col [md]="2">
             <label class="form-label">Status</label>
             <select cFormControl formControlName="status" class="form-select">
               <option value="">-- All Statuses --</option>
               <option value="Draft">Draft</option>
               <option value="Processing">Processing</option>
+              <option value="Completed">Completed</option>
+              <option value="PartiallyFailed">PartiallyFailed</option>
               <option value="Final">Final</option>
+            </select>
+          </c-col>
+
+          <c-col [md]="2">
+            <label class="form-label">Customer</label>
+            <select cFormControl formControlName="customerId" class="form-select">
+              <option value="">-- All Customers --</option>
+              @for (customer of customers; track customer.customerId) {
+                <option [value]="customer.customerId">
+                  {{ customer.customerCode || customer.customerName }}
+                </option>
+              }
             </select>
           </c-col>
 
@@ -149,7 +178,7 @@
           </c-col>
 
           <!-- liveStatus Filter -->
-          <c-col [md]="3">
+          <c-col [md]="2">
             <label class="form-label" for="liveStatus">Live Status</label>
             <select id="liveStatus" class="form-select" formControlName="liveStatus" cFormControl>
 

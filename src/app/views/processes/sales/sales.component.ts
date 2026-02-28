@@ -4,7 +4,7 @@ import { Subscription } from 'rxjs';
 import { ActivatedRoute, Router } from '@angular/router';
 import { SalesService } from './Services/sales.service';
 import { ToastrService } from 'ngx-toastr';
-import { Sales } from './Models/sales-model';
+import { Customer, Sales } from './Models/sales-model';
 import { CommonModule, DatePipe } from '@angular/common';
 import {
   TableModule,
@@ -38,6 +38,7 @@ export class SalesComponent implements OnInit, OnDestroy {
   form!: FormGroup;
   Sales: Sales[] = [];
   filteredSales: Sales[] = [];
+  customers: Customer[] = [];
   warehouseId: number = 0;
 
   // Pagination
@@ -51,6 +52,7 @@ export class SalesComponent implements OnInit, OnDestroy {
 
   // Filter fields
   filterStatus: string = '';
+  filterCustomerId: number | null = null;
   filterPostingDate: Date | null = null;
   filterDueDate: Date | null = null;
   filterLiveStatus: string = '';
@@ -73,6 +75,7 @@ export class SalesComponent implements OnInit, OnDestroy {
   ) {
     this.form = this.fb.group({
       status: [''],
+      customerId: [''],
       postingDate: [null],
       dueDate: [null],
        liveStatus: ['']
@@ -81,6 +84,7 @@ export class SalesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
+    this.loadCustomers();
 
     // Read pagination and filters from URL query params
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
@@ -92,6 +96,7 @@ export class SalesComponent implements OnInit, OnDestroy {
       const page = params['page'] ? +params['page'] : 1;
       const pageSize = params['pageSize'] ? +params['pageSize'] : 10;
       const status = params['status'] || '';
+      const customerId = params['customerId'] ? +params['customerId'] : null;
       const postingDate = params['postingDate'] || '';
       const dueDate = params['dueDate'] || '';
       const liveStatus = params['liveStatus'] || '';
@@ -99,6 +104,7 @@ export class SalesComponent implements OnInit, OnDestroy {
       this.currentPage = page >= 1 ? page : 1;
       this.itemsPerPage = pageSize >= 1 ? pageSize : 10;
       this.filterStatus = status;
+      this.filterCustomerId = customerId;
       this.filterPostingDate = postingDate ? new Date(postingDate) : null;
       this.filterDueDate = dueDate ? new Date(dueDate) : null;
       this.filterLiveStatus = liveStatus;
@@ -107,6 +113,7 @@ export class SalesComponent implements OnInit, OnDestroy {
       // Update form values (for date inputs, use YYYY-MM-DD format)
       this.form.patchValue({
         status: status,
+        customerId: customerId ?? '',
         postingDate: postingDate || null,
         dueDate: dueDate || null,
         liveStatus: liveStatus
@@ -132,6 +139,7 @@ export class SalesComponent implements OnInit, OnDestroy {
 
     // Get form values for dates (input type="date" returns YYYY-MM-DD string)
     const formValue = this.form.value;
+    const customerId = formValue.customerId ? +formValue.customerId : undefined;
     const postingDateStr = formValue.postingDate || undefined;
     const dueDateStr = formValue.dueDate || undefined;
    console.log('Loading Sales with filters:', {
@@ -142,6 +150,7 @@ export class SalesComponent implements OnInit, OnDestroy {
       this.currentPage,
       this.itemsPerPage,
       this.warehouseId,
+      customerId,
       this.filterLiveStatus || undefined,
       this.filterStatus || undefined,
       postingDateStr,
@@ -227,6 +236,7 @@ export class SalesComponent implements OnInit, OnDestroy {
     
     // Update search filters
     this.filterStatus = formValue.status || '';
+    this.filterCustomerId = formValue.customerId ? +formValue.customerId : null;
     this.filterPostingDate = formValue.postingDate ? new Date(formValue.postingDate) : null;
     this.filterDueDate = formValue.dueDate ? new Date(formValue.dueDate) : null;
     this.filterLiveStatus = formValue.liveStatus || '';
@@ -241,7 +251,7 @@ export class SalesComponent implements OnInit, OnDestroy {
     
     // Load Sales directly (like users component)
     this.loadSales();
-    
+    this.cdr.detectChanges();
     // Reset flag after a short delay to allow URL update
     setTimeout(() => {
       this.isSearching = false;
@@ -261,6 +271,9 @@ export class SalesComponent implements OnInit, OnDestroy {
     if (formValue.status) {
       queryParams.status = formValue.status;
     }
+    if (formValue.customerId) {
+      queryParams.customerId = formValue.customerId;
+    }
     // input type="date" already returns YYYY-MM-DD format
     if (formValue.postingDate) {
       queryParams.postingDate = formValue.postingDate;
@@ -278,6 +291,33 @@ export class SalesComponent implements OnInit, OnDestroy {
       relativeTo: this.route,
       queryParams: queryParams,
       replaceUrl: true
+    });
+  }
+
+  loadCustomers(): void {
+    this.saleService.getCustomer().subscribe({
+      next: (res: any) => {
+        const rawCustomers = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res?.data?.data)
+          ? res.data.data
+          : Array.isArray(res)
+          ? res
+          : [];
+
+        this.customers = rawCustomers.map((c: any) => ({
+          customerId: c.customerId ?? c.id ?? c.CustomerId,
+          customerName: c.customerName ?? c.name ?? c.CustomerName ?? '',
+          customerCode: c.customerCode ?? c.code ?? c.CustomerCode ?? ''
+        })).filter((c: Customer) => !!c.customerId);
+
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading customers:', err);
+        this.toastr.error('Failed to load customers. Please try again.', 'Error');
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -316,6 +356,10 @@ export class SalesComponent implements OnInit, OnDestroy {
 
   onAddSale(): void {
     this.router.navigate(['/processes/sales/sales-form', this.warehouseId,0]);
+  }
+
+  onBackToShowProcesses(): void {
+    this.router.navigate(['inquiries/show-processes', this.warehouseId]);
   }
 
   onEditSale(Sale: Sales): void {
@@ -357,6 +401,15 @@ export class SalesComponent implements OnInit, OnDestroy {
     }
   }
 
+  onViewSalesReturn(Sale: Sales): void {
+    if (Sale.salesOrderId) {
+      this.router.navigate(
+        ['/processes/sales/sales-return-order', Sale.salesOrderId, Sale.returnOrderId || 0],
+        { queryParams: { warehouseId: this.warehouseId } }
+      );
+    }
+  }
+
 
 
 //type SaleStatus = 'Draft' | 'Processing' | 'Final';
@@ -368,15 +421,21 @@ getStatusBadgeClass(Sale: Sales): string {
     case 'Processing':
       return 'badge bg-info';
     case 'Final':
+    case 'Completed':
       return 'badge bg-success';
+    case 'PartiallyFailed':
+      return 'badge bg-danger';
     default:
       return 'badge bg-secondary';
   }
 }
 
+
 getStatusText(Sale: Sales): string {
   return Sale.status;
 }
+
+
 
 private mapApprovalStatusText(value: string): string {
   const normalized = value.trim();
@@ -392,6 +451,7 @@ private mapApprovalStatusText(value: string): string {
   }
 }
 
+
 isApproved(Sale: Sales): boolean {
   const rawStatus = Sale.approvalStatus;
   if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
@@ -399,6 +459,7 @@ isApproved(Sale: Sales): boolean {
   }
   return this.mapApprovalStatusText(String(rawStatus)) === 'Approved';
 }
+
 
 getApprovalStatusText(Sale: Sales): string {
   const rawStatus = Sale.approvalStatus;

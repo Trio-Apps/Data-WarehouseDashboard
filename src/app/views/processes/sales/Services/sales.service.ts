@@ -25,7 +25,7 @@ export class SalesService {
   }
 
   /**
-   * Get all saless for a warehouse with pagination
+   * Get all sales for a warehouse with pagination
    * @param warehouseId Warehouse ID
    * @param pageNumber Page number (1-based)
    * @param pageSize Number of items per page
@@ -45,6 +45,7 @@ getSalesWithFilterationByWarehouse(
   pageNumber: number,
   pageSize: number,
   warehouseId: number,
+  customerId?: number,
   liveStatus?:string,
   status?: string,
   postingDate?: string,
@@ -56,6 +57,9 @@ getSalesWithFilterationByWarehouse(
   let params = new HttpParams();
 
 
+  if (customerId) {
+    params = params.set('customerId', customerId);
+  }
   if (status) {
     params = params.set('status', status);
   }
@@ -129,7 +133,7 @@ getSalesWithFilterationByWarehouse(
    * Get items for a warehouse (for manual item selection)
    */
   getItemsByWarehouse(warehouseId: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}FinishedGoodsalesOrder/warehouse/${warehouseId}`, this.headerOption);
+    return this.http.get<any>(`${this.baseUrl}SalesOrder/items-in-warehouse/warehouse/${warehouseId}`, this.headerOption);
   }
 
   getUoMGroupByItemId(itemId: number): Observable<UoMGroupResponse> {
@@ -175,7 +179,7 @@ getSalesWithFilterationByWarehouse(
    */
   
   updateSalesItem(saleOrderItemId:number, itemData: UpdateItemRequest): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}SalesOrderItem/Sales-item-order/${saleOrderItemId}`, itemData);
+    return this.http.put<any>(`${this.baseUrl}SalesOrderItem/Sales-item-order/${saleOrderItemId}`, itemData, this.headerOption);
   }
 
   /**

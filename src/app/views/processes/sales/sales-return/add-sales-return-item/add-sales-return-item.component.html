@@ -1,7 +1,7 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">Add Item to Sales Order - #{{ salesOrderId }}</h4>
+      <h4 class="mb-0 header-title">Add Item to Sales Return - #{{ salesReturnId }}</h4>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
@@ -11,7 +11,6 @@
         </div>
       } @else {
         <div class="p-4">
-          <!-- Tabs Navigation -->
           <ul class="nav nav-tabs mb-4" role="tablist">
             <li class="nav-item" role="presentation">
               <button
@@ -33,7 +32,6 @@
             </li>
           </ul>
 
-          <!-- Barcode Tab Content -->
           @if (activeTab === 'barcode') {
             <form [formGroup]="barcodeForm" (ngSubmit)="onAddByBarcode()">
               <c-row [gutter]="3">
@@ -60,40 +58,33 @@
             </form>
           }
 
-          <!-- Manual Entry Tab Content -->
           @if (activeTab === 'manual') {
             <form [formGroup]="manualForm" (ngSubmit)="onAddManually()">
               <c-row [gutter]="3">
-                <!-- Item Selection -->
                 <c-col [md]="12">
                   <label class="form-label">
                     Item <span class="text-danger">*</span>
                   </label>
-                  @if (loading) {
-                    <div class="text-body-secondary">Loading items...</div>
-                  } @else {
-                    <select
-                      cFormControl
-                      formControlName="itemId"
-                      class="form-select"
-                      [class.is-invalid]="manualForm.get('itemId')?.invalid && manualForm.get('itemId')?.touched"
-                      required>
-                      <option value="">-- Select Item --</option>
-                      @for (item of items; track item.itemId) {
-                        <option [value]="item.itemId">
-                          {{ item.itemName }} ({{ item.itemCode }})
-                        </option>
-                      }
-                    </select>
-                    @if (manualForm.get('itemId')?.invalid && manualForm.get('itemId')?.touched) {
-                      <div class="invalid-feedback d-block">
-                        Item is required
-                      </div>
+                  <select
+                    cFormControl
+                    formControlName="itemId"
+                    class="form-select"
+                    [class.is-invalid]="manualForm.get('itemId')?.invalid && manualForm.get('itemId')?.touched"
+                    required>
+                    <option value="">-- Select Item --</option>
+                    @for (item of items; track item.itemId) {
+                      <option [value]="item.itemId">
+                        {{ item.itemName }} ({{ item.itemCode }})
+                      </option>
                     }
+                  </select>
+                  @if (manualForm.get('itemId')?.invalid && manualForm.get('itemId')?.touched) {
+                    <div class="invalid-feedback d-block">
+                      Item is required
+                    </div>
                   }
                 </c-col>
 
-                <!-- UoM Entry -->
                 <c-col [md]="6">
                   <label class="form-label">
                     UoM Entry <span class="text-danger">*</span>
@@ -131,7 +122,6 @@
                   <small class="form-text text-muted">Select unit of measure</small>
                 </c-col>
 
-                <!-- Quantity -->
                 <c-col [md]="6">
                   <label class="form-label">
                     Quantity <span class="text-danger">*</span>
@@ -150,7 +140,7 @@
                       Quantity is required and must be greater than 0
                     </div>
                   }
-                  <small class="form-text text-muted">Quantity to sell</small>
+                  <small class="form-text text-muted">Quantity to add</small>
                 </c-col>
               </c-row>
             </form>

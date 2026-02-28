@@ -1,7 +1,14 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">{{ isEditMode ? 'Edit' : 'Create' }} Sales - Warehouse #{{ warehouseId }}</h4>
+      <h4 class="mb-0 header-title">
+        {{ isEditMode ? 'Edit' : 'Create' }} Sales Return
+        @if (salesOrderId) {
+          - Sales #{{ salesOrderId }}
+        } @else {
+          - Without Reference
+        }
+      </h4>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
@@ -13,7 +20,6 @@
         <div class="p-4">
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
             <c-row [gutter]="3">
-              <!-- Posting Date -->
               <c-col [md]="6">
                 <label class="form-label">
                   Posting Date <span class="text-danger">*</span>
@@ -32,7 +38,6 @@
                 }
               </c-col>
 
-              <!-- Due Date -->
               <c-col [md]="6">
                 <label class="form-label">
                   Due Date <span class="text-danger">*</span>
@@ -51,28 +56,21 @@
                 }
               </c-col>
 
-              <!-- Customer -->
-              <c-col [md]="12">
-                <label class="form-label">
-                  Customer <span class="text-danger">*</span>
-                </label>
-                @if (loadingCustomers) {
-                  <div class="text-body-secondary">Loading customers...</div>
-                } @else {
+              @if ((isEditMode && !this.returnOrder?.salesOrderId) || (!isEditMode && !this.salesOrderId)) {
+                <c-col [md]="12">
+                  <label class="form-label">
+                    Customer <span class="text-danger">*</span>
+                  </label>
                   <select
                     cFormControl
                     formControlName="customerId"
                     class="form-select"
                     [class.is-invalid]="form.get('customerId')?.invalid && form.get('customerId')?.touched"
-                    [disabled]="loadingCustomers"
                     required>
                     <option value="">-- Select Customer --</option>
                     @for (customer of customers; track customer.customerId) {
                       <option [value]="customer.customerId">
-                        {{ customer.customerName }}
-                        @if (customer.customerCode) {
-                          ({{ customer.customerCode }})
-                        }
+                        {{ customer.customerCode || customer.customerName }}
                       </option>
                     }
                   </select>
@@ -81,22 +79,20 @@
                       Customer is required
                     </div>
                   }
-                }
-              </c-col>
+                </c-col>
+              }
 
-              <!-- Comment -->
               <c-col [md]="12">
                 <label class="form-label">Comment</label>
                 <textarea
                   cFormControl
                   formControlName="comment"
                   rows="3"
-                  placeholder="Enter any comments for this sales order"
+                  placeholder="Enter any comments for this return"
                   class="form-control">
                 </textarea>
               </c-col>
 
-              <!-- Is Draft -->
               <c-col [md]="12">
                 <div class="form-check">
                   <input
@@ -109,7 +105,7 @@
                   </label>
                 </div>
                 <small class="form-text text-muted d-block mt-1">
-                  Draft sales orders can be modified later. Final sales orders cannot be edited.
+                  Draft return can be modified later.
                 </small>
               </c-col>
             </c-row>
@@ -136,8 +132,21 @@
         @if (saving) {
           <span class="spinner-border spinner-border-sm me-2" role="status"></span>
         }
-        {{ saving ? 'Saving...' : (isEditMode ? 'Update Sales' : 'Create Sales') }}
+        {{ saving ? 'Saving...' : (isEditMode ? 'Update Return' : 'Create Return') }}
       </button>
+      @if (!isEditMode && salesOrderId) {
+        <button
+          cButton
+          color="success"
+          type="button"
+          (click)="onSubmitWithDefaultLines()"
+          [disabled]="form.invalid || saving">
+          @if (saving) {
+            <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+          }
+          Create Return With Default Lines
+        </button>
+      }
     </c-card-footer>
   </c-card>
 </div>

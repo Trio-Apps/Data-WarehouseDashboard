@@ -1,0 +1,223 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <h4 class="mb-0 header-title">Sales Return Orders - Warehouse #{{ warehouseId }}</h4>
+      <div class="d-flex align-items-center gap-2">
+        <button cButton color="primary" class="header-button" (click)="onAddSalesReturn()">
+          <svg cIcon name="cil-plus" class="me-2"></svg>
+          Add Sales Returns
+        </button>
+        <button cButton color="secondary" class="header-button" (click)="onBackToShowProcesses()">
+          <svg cIcon name="cil-arrow-left" class="me-2"></svg>
+          Back
+        </button>
+      </div>
+    </c-card-header>
+
+    <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
+      <div class="table-container">
+        <table [hover]="true" [striped]="true" cTable class="mb-0">
+          <thead class="table-header">
+            <tr>
+              <th scope="col" class="bg-body-tertiary">#</th>
+              <th scope="col" class="bg-body-tertiary">ID</th>
+              <th scope="col" class="bg-body-tertiary">Customer</th>
+              <th scope="col" class="bg-body-tertiary">Posting Date</th>
+              <th scope="col" class="bg-body-tertiary">Due Date</th>
+              <th scope="col" class="bg-body-tertiary">Status</th>
+              <th scope="col" class="bg-body-tertiary">Approval Status</th>
+              <th scope="col" class="bg-body-tertiary">Comment</th>
+              <th scope="col" class="bg-body-tertiary">Items Count</th>
+              <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @if (loading) {
+              <tr>
+                <td colspan="10" class="text-center py-4">
+                  <span class="text-body-secondary">Loading...</span>
+                </td>
+              </tr>
+            } @else if (paginatedReturns.length > 0) {
+              @for (returnOrder of paginatedReturns; track returnOrder.salesReturnOrderId || $index) {
+                <tr>
+                  <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
+                  <td>{{ returnOrder.salesReturnOrderId }}</td>
+                  <td>{{ returnOrder.customerCode || returnOrder.customerName || 'N/A' }}</td>
+                  <td>{{ returnOrder.postingDate | date:'short' }}</td>
+                  <td>{{ returnOrder.dueDate | date:'short' }}</td>
+                  <td>
+                    <span [class]="getStatusBadgeClass(returnOrder)">
+                      {{ getStatusText(returnOrder) }}
+                    </span>
+                  </td>
+                  <td>
+                    <span [class]="getApprovalBadgeClass(returnOrder)">
+                      {{ getApprovalStatusText(returnOrder) }}
+                    </span>
+                  </td>
+                  <td>{{ returnOrder.comment || 'No comment' }}</td>
+                  <td>{{ returnOrder.itemCount || 0 }}</td>
+                  <td class="text-center">
+                    <button cButton color="info" size="sm" class="me-2" (click)="onViewReturnOrder(returnOrder)" title="View Return">
+                      <svg cIcon name="cil-list"></svg>
+                    </button>
+                    @if (returnOrder?.canApprove) {
+                      <button cButton color="success" size="sm" class="me-2" (click)="onOpenApprovalModal(returnOrder)" title="Approve">
+                        Approve
+                      </button>
+                    }
+                    @if (!isApproved(returnOrder)) {
+                      <button cButton color="danger" size="sm" (click)="onDeleteReturnOrder(returnOrder)" title="Delete">
+                        <svg cIcon name="cil-trash"></svg>
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            } @else {
+              <tr>
+                <td colspan="10" class="text-center py-4">
+                  <span class="text-body-secondary">No return orders found</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (totalPages > 0) {
+        <div class="pagination-container p-3 border-top">
+          <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-2">
+              <li class="page-item" [class.disabled]="!hasPrevious">
+                <a class="page-link" (click)="onPreviousPage($event)" [attr.aria-label]="'Previous'"
+                  [attr.tabindex]="!hasPrevious ? -1 : null" [class.disabled]="!hasPrevious" href="#">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+
+              @for (page of getPageNumbers(); track page) {
+                <li class="page-item" [class.active]="page === currentPage">
+                  <a class="page-link" (click)="onPageChange(page, $event)" href="#">{{ page }}</a>
+                </li>
+              }
+
+              <li class="page-item" [class.disabled]="!hasNext">
+                <a class="page-link" (click)="onNextPage($event)" [attr.aria-label]="'Next'"
+                  [attr.tabindex]="!hasNext ? -1 : null" [class.disabled]="!hasNext" href="#">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+
+          <div class="text-body-secondary small text-center">
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }}
+            of {{ totalItems }} return orders
+          </div>
+        </div>
+      }
+    </c-card-body>
+
+    <div class="form-section p-3 border-top">
+      <form [formGroup]="form" (ngSubmit)="onSearch()">
+        <c-row [gutter]="3">
+          <c-col [md]="3">
+            <label class="form-label">Status</label>
+            <select cFormControl formControlName="status" class="form-select">
+              <option value="">-- All Statuses --</option>
+              <option value="Draft">Draft</option>
+              <option value="Processing">Processing</option>
+              <option value="Final">Final</option>
+            </select>
+          </c-col>
+
+          <c-col [md]="3">
+            <label class="form-label">Customer</label>
+            <select cFormControl formControlName="customerId" class="form-select">
+              <option value="">-- All Customers --</option>
+              @for (customer of customers; track customer.customerId) {
+                <option [value]="customer.customerId">
+                  {{ customer.customerCode || customer.customerName }}
+                </option>
+              }
+            </select>
+          </c-col>
+
+          <c-col [md]="2">
+            <label class="form-label">Posting Date</label>
+            <input cFormControl type="date" formControlName="postingDate" class="form-control" />
+          </c-col>
+
+          <c-col [md]="2">
+            <label class="form-label">Due Date</label>
+            <input cFormControl type="date" formControlName="dueDate" class="form-control" />
+          </c-col>
+
+          <c-col [md]="2" class="d-flex align-items-end">
+            <button cButton color="primary" type="submit" class="w-100">
+              Search
+            </button>
+          </c-col>
+        </c-row>
+      </form>
+    </div>
+  </c-card>
+</div>
+
+<c-modal
+  [visible]="showApprovalModal"
+  (visibleChange)="onApprovalVisibleChange($event)"
+  size="lg"
+  alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>Approval</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="mb-3 p-2 bg-light rounded">
+      Are you sure about confirming this order?
+    </div>
+    <c-row [gutter]="3">
+      <c-col [md]="12">
+        <label class="form-label">Comment</label>
+        <textarea
+          class="form-control"
+          rows="3"
+          [value]="approvalComment"
+          (input)="approvalComment = $any($event.target).value"
+          placeholder="Add comment (optional)">
+        </textarea>
+      </c-col>
+    </c-row>
+  </c-modal-body>
+  <c-modal-footer>
+    <button
+      cButton
+      color="secondary"
+      type="button"
+      (click)="onCancelApprovalModal()"
+      [disabled]="approvalSubmitting">
+      Cancel
+    </button>
+    <button
+      cButton
+      color="danger"
+      type="button"
+      class="ms-2"
+      (click)="submitApproval(false)"
+      [disabled]="approvalSubmitting">
+      No
+    </button>
+    <button
+      cButton
+      color="success"
+      type="button"
+      class="ms-2"
+      (click)="submitApproval(true)"
+      [disabled]="approvalSubmitting">
+      Yes
+    </button>
+  </c-modal-footer>
+</c-modal>

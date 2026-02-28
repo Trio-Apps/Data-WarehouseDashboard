@@ -20,6 +20,7 @@ export interface Sales {
   processApprovalId?: number;
   processItemIsProgressId?:number;
   isReturn?: boolean|null;
+  returnOrderId?: number | null;
 }
 
 export interface AddSales {
@@ -102,6 +103,7 @@ export interface SalesBatch {
 
 export interface AddSalesBatchRequest {
   salesOrderItemId: number;
+  BatchNumber: string;
   quantity: number;
   comment?: string;
   expiryDate: string;
@@ -109,6 +111,7 @@ export interface AddSalesBatchRequest {
 
 export interface UpdateSalesBatchRequest {
   salesOrderBatchId: number;
+  BatchNumber: string;
   quantity: number;
   comment?: string;
   expiryDate: string;

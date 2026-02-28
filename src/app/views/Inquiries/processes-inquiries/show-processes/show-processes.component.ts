@@ -51,6 +51,9 @@ export class ShowProcessesComponent implements OnInit {
         case 'sales':
           this.router.navigate(['/processes/sales', this.warehouseId]);
           break;
+        case 'sales-return':
+          this.router.navigate(['/processes/sales/sales-return-orders', this.warehouseId]);
+          break;
            case 'receipt':
           this.router.navigate(['/processes/purchases/receipt-orders', this.warehouseId]);
           break;

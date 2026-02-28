@@ -1,7 +1,7 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-
 import { ActivatedRoute, Router } from '@angular/router';
+import { CommonModule } from '@angular/common';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
 import { Customer, Sales } from '../Models/sales-model';
 import { SalesService } from '../Services/sales.service';
@@ -18,17 +18,18 @@ import {
 
 @Component({
   selector: 'app-sales-form',
-      imports: [
-        FormModule,
-        CardModule,
-        ButtonModule,
-        GridModule,
-        GutterDirective,
-        FormCheckComponent,
-        FormCheckInputDirective,
-        FormCheckLabelDirective,
-        ReactiveFormsModule
-      ],
+  imports: [
+    CommonModule,
+    FormModule,
+    CardModule,
+    ButtonModule,
+    GridModule,
+    GutterDirective,
+    FormCheckComponent,
+    FormCheckInputDirective,
+    FormCheckLabelDirective,
+    ReactiveFormsModule
+  ],
   templateUrl: './sales-form.component.html',
   styleUrl: './sales-form.component.scss',
 })
@@ -39,6 +40,7 @@ export class SalesFormComponent implements OnInit {
   warehouseId: number = 0;
   customers: Customer[] = [];
   loading: boolean = false;
+  loadingCustomers: boolean = false;
   saving: boolean = false;
 
   constructor(
@@ -59,6 +61,7 @@ export class SalesFormComponent implements OnInit {
     this.initializeForm();
     this.loadCustomers();
 
+    
     if (this.isEditMode && this.salesOrderId) {
       this.loadSales();
     }
@@ -75,23 +78,38 @@ export class SalesFormComponent implements OnInit {
   }
 
   loadCustomers(): void {
-    this.loading = true;
+    this.loadingCustomers = true;
     this.salesService.getCustomer().subscribe({
       next: (res: any) => {
-        if (res.data) {
-          this.customers = res.data.map((c: any) => ({
-            customerId: c.customerId,
-            customerName: c.customerName,
-            customerCode: c.customerCode
-          }));
+        const rawCustomers = Array.isArray(res?.data)
+          ? res.data
+          : Array.isArray(res?.data?.data)
+            ? res.data.data
+            : Array.isArray(res)
+              ? res
+              : [];
+
+        // Keep UI responsive if backend returns very large customer lists
+        const MAX_CUSTOMERS = 2000;
+        const safeCustomers = rawCustomers.slice(0, MAX_CUSTOMERS);
+
+        this.customers = safeCustomers.map((c: any) => ({
+          customerId: c.customerId ?? c.id ?? c.CustomerId,
+          customerName: c.customerName ?? c.name ?? c.CustomerName ?? '',
+          customerCode: c.customerCode ?? c.code ?? c.CustomerCode ?? ''
+        })).filter((c: Customer) => !!c.customerId);
+
+        if (rawCustomers.length > MAX_CUSTOMERS) {
+          this.toastr.info(`Loaded first ${MAX_CUSTOMERS} customers to keep form responsive`, 'Info');
         }
-        this.loading = false;
+
+        this.loadingCustomers = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error loading suppliers:', err);
-        this.loading = false;
-        this.toastr.error('Failed to load suppliers. Please try again.', 'Error');
+        console.error('Error loading customers:', err);
+        this.loadingCustomers = false;
+        this.toastr.error('Failed to load customers. Please try again.', 'Error');
         this.cdr.detectChanges();
       }
     });
@@ -101,7 +119,6 @@ export class SalesFormComponent implements OnInit {
     if (!this.salesOrderId) return;
 
     this.loading = true;
-    console.log('Loading sales with ID:', this.salesOrderId);
     this.salesService.getSalesById(this.salesOrderId).subscribe({
       next: (res: any) => {
         //console.log('getSalesById response:', res);
@@ -136,11 +153,6 @@ export class SalesFormComponent implements OnInit {
     });
   }
 
-  /**
-   * Convert date to ISO string preserving the selected date
-   * Material Datepicker returns dates in local time
-   * We format it with local timezone to ensure backend receives correct date
-   */
   /**
    * Format date to ISO string preserving the selected date
    * input type="date" returns string in YYYY-MM-DD format
@@ -199,25 +211,17 @@ export class SalesFormComponent implements OnInit {
 
     operation.subscribe({
       next: (res: any) => {
-        //console.log('sales saved:', res);
         this.saving = false;
-        const message = this.isEditMode ? 'sales updated successfully' : 'sales created successfully';
+        const message = this.isEditMode ? 'Sales updated successfully' : 'Sales created successfully';
         this.toastr.success(message, 'Success');
         this.cdr.detectChanges();
-            // If creating new sales, navigate to items page
-       // If creating new sales, navigate to items page
-      //  if (!this.isEditMode && res.data?.salesOrderId) {
-         this.router.navigate(['/processes/sales/sales-items', res.data.salesOrderId]);
-        // } else {
-        //   // If editing, go back to purchases list
-        //   this.router.navigate(['/processes/sales/sales-order', this.warehouseId]);
-        // }
+        this.router.navigate(['/processes/sales/sales-items', res.data.salesOrderId]);
 
       },
       error: (err) => {
-        console.error('Error saving sales:', err);
+        console.error('Error saving Sales:', err);
         this.saving = false;
-        const errorMessage = err.error?.message || 'Error saving sales. Please try again.';
+        const errorMessage = err.error?.message || 'Error saving Sales. Please try again.';
         this.toastr.error(errorMessage, 'Error');
         this.cdr.detectChanges();
       }
@@ -228,12 +232,7 @@ export class SalesFormComponent implements OnInit {
 
 
   onCancel(): void {
-      if (this.isEditMode && this.salesOrderId) {
-         this.router.navigate(['/processes/sales/sales-items',  this.salesOrderId]);
-        } else {
-          // If editing, go back to purchases list
-          this.router.navigate(['/processes/sales/sales-order', this.warehouseId]);
-        }
+    this.router.navigate(['/processes/sales', this.warehouseId]);
   }
 
 

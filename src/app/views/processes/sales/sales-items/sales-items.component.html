@@ -60,6 +60,24 @@
               <c-row [gutter]="3">
                 <c-col [md]="3">
                   <div class="mb-2">
+                    <label class="form-label small text-muted">Document Date</label>
+                    <p class="mb-0">{{ Sale?.createdAt | date:'short' }}</p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Customer Code</label>
+                    <p class="mb-0">{{ Sale?.customer?.customerCode || 'N/A' }}</p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Customer Name</label>
+                    <p class="mb-0">{{ Sale?.customer?.customerName || Sale?.customerName || 'N/A' }}</p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
                     <label class="form-label small text-muted">Posting Date</label>
                     <p class="mb-0">{{ Sale?.postingDate | date:'short' }}</p>
                   </div>
@@ -100,7 +118,6 @@
               </c-row>
             </div>
           </div>
-        
         }
       </div>
 

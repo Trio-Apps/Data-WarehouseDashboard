@@ -307,9 +307,10 @@ export class BatchesComponent implements OnInit {
     if (this.receiptItemId <= 0) {
       this.receiptBatchOptions = [];
       console.log("batch not found", this.receiptItemId);
+      
       return;
     }
-      console.log("batch", this.receiptItemId);
+    console.log("batch", this.receiptItemId);
 
     this.loadingReceiptBatchOptions = true;
     this.receiptService.getReceiptBatchesByItemId(this.receiptItemId).subscribe({
