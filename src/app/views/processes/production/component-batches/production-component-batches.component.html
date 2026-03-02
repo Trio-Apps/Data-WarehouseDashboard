@@ -1,0 +1,168 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <div>
+        <h4 class="mb-0 header-title">Component Batches Management</h4>
+        <p class="header-subtitle mb-0">
+          Managing batches for {{ componentLine?.itemCode || ('Line #' + componentLineId) }} in warehouse {{ warehouseId }}
+        </p>
+      </div>
+
+      <div class="header-actions d-flex align-items-center gap-2">
+        <button cButton color="light" class="header-button" (click)="onGoToPrevLine()" [disabled]="!hasPrevLine" title="Previous component">
+          <svg cIcon name="cil-chevron-left"></svg>
+        </button>
+
+        <button cButton color="light" class="header-button" (click)="onGoToNextLine()" [disabled]="!hasNextLine" title="Next component">
+          <svg cIcon name="cil-chevron-right"></svg>
+        </button>
+
+        <button cButton color="light" class="header-button" (click)="onRefresh()" title="Refresh">
+          <svg cIcon name="cil-reload"></svg>
+        </button>
+
+        <button cButton color="secondary" class="header-button" (click)="onBack()">
+          <svg cIcon name="cil-arrow-left" class="me-2"></svg>
+          Back to Order
+        </button>
+      </div>
+    </c-card-header>
+
+    <c-card-body class="p-3 body-scroll">
+      <div class="breadcrumb-bar mb-3">
+        <span class="crumb">Dashboard</span>
+        <span class="crumb-sep">></span>
+        <span class="crumb">Production</span>
+        <span class="crumb-sep">></span>
+        <span class="crumb">Orders</span>
+        <span class="crumb-sep">></span>
+        <span class="crumb">Components</span>
+        <span class="crumb-sep">></span>
+        <span class="crumb current">Batches</span>
+      </div>
+
+      @if (isLoading) {
+        <div class="text-center py-5 text-body-secondary">Loading component data...</div>
+      } @else if (!componentLine) {
+        <div class="text-center py-5 text-danger">Component line not found.</div>
+      } @else {
+        <div class="section-card mb-3">
+          <div class="section-header">Component Details</div>
+          <div class="p-3">
+            <c-row [gutter]="2" class="mb-3">
+              <c-col [md]="3"><strong>Item Code:</strong> {{ componentLine.itemCode || '-' }}</c-col>
+              <c-col [md]="3"><strong>Item Name:</strong> {{ componentLine.itemName || '-' }}</c-col>
+              <c-col [md]="2"><strong>Issue Type:</strong> {{ componentLine.issueType }}</c-col>
+              <c-col [md]="2"><strong>In Whs Qty:</strong> {{ componentLine.inWhsQuantity ?? 0 }}</c-col>
+            </c-row>
+
+            <c-row [gutter]="2" class="align-items-end">
+              <c-col [md]="4">
+                <label cFormLabel>Required Quantity</label>
+                <input
+                  cFormControl
+                  type="number"
+                  min="0.000001"
+                  step="0.000001"
+                  [disabled]="isBackflush"
+                  [(ngModel)]="componentLine.requiredQuantity"
+                  [ngModelOptions]="{ standalone: true }"
+                />
+              </c-col>
+              <c-col [md]="4" class="d-flex align-items-end">
+                <button cButton color="primary" (click)="onSaveRequiredQuantity()" [disabled]="isBackflush || isSavingLine">
+                  <svg cIcon name="cil-save" class="me-2"></svg>
+                  Save Required Qty
+                </button>
+              </c-col>
+            </c-row>
+          </div>
+        </div>
+
+        <div class="section-card">
+          <div class="section-header">
+            Component Batches - {{ componentLine.itemCode }} (Required: {{ requiredQuantity }})
+          </div>
+          <div class="p-3">
+            <form [formGroup]="batchForm" class="mb-3">
+              <c-row [gutter]="2">
+                <c-col [md]="4">
+                  <label cFormLabel>Batch</label>
+                  <select cFormControl formControlName="batchNumber">
+                    <option [ngValue]="''">-- Select batch --</option>
+                    @for (batch of availableBatches; track batch.batchNumber) {
+                      <option [ngValue]="batch.batchNumber">
+                        {{ batch.batchNumber }} (Available: {{ batch.quantityAvailable }})
+                      </option>
+                    }
+                  </select>
+                  @if (availableBatches.length === 0) {
+                    <small class="text-danger">No available batch numbers found for this component.</small>
+                  }
+                </c-col>
+                <c-col [md]="3">
+                  <label cFormLabel>Quantity</label>
+                  <input cFormControl type="number" min="0.000001" step="0.000001" formControlName="quantity" />
+                </c-col>
+                <c-col [md]="3">
+                  <label cFormLabel>Expiry Date</label>
+                  <input cFormControl type="date" formControlName="expiryDate" />
+                </c-col>
+                <c-col [md]="2" class="d-flex align-items-end gap-2">
+                  <button cButton color="primary" type="button" (click)="onSaveBatch()">
+                    {{ editingBatchId ? 'Update' : 'Add' }}
+                  </button>
+                  @if (editingBatchId) {
+                    <button cButton color="secondary" type="button" (click)="onCancelBatchEdit()">Cancel</button>
+                  }
+                </c-col>
+              </c-row>
+            </form>
+
+            <div class="table-responsive">
+              <table cTable [striped]="true" [hover]="true" class="mb-0">
+                <thead>
+                  <tr>
+                    <th>#</th>
+                    <th>Batch Number</th>
+                    <th>Quantity</th>
+                    <th>Expiry Date</th>
+                    <th class="text-center">Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @if (batches.length === 0) {
+                    <tr>
+                      <td colspan="5" class="text-center text-body-secondary py-3">No batches selected.</td>
+                    </tr>
+                  } @else {
+                    @for (batch of batches; track batch.productionComponentBatchId) {
+                      <tr>
+                        <td>{{ $index + 1 }}</td>
+                        <td>{{ batch.batchNumber }}</td>
+                        <td>{{ batch.quantity }}</td>
+                        <td>{{ batch.expiryDate ? (batch.expiryDate | date:'shortDate') : '-' }}</td>
+                        <td class="text-center">
+                          <button cButton color="warning" size="sm" class="me-2" (click)="onEditBatch(batch)">
+                            <svg cIcon name="cil-pencil"></svg>
+                          </button>
+                          <button cButton color="danger" size="sm" (click)="onDeleteBatch(batch)">
+                            <svg cIcon name="cil-trash"></svg>
+                          </button>
+                        </td>
+                      </tr>
+                    }
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <div class="mt-2 text-end fw-semibold text-body-secondary">
+              Total Batch Qty: {{ totalBatchQuantity }} / Required Qty: {{ requiredQuantity }}
+            </div>
+          </div>
+        </div>
+      }
+    </c-card-body>
+  </c-card>
+</div>
