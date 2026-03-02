@@ -16,6 +16,7 @@ import { IconDirective } from '@coreui/icons-angular';
 import { PurchaseService } from './Services/purchase.service';
 import { Purchase, Supplier } from './Models/purchase.model';
 import { ToastrService } from 'ngx-toastr';
+import { SearchSupplierModalComponent } from './search-supplier-modal/search-supplier-modal.component';
 
 @Component({
   selector: 'app-purchases',
@@ -30,7 +31,8 @@ import { ToastrService } from 'ngx-toastr';
     PaginationModule,
     UtilitiesModule,
     IconDirective,
-    DatePipe
+    DatePipe,
+    SearchSupplierModalComponent
   ],
   templateUrl: './purchases.component.html',
   styleUrl: './purchases.component.scss',
@@ -41,6 +43,8 @@ export class PurchasesComponent implements OnInit, OnDestroy {
   filteredPurchases: Purchase[] = [];
   suppliers: Supplier[] = [];
   warehouseId: number = 0;
+  selectedSupplierDisplay: string = '';
+  showSupplierModal: boolean = false;
 
   // Pagination
   currentPage: number = 1;
@@ -85,7 +89,7 @@ export class PurchasesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
-    this.loadSuppliers();
+  //  this.loadSuppliers();
 
     // Read pagination and filters from URL query params
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
@@ -119,6 +123,7 @@ export class PurchasesComponent implements OnInit, OnDestroy {
         dueDate: dueDate || null,
         liveStatus: liveStatus
       });
+      this.syncSelectedSupplierDisplay();
 
       if (this.warehouseId) {
         this.loadPurchases();
@@ -306,11 +311,10 @@ export class PurchasesComponent implements OnInit, OnDestroy {
           ? res
           : [];
 
-        this.suppliers = rawSuppliers.map((s: any) => ({
-          supplierId: s.supplierId ?? s.id ?? s.SupplierId,
-          supplierName: s.supplierName ?? s.name ?? s.SupplierName ?? '',
-          supplierCode: s.supplierCode ?? s.code ?? s.SupplierCode ?? ''
-        })).filter((s: Supplier) => !!s.supplierId);
+        this.suppliers = rawSuppliers
+          .map((s: any) => this.mapSupplier(s))
+          .filter((s: Supplier) => !!s.supplierId);
+        this.syncSelectedSupplierDisplay();
 
         this.cdr.detectChanges();
       },
@@ -320,6 +324,58 @@ export class PurchasesComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  onOpenSupplierModal(): void {
+    this.showSupplierModal = true;
+  }
+
+  onSupplierModalVisibleChange(visible: boolean): void {
+    this.showSupplierModal = visible;
+  }
+
+  onSupplierSelected(supplier: Supplier): void {
+    this.form.patchValue({ supplierId: supplier.supplierId });
+    this.filterSupplierId = supplier.supplierId;
+    this.selectedSupplierDisplay = supplier.supplierCode || supplier.supplierName || `#${supplier.supplierId}`;
+    this.showSupplierModal = false;
+
+    if (!this.suppliers.some(s => s.supplierId === supplier.supplierId)) {
+      this.suppliers = [...this.suppliers, supplier];
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  onSupplierCleared(): void {
+    this.form.patchValue({ supplierId: '' });
+    this.filterSupplierId = null;
+    this.selectedSupplierDisplay = '';
+    this.showSupplierModal = false;
+    this.cdr.detectChanges();
+  }
+
+  private mapSupplier(s: any): Supplier {
+    return {
+      supplierId: s.supplierId ?? s.id ?? s.SupplierId,
+      supplierName: s.supplierName ?? s.name ?? s.SupplierName ?? '',
+      supplierCode: s.supplierCode ?? s.code ?? s.SupplierCode ?? ''
+    };
+  }
+
+  private syncSelectedSupplierDisplay(): void {
+    const supplierIdValue = this.form.get('supplierId')?.value;
+    const supplierId = supplierIdValue ? +supplierIdValue : null;
+
+    if (!supplierId) {
+      this.selectedSupplierDisplay = '';
+      return;
+    }
+
+    const selectedSupplier = this.suppliers.find(s => s.supplierId === supplierId);
+    this.selectedSupplierDisplay = selectedSupplier
+      ? (selectedSupplier.supplierCode || selectedSupplier.supplierName || `#${supplierId}`)
+      : `#${supplierId}`;
   }
 
 

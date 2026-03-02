@@ -20,6 +20,7 @@ import { Return } from '../../Models/retrun-model';
 import { PurchaseService } from '../../Services/purchase.service';
 import { Supplier } from '../../Models/purchase.model';
 import { ApprovalService } from '../../../approval-process/Services/approval.service';
+import { SearchSupplierModalComponent } from '../../search-supplier-modal/search-supplier-modal.component';
 
 type GoodsReturnOrderListItem = Return & {
   purchaseOrderId?: number;
@@ -48,7 +49,8 @@ type GoodsReturnOrderListItem = Return & {
     UtilitiesModule,
     ModalModule,
     IconDirective,
-    DatePipe
+    DatePipe,
+    SearchSupplierModalComponent
   ],
   templateUrl: './goods-return-orders.component.html',
   styleUrl: './goods-return-orders.component.scss',
@@ -59,6 +61,8 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
   filteredReturns: GoodsReturnOrderListItem[] = [];
   suppliers: Supplier[] = [];
   warehouseId: number = 0;
+  selectedSupplierDisplay: string = '';
+  showSupplierModal: boolean = false;
 
   // Pagination
   currentPage: number = 1;
@@ -108,7 +112,7 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
-    this.loadSuppliers();
+    //this.loadSuppliers();
 
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
       if (this.isSearching) {
@@ -135,6 +139,7 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
         postingDate: postingDate || null,
         dueDate: dueDate || null
       });
+      this.syncSelectedSupplierDisplay();
 
       if (this.warehouseId) {
         this.loadReturns();
@@ -280,12 +285,9 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
               : [];
 
         this.suppliers = rawSuppliers
-          .map((s: any) => ({
-            supplierId: s.supplierId ?? s.id ?? s.SupplierId,
-            supplierName: s.supplierName ?? s.name ?? s.SupplierName ?? '',
-            supplierCode: s.supplierCode ?? s.code ?? s.SupplierCode ?? ''
-          }))
+          .map((s: any) => this.mapSupplier(s))
           .filter((s: Supplier) => !!s.supplierId);
+        this.syncSelectedSupplierDisplay();
 
         this.cdr.detectChanges();
       },
@@ -295,6 +297,58 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  onOpenSupplierModal(): void {
+    this.showSupplierModal = true;
+  }
+
+  onSupplierModalVisibleChange(visible: boolean): void {
+    this.showSupplierModal = visible;
+  }
+
+  onSupplierSelected(supplier: Supplier): void {
+    this.form.patchValue({ supplierId: supplier.supplierId });
+    this.filterSupplierId = supplier.supplierId;
+    this.selectedSupplierDisplay = supplier.supplierCode || supplier.supplierName || `#${supplier.supplierId}`;
+    this.showSupplierModal = false;
+
+    if (!this.suppliers.some(s => s.supplierId === supplier.supplierId)) {
+      this.suppliers = [...this.suppliers, supplier];
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  onSupplierCleared(): void {
+    this.form.patchValue({ supplierId: '' });
+    this.filterSupplierId = null;
+    this.selectedSupplierDisplay = '';
+    this.showSupplierModal = false;
+    this.cdr.detectChanges();
+  }
+
+  private mapSupplier(s: any): Supplier {
+    return {
+      supplierId: s.supplierId ?? s.id ?? s.SupplierId,
+      supplierName: s.supplierName ?? s.name ?? s.SupplierName ?? '',
+      supplierCode: s.supplierCode ?? s.code ?? s.SupplierCode ?? ''
+    };
+  }
+
+  private syncSelectedSupplierDisplay(): void {
+    const supplierIdValue = this.form.get('supplierId')?.value;
+    const supplierId = supplierIdValue ? +supplierIdValue : null;
+
+    if (!supplierId) {
+      this.selectedSupplierDisplay = '';
+      return;
+    }
+
+    const selectedSupplier = this.suppliers.find(s => s.supplierId === supplierId);
+    this.selectedSupplierDisplay = selectedSupplier
+      ? (selectedSupplier.supplierCode || selectedSupplier.supplierName || `#${supplierId}`)
+      : `#${supplierId}`;
   }
 
   onNextPage(event?: Event): void {

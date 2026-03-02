@@ -18,6 +18,7 @@ import { PurchaseService } from '../../Services/purchase.service';
 import { Receipt } from '../../Models/receipt';
 import { Supplier } from '../../Models/purchase.model';
 import { ToastrService } from 'ngx-toastr';
+import { SearchSupplierModalComponent } from '../../search-supplier-modal/search-supplier-modal.component';
 
 @Component({
   selector: 'app-receipt-orders',
@@ -32,7 +33,8 @@ import { ToastrService } from 'ngx-toastr';
     PaginationModule,
     UtilitiesModule,
     IconDirective,
-    DatePipe
+    DatePipe,
+    SearchSupplierModalComponent
   ],
   templateUrl: './receipt-orders.component.html',
   styleUrl: './receipt-orders.component.scss',
@@ -43,6 +45,8 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
   filteredReceipts: Receipt[] = [];
   suppliers: Supplier[] = [];
   warehouseId: number = 0;
+  selectedSupplierDisplay: string = '';
+  showSupplierModal: boolean = false;
 
   currentPage: number = 1;
   itemsPerPage: number = 10;
@@ -112,6 +116,7 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
         dueDate: dueDate || null,
         liveStatus: liveStatus
       });
+      this.syncSelectedSupplierDisplay();
 
       if (this.warehouseId) {
         this.loadReceipts();
@@ -260,11 +265,10 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
           ? res
           : [];
 
-        this.suppliers = rawSuppliers.map((s: any) => ({
-          supplierId: s.supplierId ?? s.id ?? s.SupplierId,
-          supplierName: s.supplierName ?? s.name ?? s.SupplierName ?? '',
-          supplierCode: s.supplierCode ?? s.code ?? s.SupplierCode ?? ''
-        })).filter((s: Supplier) => !!s.supplierId);
+        this.suppliers = rawSuppliers
+          .map((s: any) => this.mapSupplier(s))
+          .filter((s: Supplier) => !!s.supplierId);
+        this.syncSelectedSupplierDisplay();
 
         this.cdr.markForCheck();
       },
@@ -274,6 +278,58 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       }
     });
+  }
+
+  onOpenSupplierModal(): void {
+    this.showSupplierModal = true;
+  }
+
+  onSupplierModalVisibleChange(visible: boolean): void {
+    this.showSupplierModal = visible;
+  }
+
+  onSupplierSelected(supplier: Supplier): void {
+    this.form.patchValue({ supplierId: supplier.supplierId });
+    this.filterSupplierId = supplier.supplierId;
+    this.selectedSupplierDisplay = supplier.supplierCode || supplier.supplierName || `#${supplier.supplierId}`;
+    this.showSupplierModal = false;
+
+    if (!this.suppliers.some(s => s.supplierId === supplier.supplierId)) {
+      this.suppliers = [...this.suppliers, supplier];
+    }
+
+    this.cdr.markForCheck();
+  }
+
+  onSupplierCleared(): void {
+    this.form.patchValue({ supplierId: '' });
+    this.filterSupplierId = null;
+    this.selectedSupplierDisplay = '';
+    this.showSupplierModal = false;
+    this.cdr.markForCheck();
+  }
+
+  private mapSupplier(s: any): Supplier {
+    return {
+      supplierId: s.supplierId ?? s.id ?? s.SupplierId,
+      supplierName: s.supplierName ?? s.name ?? s.SupplierName ?? '',
+      supplierCode: s.supplierCode ?? s.code ?? s.SupplierCode ?? ''
+    };
+  }
+
+  private syncSelectedSupplierDisplay(): void {
+    const supplierIdValue = this.form.get('supplierId')?.value;
+    const supplierId = supplierIdValue ? +supplierIdValue : null;
+
+    if (!supplierId) {
+      this.selectedSupplierDisplay = '';
+      return;
+    }
+
+    const selectedSupplier = this.suppliers.find(s => s.supplierId === supplierId);
+    this.selectedSupplierDisplay = selectedSupplier
+      ? (selectedSupplier.supplierCode || selectedSupplier.supplierName || `#${supplierId}`)
+      : `#${supplierId}`;
   }
 
   onNextPage(event?: Event): void {

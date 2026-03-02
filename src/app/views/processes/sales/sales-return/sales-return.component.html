@@ -1,14 +1,21 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">return Order - sales #{{ return?.salesOrderId || salesOrderId || 0 }}</h4>
+      <h4 class="mb-0 header-title">
+        return Order
+        @if (hasSalesReference) {
+          - Sales #{{ return?.salesOrderId || salesOrderId || 0 }}
+        } @else if (hasDeliveryNoteReference) {
+          - Delivery Note #{{ return?.deliveryNoteOrderId || deliveryNoteOrderId }}
+        }
+      </h4>
       <div class="d-flex align-items-center">
         @if (!return) {
           <button cButton color="secondary" class="header-button me-2" (click)="onAddReturn()">
             Add Return
           </button>
         }
-        @if (salesOrderId > 0) {
+        @if (hasSalesReference) {
           <button cButton color="secondary" class="header-button me-2" (click)="onBackToSales()">
             <svg cIcon name="cilArrowLeft" class="me-2"></svg>
             Back To Sales 
@@ -20,7 +27,11 @@
         } @else {
           <button cButton color="secondary" class="header-button me-2" (click)="onBackToReturns()">
             <svg cIcon name="cilArrowLeft" class="me-2"></svg>
-            Back
+            @if (hasDeliveryNoteReference) {
+              Back To Delivery Note
+            } @else {
+              Back
+            }
           </button>
         }
       </div>
@@ -36,7 +47,13 @@
         } @else if (!return) {
           <div class="card border-2 border-dashed">
             <div class="card-body text-center py-5">
-              <p class="text-muted mb-3">No return order found for this sales order</p>
+              <p class="text-muted mb-3">
+                @if (hasDeliveryNoteReference) {
+                  No return order found for this delivery note
+                } @else {
+                  No return order found for this sales order
+                }
+              </p>
             </div>
           </div>
         } @else {
@@ -45,7 +62,11 @@
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
                   <h6 class="card-title">Return Order #{{ return?.salesReturnOrderId }}</h6>
-                  <p class="text-muted mb-0 small">sales Order ID: {{ return?.salesOrderId || 0 }}</p>
+                  @if ((return?.deliveryNoteOrderId || deliveryNoteOrderId) > 0) {
+                    <p class="text-muted mb-0 small">Delivery Note ID: {{ return?.deliveryNoteOrderId || deliveryNoteOrderId }}</p>
+                  } @else {
+                    <p class="text-muted mb-0 small">sales Order ID: {{ return?.salesOrderId || 0 }}</p>
+                  }
                 </div>
                 <div>
                   @if (!isApproved(return)) {

@@ -21,6 +21,8 @@ export interface Sales {
   processItemIsProgressId?:number;
   isReturn?: boolean|null;
   returnOrderId?: number | null;
+  isDeliveryNote?: boolean | null;
+  deliveryNoteOrderId?: number | null;
 }
 
 export interface AddSales {

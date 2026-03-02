@@ -39,8 +39,13 @@
    }
 
    @else{
+     @if (Sale?.isDeliveryNote) {
+       <button cButton color="success" size="sm" class="me-2" (click)="onGoDeliveryNote()">
+                    Delivery Note
+                  </button>
+     }
      @if (Sale?.isReturn) {
-       <button  cButton color="danger" size="sm" (click)="onGoReturn()">
+       <button  cButton color="danger" size="sm" class="me-2" (click)="onGoReturn()">
                     <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
                     Return
                   </button>

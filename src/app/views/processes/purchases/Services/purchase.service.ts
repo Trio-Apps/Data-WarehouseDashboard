@@ -127,6 +127,32 @@ getPurchasesWithFilterationByWarehouse(
   }
 
   /**
+   * Search suppliers with pagination
+   */
+  getSuppliersPaged(
+    skip: number,
+    pageSize: number,
+    supplierCode?: string,
+    supplierName?: string
+  ): Observable<any> {
+    const url = `${this.baseUrl}Supplier/${skip}/${pageSize}`;
+    let params = new HttpParams();
+
+    if (supplierCode) {
+      params = params.set('supplierCode', supplierCode);
+    }
+
+    if (supplierName) {
+      params = params.set('supplierName', supplierName);
+    }
+
+    return this.http.get<any>(url, {
+      headers: this.headerOption.headers,
+      params
+    });
+  }
+
+  /**
    * Get items for a warehouse (for manual item selection)
    */
   getItemsByWarehouse(warehouseId: number): Observable<any> {

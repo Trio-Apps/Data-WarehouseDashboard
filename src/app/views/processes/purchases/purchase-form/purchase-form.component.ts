@@ -15,6 +15,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { PurchaseService } from '../Services/purchase.service';
 import { Purchase, Supplier } from '../Models/purchase.model';
 import { ToastrService } from 'ngx-toastr';
+import { SearchSupplierModalComponent } from '../search-supplier-modal/search-supplier-modal.component';
 
 @Component({
   selector: 'app-purchase-form',
@@ -28,7 +29,8 @@ import { ToastrService } from 'ngx-toastr';
     GutterDirective,
     FormCheckComponent,
     FormCheckInputDirective,
-    FormCheckLabelDirective
+    FormCheckLabelDirective,
+    SearchSupplierModalComponent
   ],
   templateUrl: './purchase-form.component.html',
   styleUrl: './purchase-form.component.scss',
@@ -38,7 +40,8 @@ export class PurchaseFormComponent implements OnInit {
   isEditMode: boolean = false;
   purchaseOrderId: number | null = null;
   warehouseId: number = 0;
-  suppliers: Supplier[] = [];
+  selectedSupplierDisplay: string = '';
+  showSupplierModal: boolean = false;
   loading: boolean = false;
   saving: boolean = false;
 
@@ -58,7 +61,6 @@ export class PurchaseFormComponent implements OnInit {
     this.isEditMode = !!this.purchaseOrderId;
 
     this.initializeForm();
-    this.loadSuppliers();
 
     if (this.isEditMode && this.purchaseOrderId) {
       this.loadPurchase();
@@ -72,29 +74,6 @@ export class PurchaseFormComponent implements OnInit {
       comment: [''],
       supplierId: ['', Validators.required],
       isDraft: [true]
-    });
-  }
-
-  loadSuppliers(): void {
-    this.loading = true;
-    this.purchaseService.getSuppliers().subscribe({
-      next: (res: any) => {
-        if (res.data) {
-          this.suppliers = res.data.map((s: any) => ({
-            supplierId: s.supplierId,
-            supplierName: s.supplierName,
-            supplierCode: s.supplierCode
-          }));
-        }
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading suppliers:', err);
-        this.loading = false;
-        this.toastr.error('Failed to load suppliers. Please try again.', 'Error');
-        this.cdr.detectChanges();
-      }
     });
   }
 
@@ -123,6 +102,13 @@ export class PurchaseFormComponent implements OnInit {
             supplierId: purchase.supplierId || null,
             isDraft: purchase.isDraft !== undefined ? purchase.isDraft : true
           });
+
+          this.selectedSupplierDisplay =
+            purchase.supplier?.supplierCode ||
+            purchase.supplier?.supplierName ||
+            purchase.supplierCode ||
+            purchase.supplierName ||
+            (purchase.supplierId ? `#${purchase.supplierId}` : '');
         }
         this.loading = false;
         this.cdr.detectChanges();
@@ -134,6 +120,29 @@ export class PurchaseFormComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  onOpenSupplierModal(): void {
+    this.showSupplierModal = true;
+  }
+
+  onSupplierModalVisibleChange(visible: boolean): void {
+    this.showSupplierModal = visible;
+  }
+
+  onSupplierSelected(supplier: Supplier): void {
+    this.form.patchValue({ supplierId: supplier.supplierId });
+    this.selectedSupplierDisplay = supplier.supplierCode || supplier.supplierName || `#${supplier.supplierId}`;
+    this.showSupplierModal = false;
+
+    this.cdr.detectChanges();
+  }
+
+  onSupplierCleared(): void {
+    this.form.patchValue({ supplierId: '' });
+    this.selectedSupplierDisplay = '';
+    this.showSupplierModal = false;
+    this.cdr.detectChanges();
   }
 
   /**
@@ -227,10 +236,5 @@ export class PurchaseFormComponent implements OnInit {
 
   onCancel(): void {
     this.router.navigate(['/processes/purchases', this.warehouseId]);
-  }
-
-  displaySupplierName(supplierId: number | null): string {
-    const supplier = this.suppliers.find(s => s.supplierId === supplierId);
-    return supplier ? supplier.supplierName : '';
   }
 }

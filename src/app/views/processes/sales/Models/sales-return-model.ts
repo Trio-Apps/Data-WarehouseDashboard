@@ -1,5 +1,6 @@
 export interface Return {
   salesOrderId?: number;
+  deliveryNoteOrderId?: number;
   salesReturnOrderId: number;
   postingDate: string;
   dueDate: string;
@@ -25,6 +26,7 @@ export interface AddReturn {
   customerId?: number;
   warehouseId: number;
   salesOrderId?: number;
+  deliveryNoteOrderId?: number;
   isDraft: boolean;
 }
 
@@ -36,6 +38,7 @@ export interface UpdateReturn {
   customerId?: number;
   warehouseId?: number;
   salesOrderId?: number;
+  deliveryNoteOrderId?: number;
   isDraft: boolean;
 }
 

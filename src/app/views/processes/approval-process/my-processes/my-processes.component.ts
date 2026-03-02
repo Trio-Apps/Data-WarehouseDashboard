@@ -225,6 +225,9 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
         case 'goodsreturn':
             this.router.navigate(['/processes/purchases/goods-return-order', 0, 0, referenceId]);
         break;
+      case 'deliverynote':
+        this.router.navigate(['/processes/sales/delivery-note-order', 0, referenceId]);
+        break;
     
         default:
         this.toastr.info(`No navigation defined for ${processType}.`, 'Info');

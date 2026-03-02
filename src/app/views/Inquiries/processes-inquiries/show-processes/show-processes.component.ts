@@ -42,19 +42,28 @@ export class ShowProcessesComponent implements OnInit {
     if (this.warehouseId) {
       // Navigate based on card type
       switch(cardType) {
-        case 'barcodes':
+        
+          case 'barcodes':
           this.router.navigate(['/processes/item-barcodes', this.warehouseId]);
           break;
-        case 'purchases':
+
+          case 'purchases':
           this.router.navigate(['/processes/purchases', this.warehouseId]);
           break;
-        case 'sales':
+
+          case 'sales':
           this.router.navigate(['/processes/sales', this.warehouseId]);
           break;
-        case 'sales-return':
+
+          case 'sales-return':
           this.router.navigate(['/processes/sales/sales-return-orders', this.warehouseId]);
           break;
-           case 'receipt':
+
+          case 'delivery-note':
+          this.router.navigate(['/processes/sales/delivery-note-orders', this.warehouseId]);
+          break;
+
+          case 'receipt':
           this.router.navigate(['/processes/purchases/receipt-orders', this.warehouseId]);
           break;
            case 'goods-return':

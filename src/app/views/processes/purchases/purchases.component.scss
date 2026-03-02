@@ -329,3 +329,11 @@ c-card.full-height-card{
 .table-container::-webkit-scrollbar-thumb:hover{
   background:rgba(40,106,97,0.38);
 }
+
+.supplier-picker-display{
+  cursor:pointer;
+}
+
+.supplier-picker-display:read-only{
+  background:#fff;
+}

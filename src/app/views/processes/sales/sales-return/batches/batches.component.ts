@@ -36,6 +36,7 @@ import { SalesReturnService } from '../../Services/sales-return.service';
 })
 export class BatchesComponent implements OnInit {
   salesOrderId: number = 0;
+  deliveryNoteOrderId: number = 0;
   salesReturnId:number =0;
   returnOrderItemId: number = 0;
   quantity: number = 0;
@@ -62,6 +63,7 @@ export class BatchesComponent implements OnInit {
   ngOnInit(): void {
     this.salesOrderId = +this.route.snapshot.paramMap.get('salesOrderId')!;
     this.salesReturnId = +this.route.snapshot.paramMap.get('salesReturnId')!;
+    this.deliveryNoteOrderId = +(this.route.snapshot.queryParamMap.get('deliveryNoteOrderId') || 0);
     console.log("retrun id",this.salesReturnId)
     this.returnOrderItemId = +this.route.snapshot.paramMap.get('returnOrderItemId')!;
     this.quantity = +this.route.snapshot.paramMap.get('itemQuantity')!;
@@ -240,7 +242,10 @@ export class BatchesComponent implements OnInit {
   }
 
   onBack(): void {
-    this.router.navigate(['/processes/sales/sales-return-order',this.salesOrderId, this.salesReturnId]);
+    this.router.navigate(
+      ['/processes/sales/sales-return-order', this.salesOrderId, this.salesReturnId],
+      { queryParams: { deliveryNoteOrderId: this.deliveryNoteOrderId || undefined } }
+    );
   }
 
 

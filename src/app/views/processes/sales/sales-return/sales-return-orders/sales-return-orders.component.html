@@ -136,14 +136,15 @@
 
           <c-col [md]="3">
             <label class="form-label">Customer</label>
-            <select cFormControl formControlName="customerId" class="form-select">
-              <option value="">-- All Customers --</option>
-              @for (customer of customers; track customer.customerId) {
-                <option [value]="customer.customerId">
-                  {{ customer.customerCode || customer.customerName }}
-                </option>
-              }
-            </select>
+            <input
+              cFormControl
+              type="text"
+              class="form-control customer-picker-display"
+              [value]="selectedCustomerDisplay"
+              placeholder="-- All Customers --"
+              readonly
+              (click)="onOpenCustomerModal()" />
+            <input type="hidden" formControlName="customerId" />
           </c-col>
 
           <c-col [md]="2">
@@ -166,6 +167,13 @@
     </div>
   </c-card>
 </div>
+
+<app-search-customer-modal
+  [visible]="showCustomerModal"
+  (visibleChange)="onCustomerModalVisibleChange($event)"
+  (customerSelected)="onSelectCustomer($event)"
+  (clearSelected)="onClearCustomer()">
+</app-search-customer-modal>
 
 <c-modal
   [visible]="showApprovalModal"

@@ -143,6 +143,25 @@ export class SalesItemsComponent implements OnInit {
     );
   }
 
+  onGoDeliveryNote(): void {
+    if (!this.Sale?.salesOrderId) {
+      return;
+    }
+
+    if (this.Sale.deliveryNoteOrderId) {
+      this.router.navigate(
+        ['/processes/sales/delivery-note-order', this.salesOrderId, this.Sale.deliveryNoteOrderId],
+        { queryParams: { warehouseId: this.warehouseId || this.Sale.warehouseId || 0 } }
+      );
+      return;
+    }
+
+    this.router.navigate(
+      ['/processes/sales/delivery-note-form', this.salesOrderId],
+      { queryParams: { warehouseId: this.warehouseId || this.Sale.warehouseId || 0 } }
+    );
+  }
+
   onAddItem(): void {
     if (!this.isApproved(this.Sale)) {
       if (!this.warehouseId && this.Sale?.warehouseId) {
@@ -186,10 +205,10 @@ export class SalesItemsComponent implements OnInit {
   }
 
   onRemoveItem(item: SalesItem): void {
-    if (!this.isDraft || this.isApproved(this.Sale)) {
-      this.toastr.warning('Cannot remove items from finalized sales', 'Warning');
-      return;
-    }
+    // if (!this.isDraft || this.isApproved(this.Sale)) {
+    //   this.toastr.warning('Cannot remove items from finalized sales', 'Warning');
+    //   return;
+    // }
 
     if (confirm(`Are you sure you want to remove "${item.itemName || 'this item'}" from the sales?`)) {
       if (item.salesOrderItemId) {
@@ -208,6 +227,7 @@ export class SalesItemsComponent implements OnInit {
       }
     }
   }
+  
 
   onBackToSales(): void {
     if (this.warehouseId) {
@@ -217,6 +237,7 @@ export class SalesItemsComponent implements OnInit {
       this.router.navigate(['/processes/sales', this.warehouseId]);
     }
   }
+
 
   getTotalQuantity(): number {
     return this.SaleItems.reduce((total, item) => total + item.quantity, 0);

@@ -16,6 +16,7 @@ import {
   UtilitiesModule
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
+import { SearchCustomerModalComponent } from './search-customer-modal/search-customer-modal.component';
 @Component({
   selector: 'app-sales',
    imports: [
@@ -29,7 +30,8 @@ import { IconDirective } from '@coreui/icons-angular';
     PaginationModule,
     UtilitiesModule,
     IconDirective,
-    DatePipe
+    DatePipe,
+    SearchCustomerModalComponent
   ],
   templateUrl: './sales.component.html',
   styleUrl: './sales.component.scss',
@@ -40,6 +42,10 @@ export class SalesComponent implements OnInit, OnDestroy {
   filteredSales: Sales[] = [];
   customers: Customer[] = [];
   warehouseId: number = 0;
+  selectedCustomerDisplay: string = '';
+
+  // Customer picker modal
+  showCustomerModal: boolean = false;
 
   // Pagination
   currentPage: number = 1;
@@ -84,7 +90,7 @@ export class SalesComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
-    this.loadCustomers();
+   // this.loadCustomers();
 
     // Read pagination and filters from URL query params
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
@@ -93,6 +99,7 @@ export class SalesComponent implements OnInit, OnDestroy {
         return;
       }
 
+      
       const page = params['page'] ? +params['page'] : 1;
       const pageSize = params['pageSize'] ? +params['pageSize'] : 10;
       const status = params['status'] || '';
@@ -118,6 +125,7 @@ export class SalesComponent implements OnInit, OnDestroy {
         dueDate: dueDate || null,
         liveStatus: liveStatus
       });
+      this.syncSelectedCustomerDisplay();
 
       if (this.warehouseId) {
         this.loadSales();
@@ -241,10 +249,8 @@ export class SalesComponent implements OnInit, OnDestroy {
     this.filterDueDate = formValue.dueDate ? new Date(formValue.dueDate) : null;
     this.filterLiveStatus = formValue.liveStatus || '';
      
-
     // Reset to first page when searching
     this.currentPage = 1;
-
     
     // Update URL with filters
     this.updateUrlWithFilters(1, this.itemsPerPage);
@@ -257,8 +263,6 @@ export class SalesComponent implements OnInit, OnDestroy {
       this.isSearching = false;
     }, 100);
   }
-
-  
 
   private updateUrlWithFilters(page: number, pageSize: number): void {
     const formValue = this.form.value;
@@ -294,31 +298,47 @@ export class SalesComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadCustomers(): void {
-    this.saleService.getCustomer().subscribe({
-      next: (res: any) => {
-        const rawCustomers = Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res?.data?.data)
-          ? res.data.data
-          : Array.isArray(res)
-          ? res
-          : [];
+  onOpenCustomerModal(): void {
+    this.showCustomerModal = true;
+  }
 
-        this.customers = rawCustomers.map((c: any) => ({
-          customerId: c.customerId ?? c.id ?? c.CustomerId,
-          customerName: c.customerName ?? c.name ?? c.CustomerName ?? '',
-          customerCode: c.customerCode ?? c.code ?? c.CustomerCode ?? ''
-        })).filter((c: Customer) => !!c.customerId);
+  onCustomerModalVisibleChange(visible: boolean): void {
+    this.showCustomerModal = visible;
+  }
 
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading customers:', err);
-        this.toastr.error('Failed to load customers. Please try again.', 'Error');
-        this.cdr.detectChanges();
-      }
-    });
+  onSelectCustomer(customer: Customer): void {
+    this.form.patchValue({ customerId: customer.customerId });
+    this.filterCustomerId = customer.customerId;
+    this.selectedCustomerDisplay = customer.customerCode || customer.customerName || `#${customer.customerId}`;
+    this.showCustomerModal = false;
+
+    if (!this.customers.some(c => c.customerId === customer.customerId)) {
+      this.customers = [...this.customers, customer];
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  onClearCustomer(): void {
+    this.form.patchValue({ customerId: '' });
+    this.filterCustomerId = null;
+    this.selectedCustomerDisplay = '';
+    this.cdr.detectChanges();
+  }
+
+  private syncSelectedCustomerDisplay(): void {
+    const customerIdValue = this.form.get('customerId')?.value;
+    const customerId = customerIdValue ? +customerIdValue : null;
+
+    if (!customerId) {
+      this.selectedCustomerDisplay = '';
+      return;
+    }
+
+    const selectedCustomer = this.customers.find(c => c.customerId === customerId);
+    this.selectedCustomerDisplay = selectedCustomer
+      ? (selectedCustomer.customerCode || selectedCustomer.customerName || `#${customerId}`)
+      : `#${customerId}`;
   }
 
 
@@ -405,6 +425,15 @@ export class SalesComponent implements OnInit, OnDestroy {
     if (Sale.salesOrderId) {
       this.router.navigate(
         ['/processes/sales/sales-return-order', Sale.salesOrderId, Sale.returnOrderId || 0],
+        { queryParams: { warehouseId: this.warehouseId } }
+      );
+    }
+  }
+
+  onViewDeliveryNote(Sale: Sales): void {
+    if (Sale.salesOrderId) {
+      this.router.navigate(
+        ['/processes/sales/delivery-note-order', Sale.salesOrderId, Sale.deliveryNoteOrderId || 0],
         { queryParams: { warehouseId: this.warehouseId } }
       );
     }

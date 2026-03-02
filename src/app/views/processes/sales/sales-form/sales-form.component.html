@@ -56,31 +56,20 @@
                 <label class="form-label">
                   Customer <span class="text-danger">*</span>
                 </label>
-                @if (loadingCustomers) {
-                  <div class="text-body-secondary">Loading customers...</div>
-                } @else {
-                  <select
-                    cFormControl
-                    formControlName="customerId"
-                    class="form-select"
-                    [class.is-invalid]="form.get('customerId')?.invalid && form.get('customerId')?.touched"
-                    [disabled]="loadingCustomers"
-                    required>
-                    <option value="">-- Select Customer --</option>
-                    @for (customer of customers; track customer.customerId) {
-                      <option [value]="customer.customerId">
-                        {{ customer.customerName }}
-                        @if (customer.customerCode) {
-                          ({{ customer.customerCode }})
-                        }
-                      </option>
-                    }
-                  </select>
-                  @if (form.get('customerId')?.invalid && form.get('customerId')?.touched) {
-                    <div class="invalid-feedback d-block">
-                      Customer is required
-                    </div>
-                  }
+                <input
+                  cFormControl
+                  type="text"
+                  class="form-control customer-picker-display"
+                  [value]="selectedCustomerDisplay"
+                  placeholder="-- Select Customer --"
+                  readonly
+                  (click)="onOpenCustomerModal()"
+                  [class.is-invalid]="form.get('customerId')?.invalid && form.get('customerId')?.touched" />
+                <input type="hidden" formControlName="customerId" />
+                @if (form.get('customerId')?.invalid && form.get('customerId')?.touched) {
+                  <div class="invalid-feedback d-block">
+                    Customer is required
+                  </div>
                 }
               </c-col>
 
@@ -141,3 +130,10 @@
     </c-card-footer>
   </c-card>
 </div>
+
+<app-search-customer-modal
+  [visible]="showCustomerModal"
+  (visibleChange)="onCustomerModalVisibleChange($event)"
+  (customerSelected)="onSelectCustomer($event)"
+  (clearSelected)="onClearCustomer()">
+</app-search-customer-modal>

@@ -57,6 +57,18 @@
             </c-card-body>
           </c-card>
         </c-col>
+          <!-- Delivery Note -->
+        <c-col [xs]="12" [md]="3">
+          <c-card class="process-card h-100" (click)="onCardClick('delivery-note')">
+            <c-card-body class="text-center">
+              <div class="icon-wrap icon-blue">
+                <svg cIcon name="cil-inbox" size="3xl" class="process-icon"></svg>
+              </div>
+              <h5 class="card-title">Delivery Note</h5>
+              <p class="card-text">Delivery note orders</p>
+            </c-card-body>
+          </c-card>
+        </c-col>
 
         <!-- Sales Return Order -->
         <c-col [xs]="12" [md]="3">
@@ -70,6 +82,8 @@
             </c-card-body>
           </c-card>
         </c-col>
+
+      
 
        
 

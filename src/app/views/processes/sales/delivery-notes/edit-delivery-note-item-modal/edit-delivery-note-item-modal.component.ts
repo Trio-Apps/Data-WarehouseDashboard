@@ -1,0 +1,140 @@
+import { Component, Input, Output, EventEmitter, OnInit, OnChanges, ChangeDetectorRef } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import {
+  ModalModule,
+  ButtonModule,
+  FormModule,
+  CardModule,
+  UtilitiesModule,
+  GridModule,
+  GutterDirective
+} from '@coreui/angular';
+import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ToastrService } from 'ngx-toastr';
+import { UoMGroup } from '../../../barcodes/Models/item-barcode.model';
+import { DeliveryNoteItem, UpdateDeliveryNoteItemRequest } from '../../Models/delivery-note-model';
+import { DeliveryNoteService } from '../../Services/delivery-note.service';
+import { UpdateGeneralItemRequest } from '../../../Models/general-order';
+
+@Component({
+  selector: 'app-edit-delivery-note-item-modal',
+  imports: [
+    CommonModule,
+    ModalModule,
+    ButtonModule,
+    FormModule,
+    CardModule,
+    UtilitiesModule,
+    GridModule,
+    GutterDirective,
+    ReactiveFormsModule
+  ],
+  templateUrl: './edit-delivery-note-item-modal.component.html',
+  styleUrl: './edit-delivery-note-item-modal.component.scss',
+})
+export class EditDeliveryNoteItemModalComponent implements OnInit, OnChanges {
+  @Input() visible: boolean = false;
+  @Input() item: DeliveryNoteItem | null = null;
+  @Input() hasReference: boolean = true;
+  @Output() visibleChange = new EventEmitter<boolean>();
+  @Output() itemUpdated = new EventEmitter<void>();
+
+  editForm!: FormGroup;
+  uomGroups: UoMGroup[] = [];
+  saving: boolean = false;
+  loadingUomGroups: boolean = false;
+
+  constructor(
+    private fb: FormBuilder,
+    private returnService: DeliveryNoteService,
+    private cdr: ChangeDetectorRef,
+    private toastr: ToastrService
+  ) {}
+
+  ngOnInit(): void {
+    this.initializeForm();
+  }
+
+  ngOnChanges(): void {
+    if (this.item && this.visible) {
+      this.initializeForm();
+      this.populateForm();
+    }
+  }
+
+  initializeForm(): void {
+    this.editForm = this.fb.group({
+      deliveryNoteOrderItemId: [0, Validators.required],
+      quantity: [0.01, [Validators.required, Validators.min(0.01)]],
+      uoMEntry: [0, Validators.required],
+      comment: ['']
+    });
+  }
+
+  populateForm(): void {
+    if (this.item) {
+      const itemId = this.item.deliveryNoteItemId || 0;
+      this.editForm.patchValue({
+        deliveryNoteOrderItemId: itemId,
+        quantity: this.item.quantity || 0.01,
+        uoMEntry: this.item.uoMEntry || 0,
+        comment: this.item.comment || ''
+      });
+    }
+  }
+
+  onClose(): void {
+    this.visible = false;
+    this.visibleChange.emit(false);
+    this.resetForm();
+  }
+
+  resetForm(): void {
+    this.editForm.reset({
+      deliveryNoteOrderItemId: 0,
+      quantity: 0.01,
+      uoMEntry: 0,
+      comment: ''
+    });
+  }
+
+  onUpdate(): void {
+    if (this.editForm.invalid) {
+      this.toastr.error('Please fill in all required fields correctly', 'Validation Error');
+      return;
+    }
+
+    this.saving = true;
+    const formValue = this.editForm.value;
+
+    const returnItemId = formValue.deliveryNoteOrderItemId;
+    const request$ = this.hasReference
+      ? this.returnService.updateDeliveryNoteItem(returnItemId, {
+          deliveryNoteItemId: returnItemId,
+          quantity: formValue.quantity,
+          comment: formValue.comment
+        } as UpdateDeliveryNoteItemRequest)
+      : this.returnService.updateDeliveryNoteItemWithoutReference(returnItemId, {
+          quantity: formValue.quantity,
+          uoMEntry: formValue.uoMEntry
+        } as UpdateGeneralItemRequest);
+
+    request$.subscribe({
+      next: (_res: any) => {
+        this.saving = false;
+        this.toastr.success('Item updated successfully', 'Success');
+        this.itemUpdated.emit();
+        this.onClose();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        this.saving = false;
+        const errorMessage = err.error?.message || 'Error updating item. Please try again.';
+        this.toastr.error(errorMessage, 'Error');
+        console.log("error",err);
+        this.cdr.detectChanges();
+      }
+    });
+  }
+}
+

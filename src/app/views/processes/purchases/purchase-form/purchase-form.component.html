@@ -11,6 +11,7 @@
         </div>
       } @else {
         <div class="p-4">
+          <!-- <div>{{form.value | json}}</div> -->
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
             <c-row [gutter]="3">
               <!-- Posting Date -->
@@ -56,30 +57,21 @@
                 <label class="form-label">
                   Supplier <span class="text-danger">*</span>
                 </label>
-                @if (loading) {
-                  <div class="text-body-secondary">Loading suppliers...</div>
-                } @else {
-                  <select
-                    cFormControl
-                    formControlName="supplierId"
-                    class="form-select"
-                    [class.is-invalid]="form.get('supplierId')?.invalid && form.get('supplierId')?.touched"
-                    required>
-                    <option value="">-- Select Supplier --</option>
-                    @for (supplier of suppliers; track supplier.supplierId) {
-                      <option [value]="supplier.supplierId">
-                        {{ supplier.supplierName }}
-                        @if (supplier.supplierCode) {
-                          ({{ supplier.supplierCode }})
-                        }
-                      </option>
-                    }
-                  </select>
-                  @if (form.get('supplierId')?.invalid && form.get('supplierId')?.touched) {
-                    <div class="invalid-feedback d-block">
-                      Supplier is required
-                    </div>
-                  }
+                <input
+                  cFormControl
+                  type="text"
+                  class="form-control supplier-picker-display"
+                  [value]="selectedSupplierDisplay"
+                  placeholder="-- Select Supplier --"
+                  readonly
+                  (click)="onOpenSupplierModal()"
+                  [class.is-invalid]="form.get('supplierId')?.invalid && form.get('supplierId')?.touched"
+                  required>
+                <input type="hidden" formControlName="supplierId">
+                @if (form.get('supplierId')?.invalid && form.get('supplierId')?.touched) {
+                  <div class="invalid-feedback d-block">
+                    Supplier is required
+                  </div>
                 }
               </c-col>
 
@@ -140,3 +132,10 @@
     </c-card-footer>
   </c-card>
 </div>
+
+<app-search-supplier-modal
+  [visible]="showSupplierModal"
+  (visibleChange)="onSupplierModalVisibleChange($event)"
+  (supplierSelected)="onSupplierSelected($event)"
+  (clearSelected)="onSupplierCleared()">
+</app-search-supplier-modal>

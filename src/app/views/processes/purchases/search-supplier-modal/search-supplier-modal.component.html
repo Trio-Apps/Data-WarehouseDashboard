@@ -1,0 +1,128 @@
+<c-modal
+  [visible]="visible"
+  (visibleChange)="onVisibleChange($event)"
+  size="lg"
+  alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>Search Supplier</h5>
+  </c-modal-header>
+
+  <c-modal-body>
+    <c-row [gutter]="3" class="align-items-end">
+      <c-col [md]="5">
+        <label class="form-label">Supplier Code</label>
+        <input
+          cFormControl
+          type="text"
+          class="form-control"
+          [value]="supplierModalCode"
+          (input)="supplierModalCode = $any($event.target).value"
+          placeholder="Enter supplier code" />
+      </c-col>
+      <c-col [md]="5">
+        <label class="form-label">Supplier Name</label>
+        <input
+          cFormControl
+          type="text"
+          class="form-control"
+          [value]="supplierModalName"
+          (input)="supplierModalName = $any($event.target).value"
+          placeholder="Enter supplier name" />
+      </c-col>
+      <c-col [md]="2" class="d-grid">
+        <button cButton color="primary" type="button" class="supplier-modal-search-btn" (click)="onSearch()">
+          Search
+        </button>
+      </c-col>
+    </c-row>
+
+    <div class="supplier-modal-table-container mt-3">
+      <table [hover]="true" [striped]="true" cTable class="mb-0 supplier-modal-table">
+        <thead class="table-header">
+          <tr>
+            <th scope="col" class="bg-body-tertiary">#</th>
+            <th scope="col" class="bg-body-tertiary">Supplier Code</th>
+            <th scope="col" class="bg-body-tertiary">Supplier Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (supplierModalLoading) {
+          <tr>
+            <td colspan="3" class="text-center py-4">
+              <span class="text-body-secondary">Loading...</span>
+            </td>
+          </tr>
+          } @else if (supplierModalSuppliers.length > 0) {
+          @for (supplier of supplierModalSuppliers; track supplier.supplierId || $index) {
+          <tr class="supplier-select-row" (click)="onSelectSupplier(supplier)">
+            <td>{{ (supplierModalCurrentPage - 1) * supplierModalItemsPerPage + $index + 1 }}</td>
+            <td>{{ supplier.supplierCode || 'N/A' }}</td>
+            <td>{{ supplier.supplierName || 'N/A' }}</td>
+          </tr>
+          }
+          } @else {
+          <tr>
+            <td colspan="3" class="text-center py-4">
+              <span class="text-body-secondary">No suppliers found</span>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </c-modal-body>
+
+  <c-modal-footer class="justify-content-between">
+    <div class="d-flex flex-column">
+      @if (supplierModalTotalPages > 0) {
+      <nav aria-label="Supplier pagination">
+        <ul class="pagination mb-1">
+          <li class="page-item" [class.disabled]="!supplierModalHasPrevious">
+            <a
+              class="page-link"
+              (click)="onPreviousPage($event)"
+              href="#"
+              [attr.tabindex]="!supplierModalHasPrevious ? -1 : null">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+
+          @for (page of getPageNumbers(); track page) {
+          <li class="page-item" [class.active]="page === supplierModalCurrentPage">
+            <a class="page-link" (click)="onPageChange(page, $event)" href="#">{{ page }}</a>
+          </li>
+          }
+
+          <li class="page-item" [class.disabled]="!supplierModalHasNext">
+            <a
+              class="page-link"
+              (click)="onNextPage($event)"
+              href="#"
+              [attr.tabindex]="!supplierModalHasNext ? -1 : null">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      }
+      <small class="text-body-secondary">
+        @if (supplierModalTotalItems > 0) {
+          Showing {{ (supplierModalCurrentPage - 1) * supplierModalItemsPerPage + 1 }} to
+          {{ Math.min(supplierModalCurrentPage * supplierModalItemsPerPage, supplierModalTotalItems) }}
+          of {{ supplierModalTotalItems }} suppliers
+        } @else {
+          No suppliers to display
+        }
+      </small>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button cButton color="secondary" type="button" (click)="onClearSelection()">
+        Clear
+      </button>
+      <button cButton color="secondary" type="button" (click)="onVisibleChange(false)">
+      Close
+      </button>
+    </div>
+  </c-modal-footer>
+</c-modal>

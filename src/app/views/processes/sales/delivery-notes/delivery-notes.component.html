@@ -1,0 +1,290 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <h4 class="mb-0 header-title">delivery Order - sales #{{ delivery?.salesOrderId || salesOrderId || 0 }}</h4>
+      <div class="d-flex align-items-center">
+        @if (!delivery) {
+          <button cButton color="secondary" class="header-button me-2" (click)="onAddDeliveryNote()">
+            Add DeliveryNote
+          </button>
+        }
+        @if (salesOrderId > 0) {
+          <button cButton color="secondary" class="header-button me-2" (click)="onBackToSales()">
+            <svg cIcon name="cilArrowLeft" class="me-2"></svg>
+            Back To Sales 
+          </button>
+          <button cButton color="secondary" class="header-button me-2" (click)="onBackToSalesItems()">
+            <svg cIcon name="cilArrowLeft" class="me-2"></svg>
+            Back To Based On
+          </button>
+        } @else {
+          <button cButton color="secondary" class="header-button me-2" (click)="onBackToDeliveryNotes()">
+            <svg cIcon name="cilArrowLeft" class="me-2"></svg>
+            Back
+          </button>
+        }
+      </div>
+    </c-card-header>
+
+    <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
+      <div class="p-3 border-bottom">
+        <h5 class="mb-3">DeliveryNote Order</h5>
+        @if (loading) {
+          <div class="text-center py-4">
+            <span class="text-body-secondary">Loading...</span>
+          </div>
+        } @else if (!delivery) {
+          <div class="card border-2 border-dashed">
+            <div class="card-body text-center py-5">
+              <p class="text-muted mb-3">No delivery note order found for this sales order</p>
+            </div>
+          </div>
+        } @else {
+          <div class="card">
+            <div class="card-body">
+              <div class="d-flex justify-content-between align-items-start mb-3">
+                <div>
+                  <h6 class="card-title">DeliveryNote Order #{{ delivery?.deliveryNoteOrderId }}</h6>
+                  <p class="text-muted mb-0 small">sales Order ID: {{ delivery?.salesOrderId || 0 }}</p>
+                </div>
+                <div>
+                  @if (!isApproved(delivery)) {
+                    <button cButton class="me-2" color="warning" size="sm" (click)="onEditDeliveryNote()">
+                      Edit
+                    </button>
+                    <button cButton class="me-2" color="danger" size="sm" (click)="onDeleteDeliveryNote()">
+                      Delete
+                    </button>
+                    @if (delivery?.canApprove) {
+                      <button cButton class="me-2" color="success" size="sm" (click)="onOpenApprovalModal()">
+                        Approve
+                      </button>
+                    }
+                  } @else {
+                    @if (delivery?.canApprove) {
+                      <button cButton class="ms-2" color="success" size="sm" (click)="onOpenApprovalModal()">
+                        Approve
+                      </button>
+                    }
+                  }
+                </div>
+              </div>
+              <c-row [gutter]="3">
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Document Date</label>
+                    <p class="mb-0">{{ delivery?.createdAt | date:'short' }}</p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Customer Code</label>
+                    <p class="mb-0">{{ delivery?.customerCode || 'N/A' }}</p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Customer Name</label>
+                    <p class="mb-0">{{ delivery?.customerName || 'N/A' }}</p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Posting Date</label>
+                    <p class="mb-0">{{ delivery?.postingDate | date:'short' }}</p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Due Date</label>
+                    <p class="mb-0">{{ delivery?.dueDate | date:'short' }}</p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Status</label>
+                    <p class="mb-0">
+                      <span [class]="getStatusBadgeClass(delivery)">
+                        {{ getStatusText(delivery) }}
+                      </span>
+                    </p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Approval Status</label>
+                    <p class="mb-0">
+                      <span [class]="getApprovalBadgeClass(delivery)">
+                        {{ getApprovalStatusText(delivery) }}
+                      </span>
+                    </p>
+                  </div>
+                </c-col>
+                <c-col [md]="3">
+                  <div class="mb-2">
+                    <label class="form-label small text-muted">Comment</label>
+                    <p class="mb-0">{{ delivery?.comment || 'No comment' }}</p>
+                  </div>
+                </c-col>
+              </c-row>
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="flex-grow-1 d-flex flex-column p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">delivery Items</h5>
+          @if (delivery && !isApproved(delivery)) {
+            <button cButton color="primary" size="sm" (click)="onAddItem()">
+              <svg cIcon name="cilPlus" class="me-2"></svg>
+              Add Item
+            </button>
+          }
+        </div>
+
+        <div class="table-container flex-grow-1">
+          <table [hover]="true" [striped]="true" cTable class="mb-0">
+            <thead class="table-header">
+              <tr>
+                <th scope="col" class="bg-body-tertiary">#</th>
+                <th scope="col" class="bg-body-tertiary">Item Code</th>
+                <th scope="col" class="bg-body-tertiary">Item Name</th>
+                <th scope="col" class="bg-body-tertiary">Barcode</th>
+                <th scope="col" class="bg-body-tertiary">Quantity</th>
+                <th scope="col" class="bg-body-tertiary">Unit</th>
+                <th scope="col" class="bg-body-tertiary text-center">Batches</th>
+                @if (delivery && !isApproved(delivery)) {
+                  <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+                }
+              </tr>
+            </thead>
+
+            <tbody>
+              @if (loading) {
+                <tr>
+                  <td [attr.colspan]="delivery && !isApproved(delivery) ? 8 : 7" class="text-center py-4">
+                    <span class="text-body-secondary">Loading...</span>
+                  </td>
+                </tr>
+              } @else if (!delivery) {
+                <tr>
+                  <td [attr.colspan]="7" class="text-center py-4">
+                    <span class="text-body-secondary">Please create delivery note order first</span>
+                  </td>
+                </tr>
+              } @else if (deliveryItems.length > 0) {
+                @for (item of deliveryItems; track item.deliveryNoteItemId || $index) {
+                  <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ item.itemCode || 'N/A' }}</td>
+                    <td>{{ item.itemName || 'N/A' }}</td>
+                    <td>{{ item.barCode || 'N/A' }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.unitName || 'N/A' }}</td>
+                    <td class="text-center">
+                      <button cButton color="success" size="sm" (click)="onViewBatches(item)" title="View Batches">
+                        <svg cIcon name="cil-layers"></svg>
+                      </button>
+                    </td>
+                    @if (!isApproved(delivery)) {
+                      <td class="text-center">
+                        <button cButton color="info" size="sm" class="me-2" (click)="onEditItem(item)" title="Edit">
+                          <svg cIcon name="cil-pencil"></svg>
+                        </button>
+                        <button cButton color="danger" size="sm" (click)="onRemoveItem(item)" title="Remove">
+                          <svg cIcon name="cil-trash"></svg>
+                        </button>
+                      </td>
+                    }
+                  </tr>
+                }
+              } @else {
+                <tr>
+                  <td [attr.colspan]="delivery && !isApproved(delivery) ? 8 : 7" class="text-center py-4">
+                    <span class="text-body-secondary">No items in this delivery</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (delivery && deliveryItems.length > 0) {
+          <div class="mt-3 pt-3 border-top">
+            <div class="d-flex justify-content-end">
+              <div class="text-end">
+                <p class="mb-0"><strong>Total Items:</strong> {{ deliveryItems.length }}</p>
+                <p class="mb-0"><strong>Total Quantity:</strong> {{ getTotalQuantity() }}</p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </c-card-body>
+  </c-card>
+</div>
+
+<app-edit-delivery-note-item-modal
+  [visible]="showEditItemModal"
+  [item]="selectedItem"
+  [hasReference]="hasReference()"
+  (visibleChange)="showEditItemModal = $event"
+  (itemUpdated)="onItemUpdated()">
+</app-edit-delivery-note-item-modal>
+
+<c-modal
+  [visible]="showApprovalModal"
+  (visibleChange)="onApprovalVisibleChange($event)"
+  size="lg"
+  alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>Approval</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="mb-3 p-2 bg-light rounded">
+      Are you sure about confirming this order?
+    </div>
+    <c-row [gutter]="3">
+      <c-col [md]="12">
+        <label class="form-label">Comment</label>
+        <textarea
+          class="form-control"
+          rows="3"
+          [value]="approvalComment"
+          (input)="approvalComment = $any($event.target).value"
+          placeholder="Add comment (optional)">
+        </textarea>
+      </c-col>
+    </c-row>
+  </c-modal-body>
+  <c-modal-footer>
+    <button
+      cButton
+      color="secondary"
+      type="button"
+      (click)="onCancelApprovalModal()"
+      [disabled]="approvalSubmitting">
+      Cancel
+    </button>
+    <button
+      cButton
+      color="danger"
+      type="button"
+      class="ms-2"
+      (click)="submitApproval(false)"
+      [disabled]="approvalSubmitting">
+      No
+    </button>
+    <button
+      cButton
+      color="success"
+      type="button"
+      class="ms-2"
+      (click)="submitApproval(true)"
+      [disabled]="approvalSubmitting">
+      Yes
+    </button>
+  </c-modal-footer>
+</c-modal>
+

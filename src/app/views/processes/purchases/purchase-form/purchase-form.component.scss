@@ -203,3 +203,11 @@ button[cButton][color="secondary"]:hover{
 c-row{
   row-gap: 12px;
 }
+
+.supplier-picker-display{
+  cursor: pointer;
+}
+
+.supplier-picker-display:read-only{
+  background: #fff;
+}

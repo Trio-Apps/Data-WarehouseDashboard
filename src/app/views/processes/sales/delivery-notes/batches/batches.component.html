@@ -1,0 +1,230 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <h4 class="mb-0 header-title">Sales DeliveryNote Batches - Item #{{ salesOrderId }}</h4>
+      <button cButton color="secondary" class="header-button" (click)="onBack()">
+        <svg cIcon name="cilArrowLeft" class="me-2"></svg>
+        Back
+      </button>
+    </c-card-header>
+
+    <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
+      <div class="p-3">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+          <h5 class="mb-0">Batches</h5>
+          <button cButton color="primary" size="sm" (click)="onAddBatch()">
+            <svg cIcon name="cilPlus" class="me-2"></svg>
+            Add Batch
+          </button>
+        </div>
+
+        <div class="table-container">
+          <table [hover]="true" [striped]="true" cTable class="mb-0">
+            <thead class="table-header">
+              <tr>
+                <th scope="col" class="bg-body-tertiary">#</th>
+                <th scope="col" class="bg-body-tertiary">Batch ID</th>
+                <th scope="col" class="bg-body-tertiary">Batch Number</th>
+                <th scope="col" class="bg-body-tertiary">Quantity</th>
+                <th scope="col" class="bg-body-tertiary">Expiry Date</th>
+                <th scope="col" class="bg-body-tertiary">Comment</th>
+                <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @if (loading) {
+                <tr>
+                  <td colspan="7" class="text-center py-4">
+                    <span class="text-body-secondary">Loading...</span>
+                  </td>
+                </tr>
+              } @else if (batches.length > 0) {
+                @for (batch of batches; track batch.deliveryNoteOrderBatchId || $index) {
+                  <tr>
+                    <td>{{ $index + 1 }}</td>
+                    <td>{{ batch.deliveryNoteOrderBatchId || 'N/A' }}</td>
+                    <td>{{ batch.batchNumber || 'N/A' }}</td>
+                    <td>{{ batch.quantity }}</td>
+                    <td>{{ batch.expiryDate | date:'short' }}</td>
+                    <td>{{ batch.comment || 'No comment' }}</td>
+                    <td class="text-center">
+                      <button cButton color="info" size="sm" class="me-2" (click)="onEditBatch(batch)" title="Edit">
+                        <svg cIcon name="cil-pencil"></svg>
+                      </button>
+                      <button cButton color="danger" size="sm" (click)="onDeleteBatch(batch)" title="Delete">
+                        <svg cIcon name="cil-trash"></svg>
+                      </button>
+                    </td>
+                  </tr>
+                }
+              } @else {
+                <tr>
+                  <td colspan="7" class="text-center py-4">
+                    <span class="text-body-secondary">No batches found</span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        @if (batches.length > 0) {
+          <div class="mt-3 pt-3 border-top">
+            <div class="d-flex justify-content-end">
+              <div class="text-end">
+                <p class="mb-0"><strong>Item Quantity:</strong> {{ quantity }}</p>
+                <p class="mb-0"><strong>Total Batches Quantity:</strong> {{ getTotalQuantity() }}</p>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </c-card-body>
+  </c-card>
+</div>
+
+<c-modal
+  [visible]="showAddModal"
+  (visibleChange)="showAddModal = $event"
+  size="lg"
+  alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>Add Batch</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <form [formGroup]="addForm" (ngSubmit)="onSubmitAdd()">
+      <c-row [gutter]="3">
+        <c-col [md]="6">
+          <label class="form-label">Batch Number</label>
+          <input cFormControl type="text" formControlName="batchNumber" class="form-control" />
+        </c-col>
+
+        <c-col [md]="6">
+          <label class="form-label">
+            Quantity <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="number"
+            step="0.01"
+            formControlName="quantity"
+            placeholder="0.01"
+            class="form-control"
+            [class.is-invalid]="addForm.get('quantity')?.invalid && addForm.get('quantity')?.touched"
+            required>
+          @if (addForm.get('quantity')?.invalid && addForm.get('quantity')?.touched) {
+            <div class="invalid-feedback d-block">
+              Quantity is required and must be greater than 0
+            </div>
+          }
+        </c-col>
+
+        <c-col [md]="6">
+          <label class="form-label">
+            Expiry Date <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="date"
+            formControlName="expiryDate"
+            class="form-control"
+            [class.is-invalid]="addForm.get('expiryDate')?.invalid && addForm.get('expiryDate')?.touched"
+            required>
+          @if (addForm.get('expiryDate')?.invalid && addForm.get('expiryDate')?.touched) {
+            <div class="invalid-feedback d-block">
+              Expiry date is required
+            </div>
+          }
+        </c-col>
+
+        <c-col [md]="12">
+          <label class="form-label">Comment</label>
+          <textarea cFormControl formControlName="comment" rows="3" class="form-control"></textarea>
+        </c-col>
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" type="button" (click)="onCloseAddModal()" [disabled]="saving">Cancel</button>
+    <button cButton color="primary" type="button" (click)="onSubmitAdd()" [disabled]="addForm.invalid || saving">
+      @if (saving) {
+        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+      }
+      {{ saving ? 'Adding...' : 'Add Batch' }}
+    </button>
+  </c-modal-footer>
+</c-modal>
+
+<c-modal
+  [visible]="showEditModal"
+  (visibleChange)="showEditModal = $event"
+  size="lg"
+  alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>Edit Batch</h5>
+  </c-modal-header>
+  <c-modal-body>
+    @if (selectedBatch) {
+      <div class="mb-3 p-2 bg-light rounded">
+        <strong>Batch ID:</strong> {{ selectedBatch.deliveryNoteOrderBatchId || 'N/A' }}
+      </div>
+    }
+    <form [formGroup]="editForm" (ngSubmit)="onSubmitEdit()">
+      <c-row [gutter]="3">
+        <c-col [md]="6">
+          <label class="form-label">
+            Quantity <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="number"
+            step="0.01"
+            formControlName="quantity"
+            placeholder="0.01"
+            class="form-control"
+            [class.is-invalid]="editForm.get('quantity')?.invalid && editForm.get('quantity')?.touched"
+            required>
+          @if (editForm.get('quantity')?.invalid && editForm.get('quantity')?.touched) {
+            <div class="invalid-feedback d-block">
+              Quantity is required and must be greater than 0
+            </div>
+          }
+        </c-col>
+
+        <c-col [md]="6">
+          <label class="form-label">
+            Expiry Date <span class="text-danger">*</span>
+          </label>
+          <input
+            cFormControl
+            type="date"
+            formControlName="expiryDate"
+            class="form-control"
+            [class.is-invalid]="editForm.get('expiryDate')?.invalid && editForm.get('expiryDate')?.touched"
+            required>
+          @if (editForm.get('expiryDate')?.invalid && editForm.get('expiryDate')?.touched) {
+            <div class="invalid-feedback d-block">
+              Expiry date is required
+            </div>
+          }
+        </c-col>
+
+        <c-col [md]="12">
+          <label class="form-label">Comment</label>
+          <textarea cFormControl formControlName="comment" rows="3" class="form-control"></textarea>
+        </c-col>
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" type="button" (click)="onCloseEditModal()" [disabled]="saving">Cancel</button>
+    <button cButton color="primary" type="button" (click)="onSubmitEdit()" [disabled]="editForm.invalid || saving">
+      @if (saving) {
+        <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+      }
+      {{ saving ? 'Updating...' : 'Update Batch' }}
+    </button>
+  </c-modal-footer>
+</c-modal>
+

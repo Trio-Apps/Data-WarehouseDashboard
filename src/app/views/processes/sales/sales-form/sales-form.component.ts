@@ -5,6 +5,7 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { ToastrService } from 'ngx-toastr';
 import { Customer, Sales } from '../Models/sales-model';
 import { SalesService } from '../Services/sales.service';
+import { SearchCustomerModalComponent } from '../search-customer-modal/search-customer-modal.component';
 import {
   FormModule,
   CardModule,
@@ -28,7 +29,8 @@ import {
     FormCheckComponent,
     FormCheckInputDirective,
     FormCheckLabelDirective,
-    ReactiveFormsModule
+    ReactiveFormsModule,
+    SearchCustomerModalComponent
   ],
   templateUrl: './sales-form.component.html',
   styleUrl: './sales-form.component.scss',
@@ -39,8 +41,9 @@ export class SalesFormComponent implements OnInit {
   salesOrderId: number | null = null;
   warehouseId: number = 0;
   customers: Customer[] = [];
+  selectedCustomerDisplay: string = '';
+  showCustomerModal: boolean = false;
   loading: boolean = false;
-  loadingCustomers: boolean = false;
   saving: boolean = false;
 
   constructor(
@@ -59,7 +62,6 @@ export class SalesFormComponent implements OnInit {
     this.isEditMode = !!this.salesOrderId;
 
     this.initializeForm();
-    this.loadCustomers();
 
     
     if (this.isEditMode && this.salesOrderId) {
@@ -74,44 +76,6 @@ export class SalesFormComponent implements OnInit {
       comment: [''],
       customerId: ['', Validators.required],
       isDraft: [true]
-    });
-  }
-
-  loadCustomers(): void {
-    this.loadingCustomers = true;
-    this.salesService.getCustomer().subscribe({
-      next: (res: any) => {
-        const rawCustomers = Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res?.data?.data)
-            ? res.data.data
-            : Array.isArray(res)
-              ? res
-              : [];
-
-        // Keep UI responsive if backend returns very large customer lists
-        const MAX_CUSTOMERS = 2000;
-        const safeCustomers = rawCustomers.slice(0, MAX_CUSTOMERS);
-
-        this.customers = safeCustomers.map((c: any) => ({
-          customerId: c.customerId ?? c.id ?? c.CustomerId,
-          customerName: c.customerName ?? c.name ?? c.CustomerName ?? '',
-          customerCode: c.customerCode ?? c.code ?? c.CustomerCode ?? ''
-        })).filter((c: Customer) => !!c.customerId);
-
-        if (rawCustomers.length > MAX_CUSTOMERS) {
-          this.toastr.info(`Loaded first ${MAX_CUSTOMERS} customers to keep form responsive`, 'Info');
-        }
-
-        this.loadingCustomers = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading customers:', err);
-        this.loadingCustomers = false;
-        this.toastr.error('Failed to load customers. Please try again.', 'Error');
-        this.cdr.detectChanges();
-      }
     });
   }
 
@@ -140,6 +104,7 @@ export class SalesFormComponent implements OnInit {
             customerId: sales.customerId || null,
             isDraft: sales.isDraft !== undefined ? sales.isDraft : true
           });
+          this.syncSelectedCustomerDisplay();
         }
         this.loading = false;
         this.cdr.detectChanges();
@@ -171,6 +136,49 @@ export class SalesFormComponent implements OnInit {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}T00:00:00.000Z`;
+  }
+
+  onOpenCustomerModal(): void {
+    this.showCustomerModal = true;
+  }
+
+  onCustomerModalVisibleChange(visible: boolean): void {
+    this.showCustomerModal = visible;
+  }
+
+  onSelectCustomer(customer: Customer): void {
+    this.form.patchValue({ customerId: customer.customerId });
+    this.selectedCustomerDisplay = customer.customerCode || customer.customerName || `#${customer.customerId}`;
+    this.showCustomerModal = false;
+
+    if (!this.customers.some(c => c.customerId === customer.customerId)) {
+      this.customers = [...this.customers, customer];
+    }
+
+    this.form.get('customerId')?.markAsTouched();
+    this.cdr.detectChanges();
+  }
+
+  onClearCustomer(): void {
+    this.form.patchValue({ customerId: '' });
+    this.selectedCustomerDisplay = '';
+    this.form.get('customerId')?.markAsTouched();
+    this.cdr.detectChanges();
+  }
+
+  private syncSelectedCustomerDisplay(): void {
+    const customerIdValue = this.form.get('customerId')?.value;
+    const customerId = customerIdValue ? +customerIdValue : null;
+
+    if (!customerId) {
+      this.selectedCustomerDisplay = '';
+      return;
+    }
+
+    const selectedCustomer = this.customers.find(c => c.customerId === customerId);
+    this.selectedCustomerDisplay = selectedCustomer
+      ? (selectedCustomer.customerCode || selectedCustomer.customerName || `#${customerId}`)
+      : `#${customerId}`;
   }
 
   onSubmit(): void {
@@ -234,12 +242,4 @@ export class SalesFormComponent implements OnInit {
   onCancel(): void {
     this.router.navigate(['/processes/sales', this.warehouseId]);
   }
-
-
-  displayCustomerName(customerId: number | null): string {
-    const customer = this.customers.find(s => s.customerId === customerId );
-    return customer ? customer.customerName  : '';
-  }
-
-
 }

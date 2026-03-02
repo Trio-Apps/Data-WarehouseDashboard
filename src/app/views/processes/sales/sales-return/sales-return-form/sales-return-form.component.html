@@ -3,8 +3,10 @@
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0 header-title">
         {{ isEditMode ? 'Edit' : 'Create' }} Sales Return
-        @if (salesOrderId) {
+        @if (hasSalesOrderReference) {
           - Sales #{{ salesOrderId }}
+        } @else if (hasDeliveryNoteReference) {
+          - Delivery Note #{{ deliveryNoteOrderId }}
         } @else {
           - Without Reference
         }
@@ -56,24 +58,21 @@
                 }
               </c-col>
 
-              @if ((isEditMode && !this.returnOrder?.salesOrderId) || (!isEditMode && !this.salesOrderId)) {
+              @if (requiresManualCustomerSelection) {
                 <c-col [md]="12">
                   <label class="form-label">
                     Customer <span class="text-danger">*</span>
                   </label>
-                  <select
+                  <input
                     cFormControl
-                    formControlName="customerId"
-                    class="form-select"
-                    [class.is-invalid]="form.get('customerId')?.invalid && form.get('customerId')?.touched"
-                    required>
-                    <option value="">-- Select Customer --</option>
-                    @for (customer of customers; track customer.customerId) {
-                      <option [value]="customer.customerId">
-                        {{ customer.customerCode || customer.customerName }}
-                      </option>
-                    }
-                  </select>
+                    type="text"
+                    class="form-control customer-picker-display"
+                    [value]="selectedCustomerDisplay"
+                    placeholder="-- Select Customer --"
+                    readonly
+                    (click)="onOpenCustomerModal()"
+                    [class.is-invalid]="form.get('customerId')?.invalid && form.get('customerId')?.touched" />
+                  <input type="hidden" formControlName="customerId" />
                   @if (form.get('customerId')?.invalid && form.get('customerId')?.touched) {
                     <div class="invalid-feedback d-block">
                       Customer is required
@@ -134,7 +133,7 @@
         }
         {{ saving ? 'Saving...' : (isEditMode ? 'Update Return' : 'Create Return') }}
       </button>
-      @if (!isEditMode && salesOrderId) {
+      @if (!isEditMode && hasAnyReference) {
         <button
           cButton
           color="success"
@@ -150,3 +149,10 @@
     </c-card-footer>
   </c-card>
 </div>
+
+<app-search-customer-modal
+  [visible]="showCustomerModal"
+  (visibleChange)="onCustomerModalVisibleChange($event)"
+  (customerSelected)="onSelectCustomer($event)"
+  (clearSelected)="onClearCustomer()">
+</app-search-customer-modal>

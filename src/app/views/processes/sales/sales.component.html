@@ -30,14 +30,15 @@
               <th scope="col" class="bg-body-tertiary">Comment</th>
               <th scope="col" class="bg-body-tertiary">Items Count</th>
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
-              <th scope="col" class="bg-body-tertiary text-center">Return</th>
+              <th scope="col" class="bg-body-tertiary text-center">Delivery Note</th>
+              <!-- <th scope="col" class="bg-body-tertiary text-center">Return</th> -->
             </tr>
           </thead>
 
           <tbody>
             @if (loading) {
             <tr>
-              <td colspan="11" class="text-center py-4">
+              <td colspan="12" class="text-center py-4">
                 <span class="text-body-secondary">Loading...</span>
               </td>
             </tr>
@@ -78,23 +79,30 @@
 
               </td>
               <td class="text-center">
+                @if (sale.status == "Completed") {
+                <button cButton color="success" size="sm" class="me-2" (click)="onViewDeliveryNote(sale)"
+                  title="View Delivery Note">
+                  <svg cIcon name="cil-inbox"></svg>
+                </button>
+                }
+              </td>
+              <!-- <td class="text-center">
                 @if (isApproved(sale) && sale.status == "Processing") {
                 <button cButton color="danger" size="sm" class="me-2" (click)="onViewSalesReturn(sale)"
                   title="View Return">
                   <svg cIcon name="cil-receipt"></svg>
                 </button>
                 }
-              </td>
+              </td> -->
             
             </tr>
             }
             } @else {
             <tr>
-              <td colspan="11" class="text-center py-4">
+              <td colspan="12" class="text-center py-4">
                 <span class="text-body-secondary">No Sales found</span>
               </td>
-            </tr>
-            }
+            </tr>}
           </tbody>
         </table>
       </div>
@@ -123,6 +131,7 @@
                 <span aria-hidden="true">&raquo;</span>
               </a>
             </li>
+            
           </ul>
         </nav>
 
@@ -131,6 +140,7 @@
           of
           {{ totalItems }} Sales
         </div>
+
       </div>
       }
     </c-card-body>
@@ -155,14 +165,29 @@
 
           <c-col [md]="2">
             <label class="form-label">Customer</label>
-            <select cFormControl formControlName="customerId" class="form-select">
-              <option value="">-- All Customers --</option>
-              @for (customer of customers; track customer.customerId) {
-                <option [value]="customer.customerId">
-                  {{ customer.customerCode || customer.customerName }}
-                </option>
-              }
-            </select>
+            <input
+              cFormControl
+              type="text"
+              class="form-control customer-picker-display"
+              [value]="selectedCustomerDisplay"
+              placeholder="-- All Customers --"
+              readonly
+              (click)="onOpenCustomerModal()" />
+            <input type="hidden" formControlName="customerId" />
+            <!-- <div class="d-flex gap-2 mt-2">
+              <button cButton color="secondary" type="button" size="sm" class="flex-grow-1" (click)="onOpenCustomerModal()">
+                Search
+              </button>
+              <button
+                cButton
+                color="secondary"
+                type="button"
+                size="sm"
+                (click)="onClearCustomer()"
+                [disabled]="!form.get('customerId')?.value">
+                Clear
+              </button>
+            </div> -->
           </c-col>
 
           <!-- Posting Date Filter -->
@@ -183,6 +208,7 @@
             <select id="liveStatus" class="form-select" formControlName="liveStatus" cFormControl>
 
               <option value="">-- All Live Status --</option>
+              <option value="delivery-note">Delivery Note</option>
               <option value="return">Return</option>
             </select>
           </c-col>
@@ -199,3 +225,10 @@
     </div>
   </c-card>
 </div>
+
+<app-search-customer-modal
+  [visible]="showCustomerModal"
+  (visibleChange)="onCustomerModalVisibleChange($event)"
+  (customerSelected)="onSelectCustomer($event)"
+  (clearSelected)="onClearCustomer()">
+</app-search-customer-modal>

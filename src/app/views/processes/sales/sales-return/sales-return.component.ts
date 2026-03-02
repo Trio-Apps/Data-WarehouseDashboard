@@ -36,7 +36,7 @@ import { EditReturnItemModalComponent } from './edit-return-item-modal/edit-retu
   styleUrl: './sales-return.component.scss',
 })
 export class SalesReturnComponent implements OnInit {
-  salesOrderId: number = 0;
+  deliveryNoteOrderId: number = 0;
   salesReturnId: number = 0;
   return: Return | null = null;
   returnItems: ReturnItem[] = [];
@@ -58,8 +58,8 @@ export class SalesReturnComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.salesOrderId = +this.route.snapshot.paramMap.get('salesOrderId')!;
     this.salesReturnId = +this.route.snapshot.paramMap.get('salesReturnId')!;
+    this.deliveryNoteOrderId = +(this.route.snapshot.queryParamMap.get('deliveryNoteOrderId') || 0);
     this.warehouseId = +(this.route.snapshot.queryParamMap.get('warehouseId') || 0);
 
     if (this.salesReturnId) {
@@ -71,12 +71,10 @@ export class SalesReturnComponent implements OnInit {
     }
 
     this.route.params.subscribe(params => {
-      const newSalesOrderId = +params['salesOrderId'];
       const newSalesReturnId = +params['salesReturnId'];
-      if (newSalesOrderId !== this.salesOrderId || newSalesReturnId !== this.salesReturnId) {
-        this.salesOrderId = newSalesOrderId || 0;
+      if (newSalesReturnId !== this.salesReturnId) {
         this.salesReturnId = newSalesReturnId || 0;
-        if (this.salesReturnId || this.salesOrderId) {
+        if (this.salesReturnId ) {
           this.loadReturn();
         } else {
           this.return = null;
@@ -85,6 +83,32 @@ export class SalesReturnComponent implements OnInit {
         }
       }
     });
+
+    this.route.queryParams.subscribe(params => {
+      this.deliveryNoteOrderId = +(params['deliveryNoteOrderId'] || 0);
+      this.warehouseId = +(params['warehouseId'] || this.warehouseId || 0);
+    });
+  }
+
+  private getContextQueryParams(): { warehouseId: number; deliveryNoteOrderId?: number } {
+    const resolvedDeliveryNoteOrderId = this.deliveryNoteOrderId || this.return?.deliveryNoteOrderId || 0;
+    return {
+      warehouseId: this.warehouseId || this.return?.warehouseId || 0,
+      deliveryNoteOrderId: resolvedDeliveryNoteOrderId || undefined
+    };
+  }
+
+
+  get hasDeliveryNoteReference(): boolean {
+    return (this.deliveryNoteOrderId || this.return?.deliveryNoteOrderId || 0) > 0;
+  }
+
+  get hasSalesReference(): boolean {
+    return !this.hasDeliveryNoteReference && (this.return?.salesOrderId || 0) > 0;
+  }
+
+  get salesOrderId(): number {
+    return this.return?.salesOrderId || 0;
   }
 
   loadReturn(): void {
@@ -98,6 +122,7 @@ export class SalesReturnComponent implements OnInit {
           this.return = res.data;
          console.log("return", this.return);
           this.warehouseId = res.data.warehouseId || this.warehouseId;
+          this.deliveryNoteOrderId = this.deliveryNoteOrderId || res.data.deliveryNoteOrderId || 0;
 
           if (this.return?.salesReturnOrderId) {
             this.loadReturnItems(this.return.salesReturnOrderId);
@@ -115,6 +140,7 @@ export class SalesReturnComponent implements OnInit {
 
       },
       error: (err: any) => {
+        console.log(err);
         if (err.status === 404) {
           this.return = null;
           this.returnItems = [];
@@ -149,8 +175,8 @@ export class SalesReturnComponent implements OnInit {
 
   onAddReturn(): void {
     this.router.navigate(
-      ['/processes/sales/sales-return-form', this.salesOrderId || 0],
-      { queryParams: { warehouseId: this.warehouseId || 0 } }
+      ['/processes/sales/sales-return-form', 0],
+      { queryParams: this.getContextQueryParams() }
     );
   }
 
@@ -159,7 +185,7 @@ export class SalesReturnComponent implements OnInit {
       this.router.navigate([
         '/processes/sales/add-sales-return-item',
         this.return.salesReturnOrderId,
-        this.salesOrderId || this.return.salesOrderId || 0,
+        0,
         this.warehouseId || this.return.warehouseId || 0
       ]);
     } else {
@@ -173,7 +199,7 @@ export class SalesReturnComponent implements OnInit {
   }
 
   hasReference(): boolean {
-    return this.return?.salesOrderId !== null && this.return?.salesOrderId !== undefined && this.return?.salesOrderId !== 0;
+    return  (this.return?.deliveryNoteOrderId || this.deliveryNoteOrderId || 0) > 0;
   }
 
   onEditReturn(): void {
@@ -181,8 +207,8 @@ export class SalesReturnComponent implements OnInit {
       return;
     }
     this.router.navigate(
-      ['/processes/sales/sales-return-form', this.salesOrderId || 0, this.return.salesReturnOrderId],
-      { queryParams: { warehouseId: this.warehouseId || this.return.warehouseId || 0 } }
+      ['/processes/sales/sales-return-form', 0, this.return.salesReturnOrderId],
+      { queryParams: this.getContextQueryParams() }
     );
   }
 
@@ -216,11 +242,11 @@ export class SalesReturnComponent implements OnInit {
     if (item.salesReturnOrderItemId) {
       this.router.navigate([
         '/processes/sales/return-batches',
-        this.salesOrderId,
+        0,
         this.salesReturnId,
         item.salesReturnOrderItemId,
         item.quantity
-      ]);
+      ], { queryParams: this.getContextQueryParams() });
     }
   }
 
@@ -252,13 +278,25 @@ export class SalesReturnComponent implements OnInit {
   }
 
   onBackToSalesItems(): void {
-    const targetSalesOrderId = this.salesOrderId || this.return?.salesOrderId || 0;
-    if (targetSalesOrderId) {
-      this.router.navigate(['/processes/sales/sales-items', targetSalesOrderId]);
+    const targetDeliveryNoteOrderId = this.deliveryNoteOrderId || this.return?.deliveryNoteOrderId || 0;
+    if (targetDeliveryNoteOrderId) {
+      this.router.navigate(
+        ['/processes/sales/delivery-note-order', 0, targetDeliveryNoteOrderId],
+        { queryParams: { warehouseId: this.warehouseId || this.return?.warehouseId || 0 } }
+      );
     }
   }
 
   onBackToReturns(): void {
+    const targetDeliveryNoteOrderId = this.deliveryNoteOrderId || this.return?.deliveryNoteOrderId || 0;
+    if (targetDeliveryNoteOrderId) {
+      this.router.navigate(
+        ['/processes/sales/delivery-note-order', 0, targetDeliveryNoteOrderId],
+        { queryParams: { warehouseId: this.warehouseId || this.return?.warehouseId || 0 } }
+      );
+      return;
+    }
+
     const targetWarehouseId = this.warehouseId || this.return?.warehouseId || 0;
     if (targetWarehouseId) {
       this.router.navigate(['/processes/sales/sales-return-orders', targetWarehouseId]);

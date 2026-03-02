@@ -17,9 +17,9 @@ import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
 import { SalesReturnService } from '../../Services/sales-return.service';
 import { Return } from '../../Models/sales-return-model';
-import { SalesService } from '../../Services/sales.service';
 import { Customer } from '../../Models/sales-model';
 import { ApprovalService } from '../../../approval-process/Services/approval.service';
+import { SearchCustomerModalComponent } from '../../search-customer-modal/search-customer-modal.component';
 
 type SalesReturnOrderListItem = Return & {
   salesOrderId?: number;
@@ -45,7 +45,8 @@ type SalesReturnOrderListItem = Return & {
     UtilitiesModule,
     ModalModule,
     IconDirective,
-    DatePipe
+    DatePipe,
+    SearchCustomerModalComponent
   ],
   templateUrl: './sales-return-orders.component.html',
   styleUrl: './sales-return-orders.component.scss',
@@ -56,6 +57,10 @@ export class SalesReturnOrdersComponent implements OnInit, OnDestroy {
   filteredReturns: SalesReturnOrderListItem[] = [];
   customers: Customer[] = [];
   warehouseId: number = 0;
+  selectedCustomerDisplay: string = '';
+
+  // Customer picker modal
+  showCustomerModal: boolean = false;
 
   currentPage: number = 1;
   itemsPerPage: number = 10;
@@ -84,7 +89,6 @@ export class SalesReturnOrdersComponent implements OnInit, OnDestroy {
     private router: Router,
     private fb: FormBuilder,
     private returnService: SalesReturnService,
-    private salesService: SalesService,
     private approvalService: ApprovalService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
@@ -99,13 +103,14 @@ export class SalesReturnOrdersComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
-    this.loadCustomers();
+    //this.loadCustomers();
 
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
       if (this.isSearching) {
         return;
       }
 
+      
       const page = params['page'] ? +params['page'] : 1;
       const pageSize = params['pageSize'] ? +params['pageSize'] : 10;
       const status = params['status'] || '';
@@ -126,6 +131,7 @@ export class SalesReturnOrdersComponent implements OnInit, OnDestroy {
         postingDate: postingDate || null,
         dueDate: dueDate || null
       });
+      this.syncSelectedCustomerDisplay();
 
       if (this.warehouseId) {
         this.loadReturns();
@@ -258,33 +264,47 @@ export class SalesReturnOrdersComponent implements OnInit, OnDestroy {
     });
   }
 
-  loadCustomers(): void {
-    this.salesService.getCustomer().subscribe({
-      next: (res: any) => {
-        const rawCustomers = Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res?.data?.data)
-          ? res.data.data
-          : Array.isArray(res)
-          ? res
-          : [];
+  onOpenCustomerModal(): void {
+    this.showCustomerModal = true;
+  }
 
-        this.customers = rawCustomers
-          .map((c: any) => ({
-            customerId: c.customerId ?? c.id ?? c.CustomerId,
-            customerName: c.customerName ?? c.name ?? c.CustomerName ?? '',
-            customerCode: c.customerCode ?? c.code ?? c.CustomerCode ?? ''
-          }))
-          .filter((c: Customer) => !!c.customerId);
+  onCustomerModalVisibleChange(visible: boolean): void {
+    this.showCustomerModal = visible;
+  }
 
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading customers:', err);
-        this.toastr.error('Failed to load customers. Please try again.', 'Error');
-        this.cdr.detectChanges();
-      }
-    });
+  onSelectCustomer(customer: Customer): void {
+    this.form.patchValue({ customerId: customer.customerId });
+    this.filterCustomerId = customer.customerId;
+    this.selectedCustomerDisplay = customer.customerCode || customer.customerName || `#${customer.customerId}`;
+    this.showCustomerModal = false;
+
+    if (!this.customers.some(c => c.customerId === customer.customerId)) {
+      this.customers = [...this.customers, customer];
+    }
+
+    this.cdr.detectChanges();
+  }
+
+  onClearCustomer(): void {
+    this.form.patchValue({ customerId: '' });
+    this.filterCustomerId = null;
+    this.selectedCustomerDisplay = '';
+    this.cdr.detectChanges();
+  }
+
+  private syncSelectedCustomerDisplay(): void {
+    const customerIdValue = this.form.get('customerId')?.value;
+    const customerId = customerIdValue ? +customerIdValue : null;
+
+    if (!customerId) {
+      this.selectedCustomerDisplay = '';
+      return;
+    }
+
+    const selectedCustomer = this.customers.find(c => c.customerId === customerId);
+    this.selectedCustomerDisplay = selectedCustomer
+      ? (selectedCustomer.customerCode || selectedCustomer.customerName || `#${customerId}`)
+      : `#${customerId}`;
   }
 
   onNextPage(event?: Event): void {
@@ -323,9 +343,15 @@ export class SalesReturnOrdersComponent implements OnInit, OnDestroy {
   }
 
   onViewReturnOrder(returnOrder: SalesReturnOrderListItem): void {
+    const deliveryNoteOrderId = Number(returnOrder.deliveryNoteOrderId || 0);
     this.router.navigate(
       ['/processes/sales/sales-return-order', 0, returnOrder.salesReturnOrderId],
-      { queryParams: { warehouseId: this.warehouseId } }
+      {
+        queryParams: {
+          warehouseId: this.warehouseId,
+          deliveryNoteOrderId: deliveryNoteOrderId || undefined
+        }
+      }
     );
   }
 

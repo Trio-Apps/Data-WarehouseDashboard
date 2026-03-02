@@ -159,14 +159,15 @@
           <!-- Supplier Filter -->
           <c-col [md]="2">
             <label class="form-label">Supplier</label>
-            <select cFormControl formControlName="supplierId" class="form-select">
-              <option value="">-- All Suppliers --</option>
-              @for (supplier of suppliers; track supplier.supplierId) {
-                <option [value]="supplier.supplierId">
-                  {{ supplier.supplierCode || supplier.supplierName }}
-                </option>
-              }
-            </select>
+            <input
+              cFormControl
+              type="text"
+              class="form-control supplier-picker-display"
+              [value]="selectedSupplierDisplay"
+              placeholder="-- All Suppliers --"
+              readonly
+              (click)="onOpenSupplierModal()" />
+            <input type="hidden" formControlName="supplierId" />
           </c-col>
 
           <!-- Posting Date Filter -->
@@ -205,3 +206,10 @@
     </div>
   </c-card>
 </div>
+
+<app-search-supplier-modal
+  [visible]="showSupplierModal"
+  (visibleChange)="onSupplierModalVisibleChange($event)"
+  (supplierSelected)="onSupplierSelected($event)"
+  (clearSelected)="onSupplierCleared()">
+</app-search-supplier-modal>

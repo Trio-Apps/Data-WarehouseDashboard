@@ -17,6 +17,8 @@ import { Customer } from '../../Models/sales-model';
 import { SalesService } from '../../Services/sales.service';
 import { AddReturn, Return, UpdateReturn } from '../../Models/sales-return-model';
 import { SalesReturnService } from '../../Services/sales-return.service';
+import { DeliveryNoteService } from '../../Services/delivery-note.service';
+import { SearchCustomerModalComponent } from '../../search-customer-modal/search-customer-modal.component';
 
 @Component({
   selector: 'app-sales-return-form',
@@ -31,7 +33,8 @@ import { SalesReturnService } from '../../Services/sales-return.service';
     GutterDirective,
     FormCheckComponent,
     FormCheckInputDirective,
-    FormCheckLabelDirective
+    FormCheckLabelDirective,
+    SearchCustomerModalComponent
   ],
   templateUrl: './sales-return-form.component.html',
   styleUrl: './sales-return-form.component.scss',
@@ -41,8 +44,11 @@ export class SalesReturnFormComponent implements OnInit {
   isEditMode: boolean = false;
   salesReturnId: number | null = null;
   salesOrderId: number = 0;
+  deliveryNoteOrderId: number = 0;
   warehouseId: number = 0;
   customers: Customer[] = [];
+  selectedCustomerDisplay: string = '';
+  showCustomerModal: boolean = false;
   loading: boolean = false;
   saving: boolean = false;
   returnOrder: Return | null = null;
@@ -51,6 +57,7 @@ export class SalesReturnFormComponent implements OnInit {
     private fb: FormBuilder,
     private returnService: SalesReturnService,
     private salesService: SalesService,
+    private deliveryNoteService: DeliveryNoteService,
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
@@ -60,6 +67,7 @@ export class SalesReturnFormComponent implements OnInit {
   ngOnInit(): void {
     this.salesOrderId = +this.route.snapshot.paramMap.get('salesOrderId')!;
     this.salesReturnId = +this.route.snapshot.paramMap.get('salesReturnId')! || null;
+    this.deliveryNoteOrderId = +(this.route.snapshot.queryParamMap.get('deliveryNoteOrderId') || 0);
     this.isEditMode = !!this.salesReturnId;
     this.warehouseId = +(this.route.snapshot.queryParamMap.get('warehouseId') || 0);
 
@@ -69,8 +77,28 @@ export class SalesReturnFormComponent implements OnInit {
     if (this.isEditMode && this.salesReturnId) {
       this.loadReturn();
     } else {
-      this.loadWarehouseFromSales();
+      this.loadWarehouseFromReference();
     }
+  }
+
+  get hasSalesOrderReference(): boolean {
+    return this.salesOrderId > 0;
+  }
+
+  get hasDeliveryNoteReference(): boolean {
+    return this.deliveryNoteOrderId > 0;
+  }
+
+  get hasAnyReference(): boolean {
+    return this.hasSalesOrderReference || this.hasDeliveryNoteReference;
+  }
+
+  get requiresManualCustomerSelection(): boolean {
+    if (this.isEditMode) {
+      return !this.returnOrder?.salesOrderId && !this.returnOrder?.deliveryNoteOrderId;
+    }
+
+    return !this.hasAnyReference;
   }
 
   initializeForm(): void {
@@ -84,65 +112,56 @@ export class SalesReturnFormComponent implements OnInit {
   }
 
   private configureFormForWithoutReference(): void {
-    if (this.salesOrderId !== 0) {
+    if (this.salesOrderId !== 0 || this.deliveryNoteOrderId !== 0) {
       return;
     }
 
     this.form.get('customerId')?.setValidators([Validators.required]);
     this.form.get('customerId')?.updateValueAndValidity();
-    this.loadCustomers();
   }
 
-  private loadWarehouseFromSales(): void {
-    if (!this.salesOrderId) {
+  private loadWarehouseFromReference(): void {
+    if (this.deliveryNoteOrderId) {
+      this.deliveryNoteService.getDeliveryNoteById(this.deliveryNoteOrderId).subscribe({
+        next: (res: any) => {
+          this.applyReferenceData(res?.data);
+        },
+        error: () => {
+          this.toastr.warning('Unable to detect warehouse automatically', 'Warning');
+        }
+      });
       return;
     }
-    this.salesService.getSalesById(this.salesOrderId).subscribe({
-      next: (res: any) => {
-        if (res.data?.warehouseId) {
-          this.warehouseId = res.data.warehouseId;
+
+    if (this.salesOrderId) {
+      this.salesService.getSalesById(this.salesOrderId).subscribe({
+        next: (res: any) => {
+          this.applyReferenceData(res?.data);
+        },
+        error: () => {
+          this.toastr.warning('Unable to detect warehouse automatically', 'Warning');
         }
-        if (res.data?.customerId && !this.form.get('customerId')?.value) {
-          this.form.patchValue({ customerId: res.data.customerId });
-        }
-        this.cdr.detectChanges();
-      },
-      error: () => {
-        this.toastr.warning('Unable to detect warehouse automatically', 'Warning');
-      }
-    });
+      });
+    }
   }
 
-  private loadCustomers(): void {
-    this.loading = true;
-    this.salesService.getCustomer().subscribe({
-      next: (res: any) => {
-        const rawCustomers = Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res?.data?.data)
-          ? res.data.data
-          : Array.isArray(res)
-          ? res
-          : [];
+  private applyReferenceData(referenceData: any): void {
+    if (!referenceData) {
+      return;
+    }
 
-        this.customers = rawCustomers
-          .map((c: any) => ({
-            customerId: c.customerId ?? c.id ?? c.CustomerId,
-            customerName: c.customerName ?? c.name ?? c.CustomerName ?? '',
-            customerCode: c.customerCode ?? c.code ?? c.CustomerCode ?? ''
-          }))
-          .filter((c: Customer) => !!c.customerId);
+    if (referenceData.warehouseId) {
+      this.warehouseId = referenceData.warehouseId;
+    }
+    if (referenceData.customerId && !this.form.get('customerId')?.value) {
+      this.form.patchValue({ customerId: referenceData.customerId });
+    }
+    if (referenceData.deliveryNoteOrderId && !this.deliveryNoteOrderId) {
+      this.deliveryNoteOrderId = +referenceData.deliveryNoteOrderId;
+    }
 
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading customers:', err);
-        this.loading = false;
-        this.toastr.error('Failed to load customers. Please try again.', 'Error');
-        this.cdr.detectChanges();
-      }
-    });
+    this.syncSelectedCustomerDisplay();
+    this.cdr.detectChanges();
   }
 
   loadReturn(): void {
@@ -162,6 +181,7 @@ export class SalesReturnFormComponent implements OnInit {
 
           this.warehouseId = this.returnOrder?.warehouseId || this.warehouseId;
           this.salesOrderId = this.salesOrderId || this.returnOrder?.salesOrderId || 0;
+          this.deliveryNoteOrderId = this.deliveryNoteOrderId || this.returnOrder?.deliveryNoteOrderId || 0;
 
           this.form.patchValue({
             postingDate: postingDateStr,
@@ -170,11 +190,11 @@ export class SalesReturnFormComponent implements OnInit {
             customerId: this.returnOrder?.customerId || null,
             isDraft: this.returnOrder?.isDraft !== undefined ? this.returnOrder?.isDraft : true
           });
+          this.syncSelectedCustomerDisplay();
 
-          if (!this.returnOrder?.salesOrderId) {
+          if (!this.returnOrder?.salesOrderId && !this.returnOrder?.deliveryNoteOrderId) {
             this.form.get('customerId')?.setValidators([Validators.required]);
             this.form.get('customerId')?.updateValueAndValidity();
-            this.loadCustomers();
           }
         }
         this.loading = false;
@@ -200,6 +220,49 @@ export class SalesReturnFormComponent implements OnInit {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}T00:00:00.000Z`;
+  }
+
+  onOpenCustomerModal(): void {
+    this.showCustomerModal = true;
+  }
+
+  onCustomerModalVisibleChange(visible: boolean): void {
+    this.showCustomerModal = visible;
+  }
+
+  onSelectCustomer(customer: Customer): void {
+    this.form.patchValue({ customerId: customer.customerId });
+    this.selectedCustomerDisplay = customer.customerCode || customer.customerName || `#${customer.customerId}`;
+    this.showCustomerModal = false;
+
+    if (!this.customers.some(c => c.customerId === customer.customerId)) {
+      this.customers = [...this.customers, customer];
+    }
+
+    this.form.get('customerId')?.markAsTouched();
+    this.cdr.detectChanges();
+  }
+
+  onClearCustomer(): void {
+    this.form.patchValue({ customerId: '' });
+    this.selectedCustomerDisplay = '';
+    this.form.get('customerId')?.markAsTouched();
+    this.cdr.detectChanges();
+  }
+
+  private syncSelectedCustomerDisplay(): void {
+    const customerIdValue = this.form.get('customerId')?.value;
+    const customerId = customerIdValue ? +customerIdValue : null;
+
+    if (!customerId) {
+      this.selectedCustomerDisplay = '';
+      return;
+    }
+
+    const selectedCustomer = this.customers.find(c => c.customerId === customerId);
+    this.selectedCustomerDisplay = selectedCustomer
+      ? (selectedCustomer.customerCode || selectedCustomer.customerName || `#${customerId}`)
+      : `#${customerId}`;
   }
 
   onSubmit(): void {
@@ -232,14 +295,28 @@ export class SalesReturnFormComponent implements OnInit {
       ...payloadBase
     };
 
-    const withReferenceData = {
-      warehouseId: this.warehouseId,
-      salesOrderId: this.salesOrderId,
-      ...payloadBase
-    };
+    const withReferenceData = this.deliveryNoteOrderId
+      ? {
+          warehouseId: this.warehouseId,
+          deliveryNoteOrderId: this.deliveryNoteOrderId,
+          salesOrderId: this.salesOrderId || undefined,
+          ...payloadBase
+        }
+      : {
+          warehouseId: this.warehouseId,
+          salesOrderId: this.salesOrderId,
+          ...payloadBase
+        };
+
+    const hasReference = Boolean(
+      (this.returnOrder?.salesOrderId || 0) > 0 ||
+      (this.returnOrder?.deliveryNoteOrderId || 0) > 0
+    );
+
+    const hasReferenceForCreate = Boolean(this.salesOrderId || this.deliveryNoteOrderId);
 
     const operation = this.isEditMode && this.salesReturnId
-      ? this.returnOrder?.salesOrderId === 0
+      ? !hasReference
         ? this.returnService.updateReturn(this.salesReturnId, {
             salesReturnOrderId: this.salesReturnId,
             ...withoutReferenceData
@@ -248,7 +325,7 @@ export class SalesReturnFormComponent implements OnInit {
             salesReturnOrderId: this.salesReturnId,
             ...withReferenceData
           } as UpdateReturn)
-      : this.salesOrderId === 0
+      : !hasReferenceForCreate
       ? this.returnService.createReturnWithOutReference(withoutReferenceData as AddReturn)
       : useDefaultLines
       ? this.returnService.createReturnWithDefaultItems(withReferenceData as AddReturn)
@@ -260,9 +337,17 @@ export class SalesReturnFormComponent implements OnInit {
         const message = this.isEditMode ? 'Return order updated successfully' : 'Return order created successfully';
         this.toastr.success(message, 'Success');
         this.returnOrder = res.data;
+        const referenceDeliveryNoteOrderId =
+          this.returnOrder?.deliveryNoteOrderId || this.deliveryNoteOrderId || 0;
+
         this.router.navigate(
           ['/processes/sales/sales-return-order', this.returnOrder?.salesOrderId || this.salesOrderId || 0, this.returnOrder?.salesReturnOrderId],
-          { queryParams: { warehouseId: this.warehouseId || this.returnOrder?.warehouseId || 0 } }
+          {
+            queryParams: {
+              warehouseId: this.warehouseId || this.returnOrder?.warehouseId || 0,
+              deliveryNoteOrderId: referenceDeliveryNoteOrderId || undefined
+            }
+          }
         );
         this.cdr.detectChanges();
       },
@@ -277,9 +362,22 @@ export class SalesReturnFormComponent implements OnInit {
   }
 
   onCancel(): void {
+    const queryParams = {
+      warehouseId: this.warehouseId || 0,
+      deliveryNoteOrderId: this.deliveryNoteOrderId || undefined
+    };
+
     if (this.isEditMode && this.salesReturnId) {
       this.router.navigate(
         ['/processes/sales/sales-return-order', this.salesOrderId || 0, this.salesReturnId],
+        { queryParams }
+      );
+      return;
+    }
+
+    if (this.deliveryNoteOrderId) {
+      this.router.navigate(
+        ['/processes/sales/delivery-note-order', 0, this.deliveryNoteOrderId],
         { queryParams: { warehouseId: this.warehouseId || 0 } }
       );
       return;

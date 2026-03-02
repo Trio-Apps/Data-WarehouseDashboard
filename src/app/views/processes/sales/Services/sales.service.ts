@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable, of, switchMap } from 'rxjs';
 import { AddItemRequest, AddSalesBatchRequest, Sales, SalesResponse, UpdateItemRequest, UpdateSalesBatchRequest } from '../Models/sales-model';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
@@ -127,6 +127,76 @@ getSalesWithFilterationByWarehouse(
    */
   getCustomer(): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}Customer`, this.headerOption);
+  }
+
+  /**
+   * Search customers with pagination
+   */
+  getCustomersPaged(
+    pageNumber: number,
+    pageSize: number,
+    customerCode?: string,
+    customerName?: string
+  ): Observable<any> {
+    let params = new HttpParams();
+
+    if (customerCode) {
+      params = params.set('customerCode', customerCode);
+    }
+
+    if (customerName) {
+      params = params.set('customerName', customerName);
+    }
+
+    const safePage = pageNumber < 1 ? 1 : pageNumber;
+    const skip = (safePage - 1) * pageSize;
+
+    const requestByToken = (token: number) => this.http.get<any>(`${this.baseUrl}Customer/${token}/${pageSize}`, {
+      headers: this.headerOption.headers,
+      params
+    });
+
+    const extractItems = (res: any): any[] => {
+      const data = res?.data;
+      if (Array.isArray(data?.data)) return data.data;
+      if (Array.isArray(data?.items)) return data.items;
+      if (Array.isArray(data)) return data;
+      return [];
+    };
+
+    const matchesRequestedPage = (res: any): boolean => {
+      const current = Number(res?.data?.pageNumber);
+      return Number.isFinite(current) && current === safePage;
+    };
+
+    return requestByToken(safePage).pipe(
+      switchMap((primary) => {
+        if (safePage <= 1) {
+          return of(primary);
+        }
+
+        const primaryItems = extractItems(primary);
+        if (matchesRequestedPage(primary)) {
+          return of(primary);
+        }
+        if (primaryItems.length === 0 || skip !== safePage) {
+          return requestByToken(skip).pipe(
+            map((fallback) => {
+              const fallbackItems = extractItems(fallback);
+              if (matchesRequestedPage(fallback)) {
+                return fallback;
+              }
+              if (primaryItems.length === 0 && fallbackItems.length > 0) {
+                return fallback;
+              }
+              return primary;
+            })
+          );
+        }
+
+        return of(primary);
+      })
+    );
   }
 
   /**
