@@ -60,6 +60,9 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
   customers: Customer[] = [];
   warehouseId: number = 0;
   selectedCustomerDisplay: string = '';
+  showErrorModal: boolean = false;
+  selectedErrorMessage: string = '';
+  retryingDeliveryNoteIds: Set<number> = new Set<number>();
 
   // Customer picker modal
   showCustomerModal: boolean = false;
@@ -393,8 +396,11 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
         return 'badge bg-warning';
       case 'Processing':
         return 'badge bg-info';
+      case 'Completed':
       case 'Final':
         return 'badge bg-success';
+      case 'PartiallyFailed':
+        return 'badge bg-danger';
       default:
         return 'badge bg-secondary';
     }
@@ -423,6 +429,52 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  hasErrorMessage(returnOrder: DeliveryNoteOrderListItem): boolean {
+    return !!returnOrder.errorMessage?.trim();
+  }
+
+  onOpenErrorModal(returnOrder: DeliveryNoteOrderListItem): void {
+    this.selectedErrorMessage = returnOrder.errorMessage?.trim() || 'No error message available.';
+    this.showErrorModal = true;
+    this.cdr.detectChanges();
+  }
+
+  onErrorModalVisibleChange(visible: boolean): void {
+    this.showErrorModal = visible;
+    if (!visible) {
+      this.selectedErrorMessage = '';
+    }
+    this.cdr.detectChanges();
+  }
+
+  isRetryingSap(returnOrder: DeliveryNoteOrderListItem): boolean {
+    return !!returnOrder.deliveryNoteOrderId && this.retryingDeliveryNoteIds.has(returnOrder.deliveryNoteOrderId);
+  }
+
+  onRetrySap(returnOrder: DeliveryNoteOrderListItem): void {
+    const deliveryNoteOrderId = returnOrder.deliveryNoteOrderId;
+    if (!deliveryNoteOrderId || this.retryingDeliveryNoteIds.has(deliveryNoteOrderId)) {
+      return;
+    }
+
+    this.retryingDeliveryNoteIds.add(deliveryNoteOrderId);
+    this.returnService.retryDeliveryNoteSap(deliveryNoteOrderId).subscribe({
+      next: () => {
+        this.toastr.success(`Retry SAP requested for delivery note #${deliveryNoteOrderId}`, 'Success');
+        this.retryingDeliveryNoteIds.delete(deliveryNoteOrderId);
+        this.loadDeliveryNotes();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error retrying SAP:', err);
+        const errorMessage = err.error?.message || 'Failed to retry SAP. Please try again.';
+        this.toastr.error(errorMessage, 'Error');
+        this.retryingDeliveryNoteIds.delete(deliveryNoteOrderId);
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   private mapApprovalStatusText(value: string): string {

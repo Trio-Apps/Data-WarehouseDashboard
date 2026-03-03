@@ -1,3 +1,4 @@
+
 import { Component, Input, Output, EventEmitter, OnInit, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
@@ -87,7 +88,7 @@ export class AddItemModalComponent implements OnInit {
   loadItems(): void {
     if (!this.warehouseId) return;
 
-    this.salesService.getItemsByWarehouse(this.warehouseId).subscribe({
+    this.salesService.getItemForSalesByWarehouse(this.warehouseId).subscribe({
       next: (res: any) => {
         if (res.data) {
           this.items = res.data.map((item: any) => ({

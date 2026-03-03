@@ -5,6 +5,7 @@
   postingDate: string;
   dueDate: string;
   comment: string;
+  errorMessage?: string | null;
   supplierId?: number;
   supplierCode?:string;
   supplierName?: string;

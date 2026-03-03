@@ -63,6 +63,9 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
   warehouseId: number = 0;
   selectedSupplierDisplay: string = '';
   showSupplierModal: boolean = false;
+  showErrorModal: boolean = false;
+  selectedErrorMessage: string = '';
+  retryingReturnIds: Set<number> = new Set<number>();
 
   // Pagination
   currentPage: number = 1;
@@ -417,6 +420,9 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
         return 'badge bg-warning';
       case 'Processing':
         return 'badge bg-info';
+      case 'PartiallyFailed':
+        return 'badge bg-danger';
+      case 'Completed':
       case 'Final':
         return 'badge bg-success';
       default:
@@ -447,6 +453,52 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  hasErrorMessage(returnOrder: GoodsReturnOrderListItem): boolean {
+    return !!returnOrder.errorMessage?.trim();
+  }
+
+  onOpenErrorModal(returnOrder: GoodsReturnOrderListItem): void {
+    this.selectedErrorMessage = returnOrder.errorMessage?.trim() || 'No error message available.';
+    this.showErrorModal = true;
+    this.cdr.detectChanges();
+  }
+
+  onErrorModalVisibleChange(visible: boolean): void {
+    this.showErrorModal = visible;
+    if (!visible) {
+      this.selectedErrorMessage = '';
+    }
+    this.cdr.detectChanges();
+  }
+
+  isRetryingSap(returnOrder: GoodsReturnOrderListItem): boolean {
+    return !!returnOrder.goodsReturnOrderId && this.retryingReturnIds.has(returnOrder.goodsReturnOrderId);
+  }
+
+  onRetrySap(returnOrder: GoodsReturnOrderListItem): void {
+    const goodsReturnOrderId = returnOrder.goodsReturnOrderId;
+    if (!goodsReturnOrderId || this.retryingReturnIds.has(goodsReturnOrderId)) {
+      return;
+    }
+
+    this.retryingReturnIds.add(goodsReturnOrderId);
+    this.returnService.retryReturnSap(goodsReturnOrderId).subscribe({
+      next: () => {
+        this.toastr.success(`Retry SAP requested for return #${goodsReturnOrderId}`, 'Success');
+        this.retryingReturnIds.delete(goodsReturnOrderId);
+        this.loadReturns();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error retrying SAP:', err);
+        const errorMessage = err.error?.message || 'Failed to retry SAP. Please try again.';
+        this.toastr.error(errorMessage, 'Error');
+        this.retryingReturnIds.delete(goodsReturnOrderId);
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   private mapApprovalStatusText(value: string): string {

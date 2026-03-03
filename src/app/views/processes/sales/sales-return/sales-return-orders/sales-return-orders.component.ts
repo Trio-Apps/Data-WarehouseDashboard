@@ -58,6 +58,9 @@ export class SalesReturnOrdersComponent implements OnInit, OnDestroy {
   customers: Customer[] = [];
   warehouseId: number = 0;
   selectedCustomerDisplay: string = '';
+  showErrorModal: boolean = false;
+  selectedErrorMessage: string = '';
+  retryingReturnIds: Set<number> = new Set<number>();
 
   // Customer picker modal
   showCustomerModal: boolean = false;
@@ -372,8 +375,11 @@ export class SalesReturnOrdersComponent implements OnInit, OnDestroy {
         return 'badge bg-warning';
       case 'Processing':
         return 'badge bg-info';
+      case 'Completed':
       case 'Final':
         return 'badge bg-success';
+      case 'PartiallyFailed':
+        return 'badge bg-danger';
       default:
         return 'badge bg-secondary';
     }
@@ -402,6 +408,52 @@ export class SalesReturnOrdersComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  hasErrorMessage(returnOrder: SalesReturnOrderListItem): boolean {
+    return !!returnOrder.errorMessage?.trim();
+  }
+
+  onOpenErrorModal(returnOrder: SalesReturnOrderListItem): void {
+    this.selectedErrorMessage = returnOrder.errorMessage?.trim() || 'No error message available.';
+    this.showErrorModal = true;
+    this.cdr.detectChanges();
+  }
+
+  onErrorModalVisibleChange(visible: boolean): void {
+    this.showErrorModal = visible;
+    if (!visible) {
+      this.selectedErrorMessage = '';
+    }
+    this.cdr.detectChanges();
+  }
+
+  isRetryingSap(returnOrder: SalesReturnOrderListItem): boolean {
+    return !!returnOrder.salesReturnOrderId && this.retryingReturnIds.has(returnOrder.salesReturnOrderId);
+  }
+
+  onRetrySap(returnOrder: SalesReturnOrderListItem): void {
+    const salesReturnOrderId = returnOrder.salesReturnOrderId;
+    if (!salesReturnOrderId || this.retryingReturnIds.has(salesReturnOrderId)) {
+      return;
+    }
+
+    this.retryingReturnIds.add(salesReturnOrderId);
+    this.returnService.retrySalesReturnSap(salesReturnOrderId).subscribe({
+      next: () => {
+        this.toastr.success(`Retry SAP requested for return #${salesReturnOrderId}`, 'Success');
+        this.retryingReturnIds.delete(salesReturnOrderId);
+        this.loadReturns();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error retrying SAP:', err);
+        const errorMessage = err.error?.message || 'Failed to retry SAP. Please try again.';
+        this.toastr.error(errorMessage, 'Error');
+        this.retryingReturnIds.delete(salesReturnOrderId);
+        this.cdr.detectChanges();
+      }
+    });
   }
 
   private mapApprovalStatusText(value: string): string {

@@ -17,6 +17,7 @@ import { PurchaseService } from '../../Services/purchase.service';
 import { GoodsReturnService } from '../../Services/goods-return.service';
 import { AddReturn, Return, UpdateReturn } from '../../Models/retrun-model';
 import { Supplier } from '../../Models/purchase.model';
+import { SearchSupplierModalComponent } from '../../search-supplier-modal/search-supplier-modal.component';
 
 @Component({
   selector: 'app-goods-return-form',
@@ -31,7 +32,8 @@ import { Supplier } from '../../Models/purchase.model';
     GutterDirective,
     FormCheckComponent,
     FormCheckInputDirective,
-    FormCheckLabelDirective
+    FormCheckLabelDirective,
+    SearchSupplierModalComponent
   ],
   templateUrl: './goods-return-form.component.html',
   styleUrl: './goods-return-form.component.scss',
@@ -43,7 +45,8 @@ export class GoodsReturnFormComponent implements OnInit {
   purchaseOrderId: number = 0;
   receiptOrderId: number = 0;
   warehouseId: number = 0;
-  suppliers: Supplier[] = [];
+  showSupplierModal: boolean = false;
+  selectedSupplierDisplay: string = '';
   loading: boolean = false;
   saving: boolean = false;
   returnOrder: Return | null = null;
@@ -93,7 +96,6 @@ export class GoodsReturnFormComponent implements OnInit {
 
     this.form.get('supplierId')?.setValidators([Validators.required]);
     this.form.get('supplierId')?.updateValueAndValidity();
-    this.loadSuppliers();
   }
 
   private loadWarehouseFromPurchase(): void {
@@ -107,42 +109,17 @@ export class GoodsReturnFormComponent implements OnInit {
         }
         if (res.data?.supplierId && !this.form.get('supplierId')?.value) {
           this.form.patchValue({ supplierId: res.data.supplierId });
+          this.selectedSupplierDisplay =
+            res.data?.supplier?.supplierCode ||
+            res.data?.supplier?.supplierName ||
+            res.data?.supplierCode ||
+            res.data?.supplierName ||
+            `#${res.data.supplierId}`;
         }
         this.cdr.detectChanges();
       },
       error: () => {
         this.toastr.warning('Unable to detect warehouse automatically', 'Warning');
-      }
-    });
-  }
-
-  private loadSuppliers(): void {
-    this.loading = true;
-    this.purchaseService.getSuppliers().subscribe({
-      next: (res: any) => {
-        const rawSuppliers = Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res?.data?.data)
-          ? res.data.data
-          : Array.isArray(res)
-          ? res
-          : [];
-
-        this.suppliers = rawSuppliers
-          .map((s: any) => ({
-            supplierId: s.supplierId ?? s.id ?? s.SupplierId,
-            supplierName: s.supplierName ?? s.name ?? s.SupplierName ?? '',
-            supplierCode: s.supplierCode ?? s.code ?? s.SupplierCode ?? ''
-          }))
-          .filter((s: Supplier) => !!s.supplierId);
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading suppliers:', err);
-        this.loading = false;
-        this.toastr.error('Failed to load suppliers. Please try again.', 'Error');
-        this.cdr.detectChanges();
       }
     });
   }
@@ -171,6 +148,13 @@ export class GoodsReturnFormComponent implements OnInit {
             supplierId: this.returnOrder?.supplierId || null,
             isDraft: this.returnOrder?.isDraft !== undefined ? this.returnOrder?.isDraft : true
           });
+
+          if (this.returnOrder?.supplierId) {
+            this.selectedSupplierDisplay =
+              this.returnOrder?.supplierCode ||
+              this.returnOrder?.supplierName ||
+              `#${this.returnOrder.supplierId}`;
+          }
         }
         this.loading = false;
         this.cdr.detectChanges();
@@ -182,6 +166,29 @@ export class GoodsReturnFormComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  onOpenSupplierModal(): void {
+    this.showSupplierModal = true;
+  }
+
+  onSupplierModalVisibleChange(visible: boolean): void {
+    this.showSupplierModal = visible;
+  }
+
+  onSupplierSelected(supplier: Supplier): void {
+    this.form.patchValue({ supplierId: supplier.supplierId });
+    this.selectedSupplierDisplay =
+      supplier.supplierCode || supplier.supplierName || `#${supplier.supplierId}`;
+    this.showSupplierModal = false;
+    this.cdr.detectChanges();
+  }
+
+  onSupplierCleared(): void {
+    this.form.patchValue({ supplierId: '' });
+    this.selectedSupplierDisplay = '';
+    this.showSupplierModal = false;
+    this.cdr.detectChanges();
   }
 
   private formatDateToISOString(date: string | Date): string {
@@ -254,10 +261,36 @@ export class GoodsReturnFormComponent implements OnInit {
         this.saving = false;
         const message = this.isEditMode ? 'Return order updated successfully' : 'Return order created successfully';
         this.toastr.success(message, 'Success');
-        this.returnOrder = res.data;
-        //const returnId = this.goodsReturnId || res?.data?.goodsReturnOrderId || res?.data?.returnOrderId;
-        this.router.navigate(['/processes/purchases/goods-return-order', this.purchaseOrderId, this.returnOrder?.receiptPurchaseOrderId,this.returnOrder?.goodsReturnOrderId]);
-        console.log("goods", res);
+        const responseData = res?.data ?? {};
+        this.returnOrder = responseData;
+
+        const savedReturnId = Number(
+          responseData?.goodsReturnOrderId ??
+          responseData?.returnOrderId ??
+          responseData?.returnReceiptOrderId ??
+          this.goodsReturnId ??
+          0
+        );
+
+        const targetPurchaseOrderId = Number(responseData?.purchaseOrderId ?? this.purchaseOrderId ?? 0);
+        const targetReceiptId = Number(
+          responseData?.receiptPurchaseOrderId ??
+          this.receiptOrderId ??
+          0
+        );
+
+        if (savedReturnId > 0) {
+          this.router.navigate([
+            '/processes/purchases/goods-return-order',
+            targetPurchaseOrderId > 0 ? targetPurchaseOrderId : 0,
+            targetReceiptId > 0 ? targetReceiptId : 0,
+            savedReturnId
+          ]);
+        } else {
+          this.toastr.warning('Return saved but failed to resolve return id. Redirected to returns list.', 'Warning');
+          this.router.navigate(['/processes/purchases/goods-return-orders', this.warehouseId || 0]);
+        }
+
         this.cdr.detectChanges();
       },
       error: (err) => {
