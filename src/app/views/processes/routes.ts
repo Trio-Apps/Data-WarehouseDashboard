@@ -15,6 +15,10 @@ export const routes: Routes = [
     loadChildren: () => import('./approval-process/routes').then((m) => m.routes)
   },
   {
+    path: 'production',
+    loadChildren: () => import('./production/routes').then((m) => m.routes)
+  },
+  {
         path: 'item-barcodes/:itemId',
         loadComponent: () => import('./item-barcodes/item-barcodes.component').then(m => m.ItemBarcodesComponent),
         data: {
@@ -29,4 +33,3 @@ export const routes: Routes = [
         }
       },
 ];
-

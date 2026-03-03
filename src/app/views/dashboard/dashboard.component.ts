@@ -89,7 +89,7 @@ export class DashboardComponent implements OnInit {
       description: 'Manufacturing processes',
       icon: 'cilTask',
       iconClass: 'icon-orange',
-      disabled: true,
+      route: '/processes/production/menu',
       permissions: ['Warehouses.Get']
     },
     {

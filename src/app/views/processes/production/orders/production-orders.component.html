@@ -1,0 +1,116 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <div>
+        <h4 class="mb-0 header-title">Production Orders Management</h4>
+        <p class="header-subtitle mb-0">Managing production orders for warehouse ID {{ warehouseId }}</p>
+      </div>
+      <div class="d-flex gap-2">
+        <button cButton color="light" class="icon-button" (click)="onRefresh()" title="Refresh">
+          <svg cIcon name="cil-reload"></svg>
+        </button>
+        <button cButton color="primary" class="header-button" (click)="onAddOrder()">
+          <svg cIcon name="cil-plus" class="me-2"></svg>
+          New Order
+        </button>
+        <button cButton color="secondary" class="header-button" (click)="onBack()">
+          <svg cIcon name="cil-arrow-left" class="me-2"></svg>
+          Back
+        </button>
+      </div>
+    </c-card-header>
+
+    <c-card-body class="p-0">
+      <div class="breadcrumb-bar mx-3 mt-3">
+        <span class="crumb">Dashboard</span>
+        <span class="crumb-sep">›</span>
+        <span class="crumb">Production</span>
+        <span class="crumb-sep">›</span>
+        <span class="crumb current">Orders</span>
+      </div>
+
+      <div class="list-head mx-3 mt-3 mb-2">
+        <div class="list-title-wrap">
+          <span class="list-icon">
+            <svg cIcon name="cil-list-rich"></svg>
+          </span>
+          <h5 class="list-title mb-0">Orders List</h5>
+        </div>
+
+        <div class="search-wrap">
+          <svg cIcon name="cil-search" class="search-icon"></svg>
+          <input
+            cFormControl
+            type="text"
+            class="search-input"
+            placeholder="Search orders..."
+            [(ngModel)]="searchTerm"
+            [ngModelOptions]="{ standalone: true }"
+          />
+        </div>
+      </div>
+
+      <div class="summary-bar px-3 py-2">
+        <span class="summary-pill">Orders: {{ filteredOrders.length }}</span>
+      </div>
+      <div class="table-container p-3">
+        <table cTable [hover]="true" [striped]="true" class="mb-0">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Order ID</th>
+              <th>Posting Date</th>
+              <th>Due Date</th>
+              <th>Status</th>
+              <th>Items</th>
+              <th>Remarks</th>
+              <th class="text-center">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (loading) {
+              <tr>
+                <td colspan="8" class="text-center py-4 text-body-secondary">Loading...</td>
+              </tr>
+            } @else if (filteredOrders.length === 0) {
+              <tr>
+                <td colspan="8" class="text-center py-4 text-body-secondary">No production orders found.</td>
+              </tr>
+            } @else {
+              @for (order of filteredOrders; track order.productionOrderId) {
+                <tr>
+                  <td>{{ $index + 1 }}</td>
+                  <td>{{ order.productionOrderId }}</td>
+                  <td>{{ order.postingDate | date:'shortDate' }}</td>
+                  <td>{{ order.dueDate | date:'shortDate' }}</td>
+                  <td>
+                    <span [class]="getStatusBadgeClass(order.status)">{{ order.status }}</span>
+                  </td>
+                  <td>{{ order.numberOfProductionItem || 0 }}</td>
+                <td>{{ order.remarks || '-' }}</td>
+                <td class="text-center">
+                    <button cButton color="primary" size="sm" class="me-2" title="Go to Components" (click)="onOpenComponents(order)">
+                      <svg cIcon name="cil-layers"></svg>
+                    </button>
+                    <button cButton color="info" size="sm" class="me-2" (click)="onOpen(order)">
+                      <svg cIcon name="cil-pencil"></svg>
+                    </button>
+
+                    @if (order.status === 'Draft') {
+                      <button cButton color="success" size="sm" class="me-2" (click)="onSubmit(order)">
+                        <svg cIcon name="cil-check-circle"></svg>
+                      </button>
+                      <button cButton color="danger" size="sm" (click)="onDelete(order)">
+                        <svg cIcon name="cil-trash"></svg>
+                      </button>
+                    }
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    </c-card-body>
+  </c-card>
+</div>

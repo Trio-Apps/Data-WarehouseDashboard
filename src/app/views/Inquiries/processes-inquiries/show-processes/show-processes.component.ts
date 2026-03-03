@@ -66,8 +66,11 @@ export class ShowProcessesComponent implements OnInit {
           case 'receipt':
           this.router.navigate(['/processes/purchases/receipt-orders', this.warehouseId]);
           break;
-           case 'goods-return':
+        case 'goods-return':
           this.router.navigate(['/processes/purchases/goods-return-orders', this.warehouseId]);
+          break;
+        case 'production':
+          this.router.navigate(['/processes/production/menu', this.warehouseId]);
           break;
         default:
           console.log('Card clicked:', cardType);
@@ -75,4 +78,3 @@ export class ShowProcessesComponent implements OnInit {
     }
   }
 }
-

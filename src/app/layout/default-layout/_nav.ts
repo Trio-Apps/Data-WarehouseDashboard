@@ -125,6 +125,12 @@ export const navItems: NavItemWithPermissions[] = [
       }
     ]
   },
+  {
+    name: 'Production',
+    url: '/processes/production/menu',
+    iconComponent: { name: 'cil-industry' },
+    permissions: ['Productions.Get']
+  },
 
 //
 
