@@ -117,6 +117,13 @@ getReceiptsWithFilterationByWarehouse(
   }
 
   /**
+   * Retry SAP sync for a receipt order that failed integration.
+   */
+  retryReceiptSap(receiptPurchaseOrderId: number): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}ReceiptPurchaseOrder/retry-sap/${receiptPurchaseOrderId}`, {}, this.headerOption);
+  }
+
+  /**
    * Get receipt items by receipt ID
    */
   getReceiptItemsByReceiptId(receiptId: number): Observable<any> {

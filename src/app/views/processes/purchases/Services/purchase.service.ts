@@ -120,6 +120,13 @@ getPurchasesWithFilterationByWarehouse(
   }
 
   /**
+   * Retry SAP sync for a purchase order that failed integration.
+   */
+  retryPurchaseSap(purchaseOrderId: number): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}PurchaseOrder/retry-sap/${purchaseOrderId}`, {}, this.headerOption);
+  }
+
+  /**
    * Get all suppliers
    */
   getSuppliers(): Observable<any> {

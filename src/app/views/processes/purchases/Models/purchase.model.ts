@@ -6,6 +6,7 @@ export interface Purchase {
   supplierId: number;
   warehouseId: number;
   itemCount?:number;
+  errorMessage?:string,
   isDraft: boolean;
   status: string;
   createdAt?: string;
@@ -48,6 +49,7 @@ export interface PurchaseItem {
   uoMEntry: number;
   quantity: number;
   unitPrice: number;
+    errorMessage?:string,
   purchaseOrderId?: number;
   barCode?: string;
   itemName: string;

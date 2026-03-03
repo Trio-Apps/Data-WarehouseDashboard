@@ -76,7 +76,7 @@ export class DeliveryNotesComponent implements OnInit {
       if (newSalesOrderId !== this.salesOrderId || newSalesDeliveryNoteId !== this.deliveryNoteId) {
         this.salesOrderId = newSalesOrderId || 0;
         this.deliveryNoteId = newSalesDeliveryNoteId || 0;
-        if (this.deliveryNoteId || this.salesOrderId) {
+        if (this.deliveryNoteId > 0) {
           this.loadDeliveryNote();
         } else {
           this.delivery = null;
@@ -88,6 +88,14 @@ export class DeliveryNotesComponent implements OnInit {
   }
 
   loadDeliveryNote(): void {
+    if (!this.deliveryNoteId || this.deliveryNoteId <= 0) {
+      this.delivery = null;
+      this.deliveryItems = [];
+      this.loading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     this.loading = true;
    
     console.log("inside")
@@ -394,5 +402,4 @@ export class DeliveryNotesComponent implements OnInit {
       });
   }
 }
-
 

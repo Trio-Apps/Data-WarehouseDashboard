@@ -6,6 +6,7 @@ export interface Receipt {
   postingDate: string;
   dueDate: string;
   comment: string;
+  errorMessage?: string;
   isDraft: boolean;
   status: string;
   itemCount?: number;

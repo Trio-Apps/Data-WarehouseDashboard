@@ -29,13 +29,14 @@
               <th scope="col" class="bg-body-tertiary">Comment</th>
               <th scope="col" class="bg-body-tertiary">Items Count</th>
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+              <th scope="col" class="bg-body-tertiary text-center">Return</th>
             </tr>
           </thead>
 
           <tbody>
             @if (loading) {
               <tr>
-                <td colspan="10" class="text-center py-4">
+                <td colspan="11" class="text-center py-4">
                   <span class="text-body-secondary">Loading...</span>
                 </td>
               </tr>
@@ -47,24 +48,25 @@
                   <td>{{ returnOrder.customerCode || returnOrder.customerName || 'N/A' }}</td>
                   <td>{{ returnOrder.postingDate | date:'short' }}</td>
                   <td>{{ returnOrder.dueDate | date:'short' }}</td>
+
                   <td>
                     <span [class]="getStatusBadgeClass(returnOrder)">
                       {{ getStatusText(returnOrder) }}
                     </span>
                   </td>
+
                   <td>
                     <span [class]="getApprovalBadgeClass(returnOrder)">
                       {{ getApprovalStatusText(returnOrder) }}
                     </span>
                   </td>
+
                   <td>{{ returnOrder.comment || 'No comment' }}</td>
                   <td>{{ returnOrder.itemCount || 0 }}</td>
+                
                   <td class="text-center">
                     <button cButton color="info" size="sm" class="me-2" (click)="onViewDeliveryNoteOrder(returnOrder)" title="View DeliveryNote">
                       <svg cIcon name="cil-list"></svg>
-                    </button>
-                    <button cButton color="warning" size="sm" class="me-2" (click)="onOpenSalesReturn(returnOrder)" title="Open Sales Return">
-                      Return
                     </button>
                     @if (returnOrder?.canApprove) {
                       <button cButton color="success" size="sm" class="me-2" (click)="onOpenApprovalModal(returnOrder)" title="Approve">
@@ -76,12 +78,18 @@
                         <svg cIcon name="cil-trash"></svg>
                       </button>
                     }
+                 
+                  </td>
+                    <td class="text-center">
+                    <button cButton color="warning" size="sm" (click)="onOpenSalesReturn(returnOrder)" title="Open Sales Return">
+                      Return
+                    </button>
                   </td>
                 </tr>
               }
             } @else {
               <tr>
-                <td colspan="10" class="text-center py-4">
+                <td colspan="11" class="text-center py-4">
                   <span class="text-body-secondary">No delivery note orders found</span>
                 </td>
               </tr>

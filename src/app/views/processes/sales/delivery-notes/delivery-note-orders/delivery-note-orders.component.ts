@@ -370,16 +370,8 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
 
     const salesReturnOrderId = this.resolveSalesReturnOrderId(returnOrder);
 
-    if (salesReturnOrderId > 0) {
-      this.router.navigate(
-        ['/processes/sales/sales-return-order', 0, salesReturnOrderId],
-        { queryParams: { warehouseId: this.warehouseId, deliveryNoteOrderId } }
-      );
-      return;
-    }
-
     this.router.navigate(
-      ['/processes/sales/sales-return-form', 0],
+      ['/processes/sales/sales-return-order', 0, salesReturnOrderId || 0],
       { queryParams: { warehouseId: this.warehouseId, deliveryNoteOrderId } }
     );
   }

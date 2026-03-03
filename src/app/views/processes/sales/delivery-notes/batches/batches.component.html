@@ -40,10 +40,10 @@
                   </td>
                 </tr>
               } @else if (batches.length > 0) {
-                @for (batch of batches; track batch.deliveryNoteOrderBatchId || $index) {
+                @for (batch of batches; track batch.deliveryNoteBatchId || $index) {
                   <tr>
                     <td>{{ $index + 1 }}</td>
-                    <td>{{ batch.deliveryNoteOrderBatchId || 'N/A' }}</td>
+                    <td>{{ batch.deliveryNoteBatchId || 'N/A' }}</td>
                     <td>{{ batch.batchNumber || 'N/A' }}</td>
                     <td>{{ batch.quantity }}</td>
                     <td>{{ batch.expiryDate | date:'short' }}</td>
@@ -167,7 +167,7 @@
   <c-modal-body>
     @if (selectedBatch) {
       <div class="mb-3 p-2 bg-light rounded">
-        <strong>Batch ID:</strong> {{ selectedBatch.deliveryNoteOrderBatchId || 'N/A' }}
+        <strong>Batch ID:</strong> {{ selectedBatch.deliveryNoteBatchId || 'N/A' }}
       </div>
     }
     <form [formGroup]="editForm" (ngSubmit)="onSubmitEdit()">
