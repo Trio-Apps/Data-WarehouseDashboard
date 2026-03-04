@@ -4,6 +4,7 @@ export interface DeliveryNote {
   postingDate: string;
   dueDate: string;
   comment: string;
+  errorMessage?: string | null;
   customerId?: number;
   customerCode?: string;
   customerName?: string;

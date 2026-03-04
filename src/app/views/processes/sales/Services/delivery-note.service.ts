@@ -93,6 +93,13 @@ export class DeliveryNoteService {
     return this.http.delete<any>(`${this.baseUrl}DeliveryNoteOrder/${deliveryNoteId}`, this.headerOption);
   }
 
+  /**
+   * Retry SAP sync for a delivery note order that failed integration.
+   */
+  retryDeliveryNoteSap(deliveryNoteOrderId: number): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}DeliveryNoteOrder/retry-sap/${deliveryNoteOrderId}`, {}, this.headerOption);
+  }
+
   getDeliveryNoteItemsByDeliveryNoteId(deliveryNoteId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}DeliveryNoteItem/delivery-note-order/${deliveryNoteId}`, this.headerOption);
   }

@@ -12,11 +12,11 @@ import {
   FormCheckLabelDirective
 } from '@coreui/angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { PurchaseService } from '../../Services/purchase.service';
 import { ToastrService } from 'ngx-toastr';
 import { ReceiptService } from '../../Services/receipt.service';
 import { Receipt } from '../../Models/receipt';
 import { Supplier } from '../../Models/purchase.model';
+import { SearchSupplierModalComponent } from '../../search-supplier-modal/search-supplier-modal.component';
 
 @Component({
   selector: 'app-receipt-form',
@@ -30,7 +30,8 @@ import { Supplier } from '../../Models/purchase.model';
     GutterDirective,
     FormCheckComponent,
     FormCheckInputDirective,
-    FormCheckLabelDirective
+    FormCheckLabelDirective,
+    SearchSupplierModalComponent
   ],
   templateUrl: './receipt-form.component.html',
   styleUrl: './receipt-form.component.scss',
@@ -41,13 +42,13 @@ export class ReceiptFormComponent implements OnInit {
   receiptId: number | null = null;
   purchaseOrderId: number = 0;
   warehouseId: number = 0;
-  suppliers: Supplier[] = [];
+  showSupplierModal: boolean = false;
+  selectedSupplierDisplay: string = '';
   loading: boolean = false;
   saving: boolean = false;
 
   constructor(
     private fb: FormBuilder,
-    private purchaseService: PurchaseService,
     private receiptService: ReceiptService,
     private route: ActivatedRoute,
     private router: Router,
@@ -93,35 +94,6 @@ export class ReceiptFormComponent implements OnInit {
     });
     this.form.get('supplierId')?.updateValueAndValidity();
     this.form.get('warehouseId')?.updateValueAndValidity();
-    this.loadSuppliers();
-  }
-
-  private loadSuppliers(): void {
-    this.purchaseService.getSuppliers().subscribe({
-      next: (res: any) => {
-        const rawSuppliers = Array.isArray(res?.data)
-          ? res.data
-          : Array.isArray(res?.data?.data)
-          ? res.data.data
-          : Array.isArray(res)
-          ? res
-          : [];
-
-        this.suppliers = rawSuppliers
-          .map((s: any) => ({
-            supplierId: s.supplierId ?? s.id ?? s.SupplierId,
-            supplierName: s.supplierName ?? s.name ?? s.SupplierName ?? '',
-            supplierCode: s.supplierCode ?? s.code ?? s.SupplierCode ?? ''
-          }))
-          .filter((s: Supplier) => !!s.supplierId);
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading suppliers:', err);
-        this.toastr.error('Failed to load suppliers. Please try again.', 'Error');
-        this.cdr.detectChanges();
-      }
-    });
   }
 
   loadReceipt(): void {
@@ -147,6 +119,11 @@ export class ReceiptFormComponent implements OnInit {
             supplierId: receipt.supplierId || null,
             warehouseId: receipt.warehouseId || (this.warehouseId > 0 ? this.warehouseId : null)
           });
+
+          if (!this.purchaseOrderId && receipt.supplierId) {
+            this.selectedSupplierDisplay =
+              receipt.supplierCode || receipt.supplierName || `#${receipt.supplierId}`;
+          }
         }
         this.loading = false;
         this.cdr.detectChanges();
@@ -158,6 +135,29 @@ export class ReceiptFormComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  onOpenSupplierModal(): void {
+    this.showSupplierModal = true;
+  }
+
+  onSupplierModalVisibleChange(visible: boolean): void {
+    this.showSupplierModal = visible;
+  }
+
+  onSupplierSelected(supplier: Supplier): void {
+    this.form.patchValue({ supplierId: supplier.supplierId });
+    this.selectedSupplierDisplay =
+      supplier.supplierCode || supplier.supplierName || `#${supplier.supplierId}`;
+    this.showSupplierModal = false;
+    this.cdr.detectChanges();
+  }
+
+  onSupplierCleared(): void {
+    this.form.patchValue({ supplierId: '' });
+    this.selectedSupplierDisplay = '';
+    this.showSupplierModal = false;
+    this.cdr.detectChanges();
   }
 
   private formatDateToISOString(date: string | Date): string {

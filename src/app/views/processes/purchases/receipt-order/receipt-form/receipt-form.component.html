@@ -64,19 +64,18 @@
                   <label class="form-label">
                     Supplier <span class="text-danger">*</span>
                   </label>
-                  <select
+                  <input
                     cFormControl
-                    formControlName="supplierId"
-                    class="form-select"
+                    type="text"
+                    class="form-control supplier-picker-display"
+                    [value]="selectedSupplierDisplay"
+                    placeholder="-- Select Supplier --"
+                    readonly
+                    (click)="onOpenSupplierModal()"
                     [class.is-invalid]="form.get('supplierId')?.invalid && form.get('supplierId')?.touched"
-                    required>
-                    <option value="">-- Select Supplier --</option>
-                    @for (supplier of suppliers; track supplier.supplierId) {
-                      <option [value]="supplier.supplierId">
-                        {{ supplier.supplierCode || supplier.supplierName }}
-                      </option>
-                    }
-                  </select>
+                    required />
+                  <input type="hidden" formControlName="supplierId" />
+                  
                   @if (form.get('supplierId')?.invalid && form.get('supplierId')?.touched) {
                     <div class="invalid-feedback d-block">
                       Supplier is required
@@ -157,3 +156,10 @@
     </c-card-footer>
   </c-card>
 </div>
+
+<app-search-supplier-modal
+  [visible]="showSupplierModal"
+  (visibleChange)="onSupplierModalVisibleChange($event)"
+  (supplierSelected)="onSupplierSelected($event)"
+  (clearSelected)="onSupplierCleared()">
+</app-search-supplier-modal>

@@ -10,7 +10,8 @@ import {
   FormModule,
   GridModule,
   PaginationModule,
-  UtilitiesModule
+  UtilitiesModule,
+  ModalModule
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ReceiptService } from '../../Services/receipt.service';
@@ -32,6 +33,7 @@ import { SearchSupplierModalComponent } from '../../search-supplier-modal/search
     GridModule,
     PaginationModule,
     UtilitiesModule,
+    ModalModule,
     IconDirective,
     DatePipe,
     SearchSupplierModalComponent
@@ -47,6 +49,9 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
   warehouseId: number = 0;
   selectedSupplierDisplay: string = '';
   showSupplierModal: boolean = false;
+  showErrorModal: boolean = false;
+  selectedErrorMessage: string = '';
+  retryingReceiptIds: Set<number> = new Set<number>();
 
   currentPage: number = 1;
   itemsPerPage: number = 10;
@@ -86,7 +91,7 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
-    this.loadSuppliers();
+   // this.loadSuppliers();
 
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
       if (this.isSearching) {
@@ -412,6 +417,51 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
         }
       });
     }
+  }
+
+  hasErrorMessage(receipt: Receipt): boolean {
+    return !!receipt.errorMessage?.trim();
+  }
+
+  onOpenErrorModal(receipt: Receipt): void {
+    this.selectedErrorMessage = receipt.errorMessage?.trim() || 'No error message available.';
+    this.showErrorModal = true;
+    this.cdr.markForCheck();
+  }
+
+  onErrorModalVisibleChange(visible: boolean): void {
+    this.showErrorModal = visible;
+    if (!visible) {
+      this.selectedErrorMessage = '';
+    }
+  }
+
+  isRetryingSap(receipt: Receipt): boolean {
+    return !!receipt.receiptPurchaseOrderId && this.retryingReceiptIds.has(receipt.receiptPurchaseOrderId);
+  }
+
+  onRetrySap(receipt: Receipt): void {
+    const receiptPurchaseOrderId = receipt.receiptPurchaseOrderId;
+    if (!receiptPurchaseOrderId || this.retryingReceiptIds.has(receiptPurchaseOrderId)) {
+      return;
+    }
+
+    this.retryingReceiptIds.add(receiptPurchaseOrderId);
+    this.receiptService.retryReceiptSap(receiptPurchaseOrderId).subscribe({
+      next: () => {
+        this.toastr.success(`Retry SAP requested for receipt #${receiptPurchaseOrderId}`, 'Success');
+        this.retryingReceiptIds.delete(receiptPurchaseOrderId);
+        this.loadReceipts();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Error retrying SAP:', err);
+        const errorMessage = err.error?.message || 'Failed to retry SAP. Please try again.';
+        this.toastr.error(errorMessage, 'Error');
+        this.retryingReceiptIds.delete(receiptPurchaseOrderId);
+        this.cdr.markForCheck();
+      }
+    });
   }
 
   getStatusBadgeClass(receipt: Receipt): string {

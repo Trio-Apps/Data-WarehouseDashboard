@@ -41,6 +41,14 @@ export class SalesService {
     return this.http.get<SalesResponse>(url, this.headerOption);
   }
 
+  
+  getItemForSalesByWarehouse(
+    warehouseId: number
+  ): Observable<any> {
+    const url = `${this.baseUrl}SalesOrder/item-for-sales/warehouse/${warehouseId}`;
+    return this.http.get<any>(url, this.headerOption);
+  }
+
 getSalesWithFilterationByWarehouse(
   pageNumber: number,
   pageSize: number,

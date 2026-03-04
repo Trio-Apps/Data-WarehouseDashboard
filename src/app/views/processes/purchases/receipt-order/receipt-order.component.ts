@@ -69,6 +69,9 @@ export class ReceiptOrderComponent implements OnInit {
     if (this.receiptOrderId) {
       this.loadReceipt();
     }
+    else{
+      this.loading = false;
+    }
 
     // إعادة تحميل البيانات عند العودة من صفحة أخرى
     this.route.params.subscribe(params => {
@@ -76,8 +79,7 @@ export class ReceiptOrderComponent implements OnInit {
       const newReceiptOrderId = +params['receiptOrderId'];
       if (newReceiptOrderId && newReceiptOrderId === this.receiptOrderId) {
         this.loadReceipt();
-              console.log("param2");
-
+          console.log("param2");
       }
     });
   }
@@ -126,7 +128,7 @@ export class ReceiptOrderComponent implements OnInit {
 
     this.receiptService.getReceiptItemsByReceiptId(receiptId).subscribe({
       next: (res: any) => {
-          console.log("receipt items",res); 
+        console.log("receipt items",res); 
         if (res.data) {
           this.receiptItems = Array.isArray(res.data) ? res.data : (res.data.data || []);
         } else {

@@ -29,13 +29,14 @@
               <th scope="col" class="bg-body-tertiary">Comment</th>
               <th scope="col" class="bg-body-tertiary">Items Count</th>
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+              <th scope="col" class="bg-body-tertiary text-center"></th>
             </tr>
           </thead>
 
           <tbody>
             @if (loading) {
               <tr>
-                <td colspan="10" class="text-center py-4">
+                <td colspan="11" class="text-center py-4">
                   <span class="text-body-secondary">Loading...</span>
                 </td>
               </tr>
@@ -74,11 +75,24 @@
                       </button>
                     }
                   </td>
+                  <td>
+                    @if (hasErrorMessage(returnOrder)) {
+                    <div class="d-flex justify-content-center align-items-center gap-3 mt-2">
+                      <button type="button" class="btn btn-link btn-sm text-danger p-0" (click)="onOpenErrorModal(returnOrder)">
+                        Error
+                      </button>
+                      <button type="button" class="btn btn-link btn-sm text-warning p-0" (click)="onRetrySap(returnOrder)"
+                        [disabled]="isRetryingSap(returnOrder)">
+                        {{ isRetryingSap(returnOrder) ? 'Retrying...' : 'Retry SAP' }}
+                      </button>
+                    </div>
+                    }
+                  </td>
                 </tr>
               }
             } @else {
               <tr>
-                <td colspan="10" class="text-center py-4">
+                <td colspan="11" class="text-center py-4">
                   <span class="text-body-secondary">No return orders found</span>
                 </td>
               </tr>
@@ -174,6 +188,21 @@
   (customerSelected)="onSelectCustomer($event)"
   (clearSelected)="onClearCustomer()">
 </app-search-customer-modal>
+
+<c-modal
+  [visible]="showErrorModal"
+  (visibleChange)="onErrorModalVisibleChange($event)">
+  <c-modal-header>
+    <h5 cModalTitle>Error</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="text-danger fw-semibold mb-2">SAP Error Message</div>
+    <div style="white-space: pre-wrap;">{{ selectedErrorMessage }}</div>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" type="button" (click)="onErrorModalVisibleChange(false)">Close</button>
+  </c-modal-footer>
+</c-modal>
 
 <c-modal
   [visible]="showApprovalModal"

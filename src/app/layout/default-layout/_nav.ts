@@ -9,7 +9,7 @@ export const navItems: NavItemWithPermissions[] = [
   {
     name: 'Dashboard',
     url: '/dashboard',
-    iconComponent: { name: 'cil-speedometer' },
+    //iconComponent: { name: 'cil-speedometer' },
     badge: {
       color: 'info',
       text: 'NEW'
@@ -22,7 +22,7 @@ export const navItems: NavItemWithPermissions[] = [
   {
     name: 'Inquiries',
     url: '/inquiries',
-    iconComponent: { name: 'cil-drop' },
+   // //iconComponent: { name: 'cil-drop' },
     children: [
       {
         name: 'Barcodes Inquiry',
@@ -41,7 +41,7 @@ export const navItems: NavItemWithPermissions[] = [
   {
     name: 'Companies',
     url: '/companies/companies',
-    iconComponent: { name: 'cil-building' },
+  //  //iconComponent: { name: 'cil-building' },
     permissions: ['Companys.Get']
   },
 
@@ -53,7 +53,7 @@ export const navItems: NavItemWithPermissions[] = [
   {
     name: 'Users',
     url: '/users',
-    iconComponent: { name: 'cil-people' },
+    //iconComponent: { name: 'cil-people' },
     permissions: ['Users.Get'],
     children: [
       {
@@ -67,7 +67,7 @@ export const navItems: NavItemWithPermissions[] = [
   {
     name: 'Roles',
     url: '/roles',
-    iconComponent: { name: 'cil-arrow-top' },
+    //iconComponent: { name: 'cil-arrow-top' },
     permissions: ['Roles.Get'],
     children: [
       {
@@ -81,7 +81,7 @@ export const navItems: NavItemWithPermissions[] = [
    {
     name: 'Approval Process',
     url: '/approval-process',
-    iconComponent: { name: 'cil-arrow-top' },
+    //iconComponent: { name: 'cil-arrow-top' },
     children: [
       {
         name: 'Approval Steps Management',
@@ -100,7 +100,7 @@ export const navItems: NavItemWithPermissions[] = [
   {
     name: 'Settings',
     url: '/settings',
-    iconComponent: { name: 'cil-settings' },
+    //iconComponent: { name: 'cil-settings' },
     children: [
       {
         name: 'SAP Auth Settings',
@@ -114,7 +114,7 @@ export const navItems: NavItemWithPermissions[] = [
   {
     name: 'Barcodes',
     url: '/barcodes',
-    iconComponent: { name: 'cil-barcode' },
+    //iconComponent: { name: 'cil-barcode' },
     permissions: ['Items.Get'],
     children: [
       {
@@ -145,7 +145,7 @@ export const navItems: NavItemWithPermissions[] = [
   {
     name: 'Docs',
     url: 'https://coreui.io/angular/docs/',
-    iconComponent: { name: 'cil-description' },
+    //iconComponent: { name: 'cil-description' },
     attributes: { target: '_blank' }
   }
 ];

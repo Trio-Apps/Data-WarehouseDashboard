@@ -30,6 +30,7 @@
               <th scope="col" class="bg-body-tertiary">Comment</th>
               <th scope="col" class="bg-body-tertiary">Items Count</th>
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+              <th scope="col" class="bg-body-tertiary text-center"></th>
               <th scope="col" class="bg-body-tertiary text-center">Return</th>
             </tr>
           </thead>
@@ -37,7 +38,7 @@
           <tbody>
             @if (loading) {
             <tr>
-              <td colspan="11" class="text-center py-4">
+              <td colspan="12" class="text-center py-4">
                 <span class="text-body-secondary">Loading...</span>
               </td>
             </tr>
@@ -73,8 +74,21 @@
                 </button>
                 }
               </td>
+              <td>
+                @if (hasErrorMessage(receipt)) {
+                <div class="d-flex justify-content-center align-items-center gap-3 mt-2">
+                  <button type="button" class="btn btn-link btn-sm text-danger p-0" (click)="onOpenErrorModal(receipt)">
+                    Error
+                  </button>
+                  <button type="button" class="btn btn-link btn-sm text-warning p-0" (click)="onRetrySap(receipt)"
+                    [disabled]="isRetryingSap(receipt)">
+                    {{ isRetryingSap(receipt) ? 'Retrying...' : 'Retry SAP' }}
+                  </button>
+                </div>
+                }
+              </td>
               <td class="text-center">
-                @if (isApproved(receipt) && receipt.status == "Processing") {
+                @if (isApproved(receipt) && receipt.status == "Completed") {
                 <button cButton color="danger" size="sm" class="me-2" (click)="onViewReturnOrder(receipt)"
                   title="View Return">
                   <svg cIcon name="cil-return"></svg>
@@ -86,7 +100,7 @@
             }
             } @else {
             <tr>
-              <td colspan="11" class="text-center py-4">
+              <td colspan="12" class="text-center py-4">
                 <span class="text-body-secondary">No receipts found</span>
               </td>
             </tr>
@@ -193,3 +207,18 @@
   (supplierSelected)="onSupplierSelected($event)"
   (clearSelected)="onSupplierCleared()">
 </app-search-supplier-modal>
+
+<c-modal
+  [visible]="showErrorModal"
+  (visibleChange)="onErrorModalVisibleChange($event)">
+  <c-modal-header>
+    <h5 cModalTitle>Error</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="text-danger fw-semibold mb-2">SAP Error Message</div>
+    <div style="white-space: pre-wrap;">{{ selectedErrorMessage }}</div>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" type="button" (click)="onErrorModalVisibleChange(false)">Close</button>
+  </c-modal-footer>
+</c-modal>

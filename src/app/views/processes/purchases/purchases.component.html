@@ -30,6 +30,7 @@
               <th scope="col" class="bg-body-tertiary">Comment</th>
               <th scope="col" class="bg-body-tertiary">Items Count</th>
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+              <th scope="col" class="bg-body-tertiary text-center"></th>
 
               <th scope="col" class="bg-body-tertiary text-center">Receipt</th>
             </tr>
@@ -77,6 +78,21 @@
                 </button>
                 }
 
+              
+
+              </td>
+              <td>
+                  @if (hasErrorMessage(purchase)) {
+                <div class="d-flex justify-content-center align-items-center gap-3 mt-2">
+                  <button type="button" class="btn btn-link btn-sm text-danger p-0" (click)="onOpenErrorModal(purchase)">
+                    Error
+                  </button>
+                  <button type="button" class="btn btn-link btn-sm text-warning p-0" (click)="onRetrySap(purchase)"
+                    [disabled]="isRetryingSap(purchase)">
+                    {{ isRetryingSap(purchase) ? 'Retrying...' : 'Retry SAP' }}
+                  </button>
+                </div>
+                }
               </td>
               <td class="text-center">
                 @if (isApproved(purchase) && purchase.status == "Completed") {
@@ -213,3 +229,18 @@
   (supplierSelected)="onSupplierSelected($event)"
   (clearSelected)="onSupplierCleared()">
 </app-search-supplier-modal>
+
+<c-modal
+  [visible]="showErrorModal"
+  (visibleChange)="onErrorModalVisibleChange($event)">
+  <c-modal-header>
+    <h5 cModalTitle>Error</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="text-danger fw-semibold mb-2">SAP Error Message</div>
+    <div style="white-space: pre-wrap;">{{ selectedErrorMessage }}</div>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" type="button" (click)="onErrorModalVisibleChange(false)">Close</button>
+  </c-modal-footer>
+</c-modal>

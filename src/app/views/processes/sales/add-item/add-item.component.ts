@@ -97,7 +97,7 @@ export class AddItemComponent implements OnInit {
     if (!this.warehouseId) return;
 
     this.loading = true;
-    this.salesService.getItemsByWarehouse(this.warehouseId).subscribe({
+    this.salesService.getItemForSalesByWarehouse(this.warehouseId).subscribe({
       next: (res: any) => {
         if (res.data) {
           this.items = res.data.map((item: any) => ({

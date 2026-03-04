@@ -94,6 +94,13 @@ export class SalesReturnService {
     return this.http.delete<any>(`${this.baseUrl}SalesReturnOrder/${returnId}`, this.headerOption);
   }
 
+  /**
+   * Retry SAP sync for a sales return order that failed integration.
+   */
+  retrySalesReturnSap(salesReturnOrderId: number): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}SalesReturnOrder/retry-sap/${salesReturnOrderId}`, {}, this.headerOption);
+  }
+
   getReturnItemsByReturnId(returnId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}SalesReturnOrderItem/sales-return-order/${returnId}`, this.headerOption);
   }

@@ -98,6 +98,13 @@ createReturn(returnData: AddReturn): Observable<any> {
   }
 
   /**
+   * Retry SAP sync for a goods return order that failed integration.
+   */
+  retryReturnSap(goodsReturnOrderId: number): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}GoodsReturnOrder/retry-sap/${goodsReturnOrderId}`, {}, this.headerOption);
+  }
+
+  /**
    * Get Return items by Return ID
    */
   getReturnItemsByReturnId(ReturnId: number): Observable<any> {

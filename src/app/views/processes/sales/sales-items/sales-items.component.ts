@@ -129,16 +129,8 @@ export class SalesItemsComponent implements OnInit {
       return;
     }
 
-    if (this.Sale.returnOrderId) {
-      this.router.navigate(
-        ['/processes/sales/sales-return-order', this.salesOrderId, this.Sale.returnOrderId],
-        { queryParams: { warehouseId: this.warehouseId || this.Sale.warehouseId || 0 } }
-      );
-      return;
-    }
-
     this.router.navigate(
-      ['/processes/sales/sales-return-form', this.salesOrderId],
+      ['/processes/sales/sales-return-order', this.salesOrderId, this.Sale.returnOrderId || 0],
       { queryParams: { warehouseId: this.warehouseId || this.Sale.warehouseId || 0 } }
     );
   }
@@ -148,16 +140,8 @@ export class SalesItemsComponent implements OnInit {
       return;
     }
 
-    if (this.Sale.deliveryNoteOrderId) {
-      this.router.navigate(
-        ['/processes/sales/delivery-note-order', this.salesOrderId, this.Sale.deliveryNoteOrderId],
-        { queryParams: { warehouseId: this.warehouseId || this.Sale.warehouseId || 0 } }
-      );
-      return;
-    }
-
     this.router.navigate(
-      ['/processes/sales/delivery-note-form', this.salesOrderId],
+      ['/processes/sales/delivery-note-order', this.salesOrderId, this.Sale.deliveryNoteOrderId || 0],
       { queryParams: { warehouseId: this.warehouseId || this.Sale.warehouseId || 0 } }
     );
   }

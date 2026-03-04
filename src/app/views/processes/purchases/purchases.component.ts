@@ -10,7 +10,8 @@ import {
   FormModule,
   GridModule,
   PaginationModule,
-  UtilitiesModule
+  UtilitiesModule,
+  ModalModule
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { PurchaseService } from './Services/purchase.service';
@@ -30,6 +31,7 @@ import { SearchSupplierModalComponent } from './search-supplier-modal/search-sup
     GridModule,
     PaginationModule,
     UtilitiesModule,
+    ModalModule,
     IconDirective,
     DatePipe,
     SearchSupplierModalComponent
@@ -45,6 +47,9 @@ export class PurchasesComponent implements OnInit, OnDestroy {
   warehouseId: number = 0;
   selectedSupplierDisplay: string = '';
   showSupplierModal: boolean = false;
+  showErrorModal: boolean = false;
+  selectedErrorMessage: string = '';
+  retryingPurchaseIds: Set<number> = new Set<number>();
 
   // Pagination
   currentPage: number = 1;
@@ -459,6 +464,52 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     if (purchase.purchaseOrderId) {
       this.router.navigate(['/processes/purchases/receipt-order', purchase.purchaseOrderId,purchase.receiptOrderId||0]);
     }
+  }
+
+  hasErrorMessage(purchase: Purchase): boolean {
+    return !!purchase.errorMessage?.trim();
+   // return true;
+  }
+
+  onOpenErrorModal(purchase: Purchase): void {
+    this.selectedErrorMessage = purchase.errorMessage?.trim() || 'No error message available.';
+    this.showErrorModal = true;
+    this.cdr.detectChanges();
+  }
+
+  onErrorModalVisibleChange(visible: boolean): void {
+    this.showErrorModal = visible;
+    if (!visible) {
+      this.selectedErrorMessage = '';
+    }
+  }
+
+  isRetryingSap(purchase: Purchase): boolean {
+    return !!purchase.purchaseOrderId && this.retryingPurchaseIds.has(purchase.purchaseOrderId);
+  }
+
+  onRetrySap(purchase: Purchase): void {
+    const purchaseOrderId = purchase.purchaseOrderId;
+    if (!purchaseOrderId || this.retryingPurchaseIds.has(purchaseOrderId)) {
+      return;
+    }
+
+    this.retryingPurchaseIds.add(purchaseOrderId);
+    this.purchaseService.retryPurchaseSap(purchaseOrderId).subscribe({
+      next: () => {
+        this.toastr.success(`Retry SAP requested for order #${purchaseOrderId}`, 'Success');
+        this.retryingPurchaseIds.delete(purchaseOrderId);
+        this.loadPurchases();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error retrying SAP:', err);
+        const errorMessage = err.error?.message || 'Failed to retry SAP. Please try again.';
+        this.toastr.error(errorMessage, 'Error');
+        this.retryingPurchaseIds.delete(purchaseOrderId);
+        this.cdr.detectChanges();
+      }
+    });
   }
 
 
