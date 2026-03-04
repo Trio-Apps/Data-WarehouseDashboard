@@ -107,7 +107,7 @@ export class ProductionOrderFormComponent implements OnInit {
       setTimeout(() => this.scrollToSection(fragment), 150);
     });
 
-    queueMicrotask(() => {
+    setTimeout(() => {
       if (this.isEditMode) {
         this.loadOrderDetails();
         return;
@@ -116,7 +116,7 @@ export class ProductionOrderFormComponent implements OnInit {
       this.loadFinishedGoods(this.warehouseId, () => {
         this.isLoading = false;
       });
-    });
+    }, 0);
   }
 
   get headerBatchTotal(): number {
@@ -189,9 +189,12 @@ export class ProductionOrderFormComponent implements OnInit {
 
     const finalize = () => {
       this.upsertFinishedGoodItem(
-        () => {
+        (syncMessage) => {
           this.isSaving = false;
           this.toastr.success('Production order draft saved successfully.', 'Success');
+          if (syncMessage && syncMessage.toLowerCase().includes('no bom components')) {
+            this.toastr.warning(syncMessage, 'BOM Sync');
+          }
           this.loadHeaderBatches();
           this.loadComponentLines();
         },
@@ -436,8 +439,9 @@ export class ProductionOrderFormComponent implements OnInit {
       next: (res: any) => {
         this.headerBatches = this.toArray<ProductionHeaderBatch>(res);
       },
-      error: () => {
+      error: (err) => {
         this.headerBatches = [];
+        this.toastr.error(this.extractError(err, 'Failed to load header batches.'), 'Error');
       }
     });
   }
@@ -451,13 +455,16 @@ export class ProductionOrderFormComponent implements OnInit {
     this.productionService.getProductionComponentLines(this.productionOrderId, 1, 300).subscribe({
       next: (res: any) => {
         this.componentLines = this.toArray<ProductionComponentLine>(res);
+        this.componentBatchesMap = {};
 
         this.componentLines.forEach((line) => {
           this.loadComponentBatches(line.productionComponentLineId);
         });
       },
-      error: () => {
+      error: (err) => {
         this.componentLines = [];
+        this.componentBatchesMap = {};
+        this.toastr.error(this.extractError(err, 'Failed to load BOM components.'), 'Error');
       }
     });
   }
@@ -498,7 +505,7 @@ export class ProductionOrderFormComponent implements OnInit {
     });
   }
 
-  private upsertFinishedGoodItem(onSuccess: () => void, onError: (message: string) => void): void {
+  private upsertFinishedGoodItem(onSuccess: (syncMessage?: string) => void, onError: (message: string) => void): void {
     const payload = {
       productionOrderId: this.productionOrderId,
       plannedQuantity: Number(this.form.value.plannedQuantity),
@@ -514,7 +521,7 @@ export class ProductionOrderFormComponent implements OnInit {
       this.productionService.updateProductionOrderItem(this.productionOrderItemId, {
         plannedQuantity: payload.plannedQuantity
       }).subscribe({
-        next: () => onSuccess(),
+        next: (res: any) => onSuccess(this.extractResponseMessage(res)),
         error: (err) => onError(this.extractError(err, 'Failed to update finished good item.'))
       });
 
@@ -525,7 +532,7 @@ export class ProductionOrderFormComponent implements OnInit {
       next: (res: any) => {
         const data = this.pickData<any>(res);
         this.productionOrderItemId = Number(data?.productionOrderItemId || 0);
-        onSuccess();
+        onSuccess(this.extractResponseMessage(res));
       },
       error: (err) => onError(this.extractError(err, 'Failed to add finished good item.'))
     });
@@ -547,8 +554,8 @@ export class ProductionOrderFormComponent implements OnInit {
 
   private buildOrderPayload(): any {
     return {
-      postingDate: this.form.value.postingDate,
-      dueDate: this.form.value.dueDate,
+      postingDate: this.formatDateToISOString(this.form.value.postingDate),
+      dueDate: this.formatDateToISOString(this.form.value.dueDate),
       remarks: this.form.value.remarks,
       warehouseId: Number(this.form.value.warehouseId)
     };
@@ -628,7 +635,34 @@ export class ProductionOrderFormComponent implements OnInit {
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
   }
 
+  private formatDateToISOString(date: string | Date | null | undefined): string {
+    if (!date) {
+      return '';
+    }
+
+    if (typeof date === 'string') {
+      return `${date}T00:00:00.000Z`;
+    }
+
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}T00:00:00.000Z`;
+  }
+
   private toArray<T>(res: any): T[] {
+    if (Array.isArray(res?.data?.data?.$values)) {
+      return res.data.data.$values as T[];
+    }
+
+    if (Array.isArray(res?.data?.$values)) {
+      return res.data.$values as T[];
+    }
+
+    if (Array.isArray(res?.$values)) {
+      return res.$values as T[];
+    }
+
     if (Array.isArray(res?.data?.data)) {
       return res.data.data as T[];
     }
@@ -657,6 +691,43 @@ export class ProductionOrderFormComponent implements OnInit {
   }
 
   private extractError(err: any, fallback: string): string {
-    return err?.error?.message || err?.error?.detail || fallback;
+    const body = err?.error;
+
+    if (typeof body === 'string' && body.trim()) {
+      return body;
+    }
+
+    if (body?.message) {
+      return body.message;
+    }
+
+    if (body?.detail) {
+      return body.detail;
+    }
+
+    if (Array.isArray(body?.errors) && body.errors.length > 0) {
+      return String(body.errors[0]);
+    }
+
+    if (body?.errors && typeof body.errors === 'object') {
+      const firstKey = Object.keys(body.errors)[0];
+      if (firstKey && Array.isArray(body.errors[firstKey]) && body.errors[firstKey].length > 0) {
+        return String(body.errors[firstKey][0]);
+      }
+    }
+
+    return fallback;
+  }
+
+  private extractResponseMessage(res: any): string {
+    if (typeof res?.message === 'string' && res.message.trim()) {
+      return res.message;
+    }
+
+    if (typeof res?.data?.message === 'string' && res.data.message.trim()) {
+      return res.data.message;
+    }
+
+    return '';
   }
 }

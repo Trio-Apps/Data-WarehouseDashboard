@@ -41,35 +41,36 @@ export class ProductionService {
     return this.http.get<any>(`${this.baseUrl}UserWarehouses/user/${userId}`, this.headerOption);
   }
 
-  getProductionOrders(pageNumber = 1, pageSize = 100): Observable<any> {
-    const params = new HttpParams()
-      .set('pageNumber', pageNumber)
-      .set('pageSize', pageSize);
-
-    return this.http.get<any>(`${this.baseUrl}production-orders`, {
-      headers: this.headerOption.headers,
-      params
-    });
+  getProductionOrders(warehouseId: number, pageNumber = 1, pageSize = 100): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}ProductionOrder/warehouse/${warehouseId}/${pageNumber}/${pageSize}`,
+      this.headerOption
+    );
   }
 
   getProductionOrderById(id: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}production-orders/${id}`, this.headerOption);
+    return this.http.get<any>(`${this.baseUrl}ProductionOrder/${id}`, this.headerOption);
   }
 
   createProductionOrder(payload: AddProductionOrderPayload): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}production-orders`, payload, this.headerOption);
+    return this.http.post<any>(`${this.baseUrl}ProductionOrder`, payload, this.headerOption);
   }
 
   updateProductionOrder(id: number, payload: UpdateProductionOrderPayload): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}production-orders/${id}`, payload, this.headerOption);
+    const body = {
+      ...payload,
+      productionOrderId: id
+    };
+
+    return this.http.put<any>(`${this.baseUrl}ProductionOrder/${id}`, body, this.headerOption);
   }
 
   deleteProductionOrder(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}production-orders/${id}`, this.headerOption);
+    return this.http.delete<any>(`${this.baseUrl}ProductionOrder/${id}`, this.headerOption);
   }
 
   submitProductionOrder(id: number, note?: string): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}production-orders/${id}/submit`, { note }, this.headerOption);
+    return this.http.post<any>(`${this.baseUrl}ProductionOrder/${id}/submit`, { note }, this.headerOption);
   }
 
   getFinishedGoodsByWarehouse(warehouseId: number, pageNumber = 1, pageSize = 100, itemId?: number): Observable<any> {
@@ -92,27 +93,35 @@ export class ProductionService {
   }
 
   getProductionOrderItems(productionOrderId: number, pageNumber = 1, pageSize = 20): Observable<any> {
-    const params = new HttpParams()
-      .set('productionOrderId', productionOrderId)
-      .set('pageNumber', pageNumber)
-      .set('pageSize', pageSize);
-
-    return this.http.get<any>(`${this.baseUrl}production-order-items`, {
-      headers: this.headerOption.headers,
-      params
-    });
+    return this.http.get<any>(
+      `${this.baseUrl}ProductionOrderItem/status/production-order/${productionOrderId}/${pageNumber}/${pageSize}`,
+      this.headerOption
+    );
   }
 
   createProductionOrderItem(payload: AddProductionOrderItemPayload): Observable<any> {
-    return this.http.post<any>(`${this.baseUrl}production-order-items`, payload, this.headerOption);
+    return this.http.post<any>(
+      `${this.baseUrl}ProductionOrderItem/production-order/${payload.productionOrderId}`,
+      payload,
+      this.headerOption
+    );
   }
 
   updateProductionOrderItem(id: number, payload: UpdateProductionOrderItemPayload): Observable<any> {
-    return this.http.put<any>(`${this.baseUrl}production-order-items/${id}`, payload, this.headerOption);
+    const body = {
+      ...payload,
+      productionOrderItemId: id
+    };
+
+    return this.http.put<any>(
+      `${this.baseUrl}ProductionOrderItem/production-item-order/${id}`,
+      body,
+      this.headerOption
+    );
   }
 
   deleteProductionOrderItem(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.baseUrl}production-order-items/${id}`, this.headerOption);
+    return this.http.delete<any>(`${this.baseUrl}ProductionOrderItem/production-item-order/${id}`, this.headerOption);
   }
 
   getProductionHeaderBatches(productionOrderId: number, pageNumber = 1, pageSize = 50): Observable<any> {

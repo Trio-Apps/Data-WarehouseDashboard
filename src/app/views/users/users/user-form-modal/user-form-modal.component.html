@@ -135,7 +135,7 @@
         }
 
         <!-- SAP selection based on company context -->
-        @if (requiresSapWarehouseSelection) {
+        @if (shouldShowSapWarehouseSelection) {
           <c-col [md]="12">
             <label class="form-label">
               SAP Connections <span class="text-danger">*</span>
@@ -307,4 +307,3 @@
     </button>
   </c-modal-footer>
 </c-modal>
-

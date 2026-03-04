@@ -14,7 +14,6 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
-import { AuthService } from '../../../pages/Services/auth.service';
 import { WarehouseOption } from '../Models/production.model';
 import { ProductionService } from '../Services/production.service';
 
@@ -46,7 +45,6 @@ export class ProductionMenuComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private toastr: ToastrService,
-    private authService: AuthService,
     private productionService: ProductionService
   ) {}
 
@@ -95,49 +93,21 @@ export class ProductionMenuComponent implements OnInit {
 
     this.productionService.getWarehouses().subscribe({
       next: (res: any) => {
-        const list = this.toArray<WarehouseOption>(res).map((warehouse: any) => ({
+        this.warehouses = this.toArray<WarehouseOption>(res).map((warehouse: any) => ({
           warehouseId: Number(warehouse.warehouseId ?? warehouse.WarehouseId ?? 0),
           warehouseName: String(warehouse.warehouseName ?? warehouse.WarehouseName ?? ''),
           sapId: Number(warehouse.sapId ?? warehouse.SapId ?? 0)
         }));
 
-        const currentUserId = this.authService.getID();
-        if (currentUserId) {
-          this.loadUserDefaultWarehouse(currentUserId, list, routeWarehouseId);
-          return;
+        if (this.warehouses.length === 0) {
+          this.toastr.error('You do not have access to any warehouse.', 'Permission');
         }
-
-        this.warehouses = list;
         this.setPreferredWarehouse(routeWarehouseId);
         this.loading = false;
       },
       error: (err) => {
         this.loading = false;
         this.toastr.error(this.extractError(err, 'Failed to load warehouses.'), 'Error');
-      }
-    });
-  }
-
-  private loadUserDefaultWarehouse(userId: string, allWarehouses: WarehouseOption[], routeWarehouseId: number): void {
-    this.productionService.getUserWarehouses(userId).subscribe({
-      next: (res: any) => {
-        const allowedWarehouseIds = new Set(
-          this.toArray<any>(res).map((item: any) => Number(item.warehouseId ?? item.WarehouseId ?? 0))
-        );
-
-        this.warehouses = allWarehouses.filter((warehouse) => allowedWarehouseIds.has(warehouse.warehouseId));
-
-        if (this.warehouses.length === 0) {
-          this.warehouses = allWarehouses;
-        }
-
-        this.setPreferredWarehouse(routeWarehouseId);
-        this.loading = false;
-      },
-      error: () => {
-        this.warehouses = allWarehouses;
-        this.setPreferredWarehouse(routeWarehouseId);
-        this.loading = false;
       }
     });
   }

@@ -10,7 +10,6 @@ import {
   ButtonModule,
   FormModule,
   GridModule,
-  FormCheckComponent,
   FormCheckInputDirective,
   FormCheckLabelDirective
 } from '@coreui/angular';
@@ -40,7 +39,6 @@ import { Warehouse } from '../../../Inquiries/Models/warehouse.model';
     ButtonModule,
     FormModule,
     GridModule,
-    FormCheckComponent,
     FormCheckInputDirective,
     FormCheckLabelDirective
   ],
@@ -131,7 +129,11 @@ export class UserFormModalComponent implements OnInit, OnChanges {
       },
       { validators: this.passwordMatchValidator }
     );
-    
+
+    this.userForm.get('roles')?.valueChanges.subscribe(() => {
+      this.applySapWarehouseValidators();
+      this.cdr.detectChanges();
+    });
   }
 
   checkUserRole(): void {
@@ -167,15 +169,21 @@ export class UserFormModalComponent implements OnInit, OnChanges {
 
   loadAllSaps(): void {
     this.loadingSaps = true;
-    this.sapAuthService.getAllSap().subscribe({
+    const request$ = this.companyIdFromAuth != null
+      ? this.sapAuthService.getSapsbyCompanyId(this.companyIdFromAuth)
+      : this.sapAuthService.getAllSap();
+
+    request$.subscribe({
       next: (res: any) => {
-        if (res?.data) {
-          this.saps = res.data;
-        } else if (Array.isArray(res)) {
-          this.saps = res;
-        } else {
-          this.saps = [];
-        }
+        const data = Array.isArray(res)
+          ? res
+          : Array.isArray(res?.data)
+            ? res.data
+            : Array.isArray(res?.data?.data)
+              ? res.data.data
+              : [];
+
+        this.saps = data;
         this.loadingSaps = false;
         this.cdr.detectChanges();
       },
@@ -185,6 +193,27 @@ export class UserFormModalComponent implements OnInit, OnChanges {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  private roleDoesNotRequireSapWarehouse(roleName: string | null | undefined): boolean {
+    if (!roleName) {
+      return false;
+    }
+
+    return ['admin', 'manager', 'super-admin'].includes(roleName.toLowerCase());
+  }
+
+  get shouldShowSapWarehouseSelection(): boolean {
+    if (!this.requiresSapWarehouseSelection) {
+      return false;
+    }
+
+    const selectedRole = this.userForm?.get('roles')?.value as string | null | undefined;
+    return !this.roleDoesNotRequireSapWarehouse(selectedRole);
+  }
+
+  get shouldRequireSapWarehouseSelection(): boolean {
+    return this.shouldShowSapWarehouseSelection;
   }
 
   passwordMatchValidator(form: FormGroup) {
@@ -236,7 +265,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     const sapIdsArray = this.userForm.get('sapIds') as FormArray;
     const warehouseIdsArray = this.userForm.get('warehouseIds') as FormArray;
 
-    if (this.requiresSapWarehouseSelection) {
+    if (this.shouldRequireSapWarehouseSelection) {
       sapIdsArray.setValidators([(control: AbstractControl): ValidationErrors | null => {
         const formArray = control as FormArray;
         return formArray.length > 0 ? null : { required: true };
@@ -525,7 +554,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     const formValue = this.userForm.value;
     const selectedRole = formValue.roles || '';
 
-    if (this.requiresSapWarehouseSelection) {
+    if (this.shouldRequireSapWarehouseSelection) {
       if (sapIdsArray.length === 0) {
         sapIdsArray.setErrors({ required: true });
         sapIdsArray.controls.forEach(control => control.markAsTouched());
@@ -559,7 +588,7 @@ export class UserFormModalComponent implements OnInit, OnChanges {
       userData.companyId = formValue.companyId || null;
     }
 
-    if (this.requiresSapWarehouseSelection) {
+    if (this.shouldRequireSapWarehouseSelection) {
       const sapIds = sapIdsArray.value || [];
       const warehouseIds = warehouseIdsArray.value || [];
       if (sapIds.length > 0) {
@@ -640,13 +669,13 @@ export class UserFormModalComponent implements OnInit, OnChanges {
   }
 
   isSapIdsInvalid(): boolean {
-    if (!this.requiresSapWarehouseSelection) return false;
+    if (!this.shouldRequireSapWarehouseSelection) return false;
     const sapIdsArray = this.userForm.get('sapIds') as FormArray;
     return sapIdsArray.invalid && sapIdsArray.touched;
   }
 
   isWarehouseIdsInvalid(): boolean {
-    if (!this.requiresSapWarehouseSelection) return false;
+    if (!this.shouldRequireSapWarehouseSelection) return false;
     const warehouseIdsArray = this.userForm.get('warehouseIds') as FormArray;
     return warehouseIdsArray.invalid && warehouseIdsArray.touched;
   }

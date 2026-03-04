@@ -60,7 +60,7 @@
               <div class="col-md-6">
                 <mat-form-field appearance="outline" class="w-100">
                   <mat-label>UoM Entry *</mat-label>
-                  <mat-select formControlName="uoMEntry" required [disabled]="loadingUomGroups || !manualForm.get('itemId')?.value">
+                  <mat-select formControlName="uoMEntry" required>
                     <mat-option *ngIf="loadingUomGroups" disabled>
                       <span class="spinner-border spinner-border-sm me-2" role="status"></span>
                       Loading units...

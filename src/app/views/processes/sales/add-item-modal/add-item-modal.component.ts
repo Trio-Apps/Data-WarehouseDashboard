@@ -72,6 +72,7 @@ export class AddItemModalComponent implements OnInit {
       uoMEntry: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(0.01)]],
     });
+    this.setUomEntryDisabledState();
 
     // Listen to item selection changes
     this.manualForm.get('itemId')?.valueChanges.subscribe((itemId) => {
@@ -80,6 +81,7 @@ export class AddItemModalComponent implements OnInit {
       } else {
         this.uomGroups = [];
         this.manualForm.patchValue({ uoMEntry: '' });
+        this.setUomEntryDisabledState();
       }
     });
   }
@@ -119,6 +121,7 @@ export class AddItemModalComponent implements OnInit {
     this.loadingUomGroups = true;
     this.uomGroups = [];
     this.manualForm.patchValue({ uoMEntry: '' });
+    this.setUomEntryDisabledState();
 
     this.salesService.getUoMGroupByItemId(itemId).subscribe({
       next: (res: any) => {
@@ -132,12 +135,14 @@ export class AddItemModalComponent implements OnInit {
           this.uomGroups = [];
         }
         this.loadingUomGroups = false;
+        this.setUomEntryDisabledState();
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error loading UoM groups:', err);
         this.uomGroups = [];
         this.loadingUomGroups = false;
+        this.setUomEntryDisabledState();
         this.cdr.detectChanges();
       }
     });
@@ -153,6 +158,7 @@ export class AddItemModalComponent implements OnInit {
       quantity: 1
     });
     this.uomGroups = [];
+    this.setUomEntryDisabledState();
   }
 
   onAddByBarcode(): void {
@@ -219,5 +225,18 @@ export class AddItemModalComponent implements OnInit {
   displayItemName(itemId: number | null): string {
     const item = this.items.find(i => i.itemId === itemId);
     return item ? `${item.itemName} (${item.itemCode})` : '';
+  }
+
+  private setUomEntryDisabledState(): void {
+    const uomControl = this.manualForm.get('uoMEntry');
+    const hasItem = !!this.manualForm.get('itemId')?.value;
+    const shouldDisable = this.loadingUomGroups || !hasItem;
+
+    if (shouldDisable) {
+      uomControl?.disable({ emitEvent: false });
+      return;
+    }
+
+    uomControl?.enable({ emitEvent: false });
   }
 }
