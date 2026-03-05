@@ -52,10 +52,6 @@
           <svg cIcon name="cil-layers" class="me-2"></svg>
           Header Batches
         </button>
-        <button cButton color="light" class="flow-btn" (click)="onGoToComponents()" title="Go to Components">
-          <svg cIcon name="cil-list-rich" class="me-2"></svg>
-          Components
-        </button>
       </div>
 
       @if (isLoading) {
@@ -176,78 +172,6 @@
           </div>
         </div>
 
-        <div class="section-card" id="components-section">
-          <div class="section-header">BOM Components</div>
-          <div class="p-3">
-            <div class="table-responsive mb-3">
-              <table cTable [striped]="true" [hover]="true" class="mb-0">
-                <thead>
-                  <tr>
-                    <th>#</th>
-                    <th>Item Code</th>
-                    <th>Item Name</th>
-                    <th>Issue Type</th>
-                    <th>Required Qty</th>
-                    <th>In Whs Qty</th>
-                    <th class="text-center">Actions</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  @if (componentLines.length === 0) {
-                    <tr>
-                      <td colspan="7" class="text-center text-body-secondary py-3">No component lines loaded.</td>
-                    </tr>
-                  } @else {
-                    @for (line of componentLines; track line.productionComponentLineId) {
-                      <tr>
-                        <td>{{ $index + 1 }}</td>
-                        <td>{{ line.itemCode }}</td>
-                        <td>{{ line.itemName }}</td>
-                        <td>{{ line.issueType }}</td>
-                        <td>
-                          <input
-                            cFormControl
-                            type="number"
-                            min="0.000001"
-                            step="0.000001"
-                            [disabled]="line.issueType === 'Backflush'"
-                            [(ngModel)]="line.requiredQuantity"
-                            [ngModelOptions]="{ standalone: true }"
-                          />
-                        </td>
-                        <td>{{ line.inWhsQuantity ?? 0 }}</td>
-                        <td class="text-center">
-                          <button
-                            cButton
-                            color="info"
-                            size="sm"
-                            class="me-2"
-                            title="Open component batches page"
-                            (click)="onGoToComponentBatches(line)"
-                          >
-                            <svg cIcon name="cil-external-link"></svg>
-                          </button>
-                          @if (line.issueType === 'Manual') {
-                            <button cButton color="primary" size="sm" class="me-2" (click)="onSaveComponentLine(line)">
-                              <svg cIcon name="cil-save"></svg>
-                            </button>
-                          }
-                          <button cButton color="danger" size="sm" (click)="onDeleteComponentLine(line)">
-                            <svg cIcon name="cil-trash"></svg>
-                          </button>
-                        </td>
-                      </tr>
-                    }
-                  }
-                </tbody>
-              </table>
-            </div>
-
-            <div class="text-body-secondary fw-semibold">
-              Use the open icon in each line to manage its batches on a dedicated page.
-            </div>
-          </div>
-        </div>
       }
     </c-card-body>
   </c-card>

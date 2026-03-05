@@ -44,8 +44,8 @@
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
-                  <h6 class="card-title">DeliveryNote Order #{{ delivery?.deliveryNoteOrderId }}</h6>
-                  <p class="text-muted mb-0 small">sales Order ID: {{ delivery?.salesOrderId || 0 }}</p>
+                  <h6 class="card-title">DeliveryNote Order #{{ delivery.deliveryNoteOrderId }}</h6>
+                  <p class="text-muted mb-0 small">sales Order ID: {{ delivery.salesOrderId || 0 }}</p>
                 </div>
                 <div>
                   @if (!isApproved(delivery)) {
@@ -55,13 +55,13 @@
                     <button cButton class="me-2" color="danger" size="sm" (click)="onDeleteDeliveryNote()">
                       Delete
                     </button>
-                    @if (delivery?.canApprove) {
+                    @if (delivery.canApprove) {
                       <button cButton class="me-2" color="success" size="sm" (click)="onOpenApprovalModal()">
                         Approve
                       </button>
                     }
                   } @else {
-                    @if (delivery?.canApprove) {
+                    @if (delivery.canApprove) {
                       <button cButton class="ms-2" color="success" size="sm" (click)="onOpenApprovalModal()">
                         Approve
                       </button>
@@ -73,31 +73,31 @@
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Document Date</label>
-                    <p class="mb-0">{{ delivery?.createdAt | date:'short' }}</p>
+                    <p class="mb-0">{{ delivery.createdAt | date:'short' }}</p>
                   </div>
                 </c-col>
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Customer Code</label>
-                    <p class="mb-0">{{ delivery?.customerCode || 'N/A' }}</p>
+                    <p class="mb-0">{{ delivery.customerCode || 'N/A' }}</p>
                   </div>
                 </c-col>
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Customer Name</label>
-                    <p class="mb-0">{{ delivery?.customerName || 'N/A' }}</p>
+                    <p class="mb-0">{{ delivery.customerName || 'N/A' }}</p>
                   </div>
                 </c-col>
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Posting Date</label>
-                    <p class="mb-0">{{ delivery?.postingDate | date:'short' }}</p>
+                    <p class="mb-0">{{ delivery.postingDate | date:'short' }}</p>
                   </div>
                 </c-col>
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Due Date</label>
-                    <p class="mb-0">{{ delivery?.dueDate | date:'short' }}</p>
+                    <p class="mb-0">{{ delivery.dueDate | date:'short' }}</p>
                   </div>
                 </c-col>
                 <c-col [md]="3">
@@ -123,7 +123,7 @@
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Comment</label>
-                    <p class="mb-0">{{ delivery?.comment || 'No comment' }}</p>
+                    <p class="mb-0">{{ delivery.comment || 'No comment' }}</p>
                   </div>
                 </c-col>
               </c-row>
@@ -287,4 +287,3 @@
     </button>
   </c-modal-footer>
 </c-modal>
-

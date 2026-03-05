@@ -114,7 +114,7 @@ export class ProductionOrdersComponent implements OnInit {
   }
 
   onOpen(order: ProductionOrder): void {
-    this.router.navigate(['/processes/production/order-form', this.warehouseId, order.productionOrderId]);
+    this.router.navigate(['/processes/production/order-items', this.warehouseId, order.productionOrderId]);
   }
 
   onRefresh(): void {
@@ -181,13 +181,6 @@ export class ProductionOrdersComponent implements OnInit {
         }, 0);
       }
     });
-  }
-
-  onOpenComponents(order: ProductionOrder): void {
-    this.router.navigate(
-      ['/processes/production/order-form', this.warehouseId, order.productionOrderId],
-      { fragment: 'components-section' }
-    );
   }
 
   onDelete(order: ProductionOrder): void {

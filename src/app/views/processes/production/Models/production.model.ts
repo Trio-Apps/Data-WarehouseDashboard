@@ -64,35 +64,6 @@ export interface ProductionHeaderBatch {
   expiryDate?: string;
 }
 
-export interface ProductionComponentLine {
-  productionComponentLineId: number;
-  productionOrderId: number;
-  itemId: number;
-  itemCode?: string;
-  itemName?: string;
-  warehouseId: number;
-  requiredQuantity: number;
-  issuedQuantity?: number;
-  inWhsQuantity?: number;
-  issueType: string;
-}
-
-export interface ProductionComponentBatch {
-  productionComponentBatchId: number;
-  productionComponentLineId: number;
-  quantity: number;
-  batchNumber: string;
-  expiryDate?: string;
-}
-
-export interface AvailableComponentBatch {
-  batchNumber: string;
-  expiryDate?: string;
-  quantityReceived: number;
-  quantityAllocatedInOrder: number;
-  quantityAvailable: number;
-}
-
 export interface AddProductionOrderPayload {
   postingDate: string;
   dueDate: string;
@@ -121,26 +92,6 @@ export interface AddProductionHeaderBatchPayload {
 }
 
 export interface UpdateProductionHeaderBatchPayload {
-  quantity: number;
-  batchNumber: string;
-  expiryDate?: string;
-}
-
-export interface UpdateProductionComponentLinePayload {
-  warehouseId: number;
-  requiredQuantity: number;
-  issuedQuantity?: number;
-  issueType?: string;
-}
-
-export interface AddProductionComponentBatchPayload {
-  productionComponentLineId: number;
-  quantity: number;
-  batchNumber: string;
-  expiryDate?: string;
-}
-
-export interface UpdateProductionComponentBatchPayload {
   quantity: number;
   batchNumber: string;
   expiryDate?: string;

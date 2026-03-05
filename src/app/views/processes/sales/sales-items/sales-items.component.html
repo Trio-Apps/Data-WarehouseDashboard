@@ -163,7 +163,7 @@
             <tbody>
               @if (loading) {
                 <tr>
-                  <td [attr.colspan]="Sale && (!isApproved(Sale) || Sale?.isReturn) ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="Sale && (!isApproved(Sale) || Sale.isReturn) ? 8 : 7" class="text-center py-4">
                     <span class="text-body-secondary">Loading...</span>
                   </td>
                 </tr>
@@ -207,7 +207,7 @@
                 }
               } @else {
                 <tr>
-                  <td [attr.colspan]="Sale && (!isApproved(Sale) || Sale?.isReturn) ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="Sale && (!isApproved(Sale) || Sale.isReturn) ? 8 : 7" class="text-center py-4">
                     <span class="text-body-secondary">No items in this Sale</span>
                   </td>
                 </tr>

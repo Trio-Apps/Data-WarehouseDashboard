@@ -43,11 +43,24 @@ export const routes: Routes = [
         }
       },
       {
-        path: 'component-batches/:warehouseId/:productionOrderId/:componentLineId',
-        loadComponent: () =>
-          import('./component-batches/production-component-batches.component').then((m) => m.ProductionComponentBatchesComponent),
+        path: 'order-items/:warehouseId/:productionOrderId',
+        loadComponent: () => import('./production-items/production-items.component').then((m) => m.ProductionItemsComponent),
         data: {
-          title: 'Component Batches'
+          title: 'Production Items'
+        }
+      },
+      {
+        path: 'header-batches/:warehouseId/:productionOrderId',
+        loadComponent: () => import('./header-batches/production-header-batches.component').then((m) => m.ProductionHeaderBatchesComponent),
+        data: {
+          title: 'Production Header Batches'
+        }
+      },
+      {
+        path: 'header-batches/:warehouseId/:productionOrderId/:itemQuantity',
+        loadComponent: () => import('./header-batches/production-header-batches.component').then((m) => m.ProductionHeaderBatchesComponent),
+        data: {
+          title: 'Production Header Batches'
         }
       }
     ]

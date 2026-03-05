@@ -18,8 +18,6 @@ import { ToastrService } from 'ngx-toastr';
 import { firstValueFrom } from 'rxjs';
 import {
   FinishedGoodItem,
-  ProductionComponentBatch,
-  ProductionComponentLine,
   ProductionHeaderBatch,
   ProductionOrderItem
 } from '../Models/production.model';
@@ -60,9 +58,6 @@ export class ProductionOrderFormComponent implements OnInit {
 
   finishedGoods: FinishedGoodItem[] = [];
   headerBatches: ProductionHeaderBatch[] = [];
-  componentLines: ProductionComponentLine[] = [];
-
-  componentBatchesMap: Record<number, ProductionComponentBatch[]> = {};
 
   editingHeaderBatchId = 0;
 
@@ -93,8 +88,8 @@ export class ProductionOrderFormComponent implements OnInit {
       expiryDate: [null]
     });
 
-    this.warehouseId = Number(this.route.snapshot.paramMap.get('warehouseId') || 0);
-    this.productionOrderId = Number(this.route.snapshot.paramMap.get('productionOrderId') || 0);
+    this.warehouseId = this.getRouteNumber('warehouseId');
+    this.productionOrderId = this.getRouteNumber('productionOrderId');
     this.isEditMode = this.productionOrderId > 0;
 
     this.form.patchValue({ warehouseId: this.warehouseId });
@@ -106,6 +101,10 @@ export class ProductionOrderFormComponent implements OnInit {
 
       setTimeout(() => this.scrollToSection(fragment), 150);
     });
+
+    if ((this.route.snapshot.routeConfig?.path || '').startsWith('production-header-batches')) {
+      setTimeout(() => this.scrollToSection('header-batches-section'), 200);
+    }
 
     setTimeout(() => {
       if (this.isEditMode) {
@@ -139,24 +138,6 @@ export class ProductionOrderFormComponent implements OnInit {
     this.scrollToSection('header-batches-section');
   }
 
-  onGoToComponents(): void {
-    this.scrollToSection('components-section');
-  }
-
-  onGoToComponentBatches(line: ProductionComponentLine): void {
-    if (!this.productionOrderId) {
-      this.toastr.error('Save draft first to manage component batches.', 'Validation');
-      return;
-    }
-
-    this.router.navigate([
-      '/processes/production/component-batches',
-      this.warehouseId,
-      this.productionOrderId,
-      line.productionComponentLineId
-    ]);
-  }
-
   onWarehouseChange(): void {
     const selectedWarehouseId = Number(this.form.get('warehouseId')?.value || 0);
     if (!selectedWarehouseId || selectedWarehouseId === this.warehouseId) {
@@ -167,13 +148,11 @@ export class ProductionOrderFormComponent implements OnInit {
 
     if (!this.productionOrderId) {
       this.loadFinishedGoods(this.warehouseId);
-      this.componentLines = [];
       return;
     }
 
     this.saveOrderHeaderOnly(() => {
       this.loadFinishedGoods(this.warehouseId);
-      this.loadComponentLines();
     });
   }
 
@@ -196,7 +175,6 @@ export class ProductionOrderFormComponent implements OnInit {
             this.toastr.warning(syncMessage, 'BOM Sync');
           }
           this.loadHeaderBatches();
-          this.loadComponentLines();
         },
         (errorMessage) => {
           this.isSaving = false;
@@ -335,40 +313,6 @@ export class ProductionOrderFormComponent implements OnInit {
     });
   }
 
-  onSaveComponentLine(line: ProductionComponentLine): void {
-    if (line.issueType === 'Backflush') {
-      this.toastr.info('Required quantity cannot be edited for Backflush components.', 'Info');
-      return;
-    }
-
-    this.productionService.updateProductionComponentLine(line.productionComponentLineId, {
-      warehouseId: this.warehouseId,
-      requiredQuantity: Number(line.requiredQuantity),
-      issuedQuantity: line.issuedQuantity,
-      issueType: line.issueType
-    }).subscribe({
-      next: () => {
-        this.toastr.success('Component line updated successfully.', 'Success');
-        this.loadComponentLines();
-      },
-      error: (err) => this.toastr.error(this.extractError(err, 'Failed to update component line.'), 'Error')
-    });
-  }
-
-  onDeleteComponentLine(line: ProductionComponentLine): void {
-    if (!confirm(`Delete component line ${line.itemCode || line.itemId}?`)) {
-      return;
-    }
-
-    this.productionService.deleteProductionComponentLine(line.productionComponentLineId).subscribe({
-      next: () => {
-        this.toastr.success('Component line deleted successfully.', 'Success');
-        this.loadComponentLines();
-      },
-      error: (err) => this.toastr.error(this.extractError(err, 'Failed to delete component line.'), 'Error')
-    });
-  }
-
   private loadOrderDetails(): void {
     this.isLoading = true;
 
@@ -388,7 +332,6 @@ export class ProductionOrderFormComponent implements OnInit {
         this.loadFinishedGoods(this.warehouseId);
         this.loadOrderItems();
         this.loadHeaderBatches();
-        this.loadComponentLines();
 
         setTimeout(() => {
           this.isLoading = false;
@@ -442,40 +385,6 @@ export class ProductionOrderFormComponent implements OnInit {
       error: (err) => {
         this.headerBatches = [];
         this.toastr.error(this.extractError(err, 'Failed to load header batches.'), 'Error');
-      }
-    });
-  }
-
-  private loadComponentLines(): void {
-    if (!this.productionOrderId) {
-      this.componentLines = [];
-      return;
-    }
-
-    this.productionService.getProductionComponentLines(this.productionOrderId, 1, 300).subscribe({
-      next: (res: any) => {
-        this.componentLines = this.toArray<ProductionComponentLine>(res);
-        this.componentBatchesMap = {};
-
-        this.componentLines.forEach((line) => {
-          this.loadComponentBatches(line.productionComponentLineId);
-        });
-      },
-      error: (err) => {
-        this.componentLines = [];
-        this.componentBatchesMap = {};
-        this.toastr.error(this.extractError(err, 'Failed to load BOM components.'), 'Error');
-      }
-    });
-  }
-
-  private loadComponentBatches(lineId: number): void {
-    this.productionService.getProductionComponentBatches(lineId, 1, 200).subscribe({
-      next: (res: any) => {
-        this.componentBatchesMap[lineId] = this.toArray<ProductionComponentBatch>(res);
-      },
-      error: () => {
-        this.componentBatchesMap[lineId] = [];
       }
     });
   }
@@ -588,22 +497,6 @@ export class ProductionOrderFormComponent implements OnInit {
       }
     }
 
-    for (const line of this.componentLines) {
-      if (line.issueType !== 'Manual') {
-        continue;
-      }
-
-      const selectedBatches = this.componentBatchesMap[line.productionComponentLineId] || [];
-      if (selectedBatches.length === 0) {
-        continue;
-      }
-
-      const lineBatchTotal = selectedBatches.reduce((sum, batch) => sum + Number(batch.quantity || 0), 0);
-      if (Number(lineBatchTotal.toFixed(6)) !== Number(Number(line.requiredQuantity || 0).toFixed(6))) {
-        return `Component ${line.itemCode || line.itemId} batch total must equal required quantity.`;
-      }
-    }
-
     return null;
   }
 
@@ -623,6 +516,20 @@ export class ProductionOrderFormComponent implements OnInit {
     }
 
     el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  private getRouteNumber(key: string): number {
+    const fromParam = Number(this.route.snapshot.paramMap.get(key) || 0);
+    if (fromParam > 0) {
+      return fromParam;
+    }
+
+    const fromQuery = Number(this.route.snapshot.queryParamMap.get(key) || 0);
+    if (fromQuery > 0) {
+      return fromQuery;
+    }
+
+    return 0;
   }
 
   private toDateInputValue(value: any): string {

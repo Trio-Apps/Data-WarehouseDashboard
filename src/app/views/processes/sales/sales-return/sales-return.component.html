@@ -61,11 +61,11 @@
             <div class="card-body">
               <div class="d-flex justify-content-between align-items-start mb-3">
                 <div>
-                  <h6 class="card-title">Return Order #{{ return?.salesReturnOrderId }}</h6>
-                  @if ((return?.deliveryNoteOrderId || deliveryNoteOrderId) > 0) {
-                    <p class="text-muted mb-0 small">Delivery Note ID: {{ return?.deliveryNoteOrderId || deliveryNoteOrderId }}</p>
+                  <h6 class="card-title">Return Order #{{ return.salesReturnOrderId }}</h6>
+                  @if ((return.deliveryNoteOrderId || deliveryNoteOrderId) > 0) {
+                    <p class="text-muted mb-0 small">Delivery Note ID: {{ return.deliveryNoteOrderId || deliveryNoteOrderId }}</p>
                   } @else {
-                    <p class="text-muted mb-0 small">sales Order ID: {{ return?.salesOrderId || 0 }}</p>
+                    <p class="text-muted mb-0 small">sales Order ID: {{ return.salesOrderId || 0 }}</p>
                   }
                 </div>
                 <div>
@@ -76,13 +76,13 @@
                     <button cButton class="me-2" color="danger" size="sm" (click)="onDeleteReturn()">
                       Delete
                     </button>
-                    @if (return?.canApprove) {
+                    @if (return.canApprove) {
                       <button cButton class="me-2" color="success" size="sm" (click)="onOpenApprovalModal()">
                         Approve
                       </button>
                     }
                   } @else {
-                    @if (return?.canApprove) {
+                    @if (return.canApprove) {
                       <button cButton class="ms-2" color="success" size="sm" (click)="onOpenApprovalModal()">
                         Approve
                       </button>
@@ -94,31 +94,31 @@
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Document Date</label>
-                    <p class="mb-0">{{ return?.createdAt | date:'short' }}</p>
+                    <p class="mb-0">{{ return.createdAt | date:'short' }}</p>
                   </div>
                 </c-col>
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Customer Code</label>
-                    <p class="mb-0">{{ return?.customerCode || 'N/A' }}</p>
+                    <p class="mb-0">{{ return.customerCode || 'N/A' }}</p>
                   </div>
                 </c-col>
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Customer Name</label>
-                    <p class="mb-0">{{ return?.customerName || 'N/A' }}</p>
+                    <p class="mb-0">{{ return.customerName || 'N/A' }}</p>
                   </div>
                 </c-col>
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Posting Date</label>
-                    <p class="mb-0">{{ return?.postingDate | date:'short' }}</p>
+                    <p class="mb-0">{{ return.postingDate | date:'short' }}</p>
                   </div>
                 </c-col>
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Due Date</label>
-                    <p class="mb-0">{{ return?.dueDate | date:'short' }}</p>
+                    <p class="mb-0">{{ return.dueDate | date:'short' }}</p>
                   </div>
                 </c-col>
                 <c-col [md]="3">
@@ -144,7 +144,7 @@
                 <c-col [md]="3">
                   <div class="mb-2">
                     <label class="form-label small text-muted">Comment</label>
-                    <p class="mb-0">{{ return?.comment || 'No comment' }}</p>
+                    <p class="mb-0">{{ return.comment || 'No comment' }}</p>
                   </div>
                 </c-col>
               </c-row>
