@@ -11,6 +11,14 @@ export const routes: Routes = [
     loadChildren: () => import('./purchases/routes').then((m) => m.routes)
   },
   {
+    path: 'transferred-request',
+    loadChildren: () => import('./transferred-request').then((m) => m.routes)
+  },
+  {
+    path: 'quantity-adjustment-stock',
+    loadChildren: () => import('./quantity-adjustment-stock').then((m) => m.routes)
+  },
+  {
     path: 'approval-process',
     loadChildren: () => import('./approval-process/routes').then((m) => m.routes)
   },

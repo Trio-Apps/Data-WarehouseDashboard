@@ -27,7 +27,6 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
   filteredApprovals: ProcessApproval[] = [];
   approvingIds = new Set<number>();
 
-  // Pagination
   currentPage: number = 1;
   itemsPerPage: number = 10;
   totalPages: number = 0;
@@ -36,7 +35,6 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
   hasNext: boolean = false;
   hasPrevious: boolean = false;
 
-  // Expose Math to template
   Math = Math;
 
   canViewMyApprovals: boolean = false;
@@ -144,6 +142,7 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
     if (event) {
       event.preventDefault();
     }
+
     this.loading = true;
     this.cdr.detectChanges();
 
@@ -166,6 +165,7 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
     if (event) {
       event.preventDefault();
     }
+
     if (this.hasNext) {
       this.onPageChange(this.currentPage + 1, event);
     }
@@ -175,6 +175,7 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
     if (event) {
       event.preventDefault();
     }
+
     if (this.hasPrevious) {
       this.onPageChange(this.currentPage - 1, event);
     }
@@ -213,7 +214,46 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
       return;
     }
 
+    const processType = (approval.processType || '').toLowerCase().replace(/\s+/g, '');
+    const referenceId = approval.referenceId;
+
+    switch (processType) {
+      case 'goodsreturn':
+        this.router.navigate(['/processes/purchases/goods-return-order', 0, 0, referenceId]);
+        break;
+
+      case 'deliverynote':
+        this.router.navigate(['/processes/sales/delivery-note-order', 0, referenceId]);
+        break;
+
+      case 'transferred':
+      case 'transferredrequest':
+      case 'transfer':
+        this.router.navigate(['/processes/transferred-request/transferred-request-items', referenceId]);
+        break;
+
+      case 'transferredstock':
+      case 'stocktransferred':
+        this.router.navigate(['/processes/transferred-request/transferred-stock', 0, referenceId]);
+        break;
+
+      case 'quantityadjustmentstock':
+      case 'quantityadjustment':
+      case 'adjustmentstock':
+      case 'countingadjustment':
+        this.router.navigate([
+          '/processes/quantity-adjustment-stock/quantity-adjustment-stock',
+          referenceId
+        ]);
+        break;
+
+      default:
+        this.toastr.info(`No navigation defined for ${processType}.`, 'Info');
+        break;
+    }
+
     this.approvingIds.add(processApprovalId);
+
     this.approvalService.changeApprovalStatus(true, processApprovalId, 'approved from approvals page').subscribe({
       next: (res) => {
         if (res?.success === false) {

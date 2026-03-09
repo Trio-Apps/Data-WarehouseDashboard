@@ -100,6 +100,32 @@
           </c-card>
         </c-col>
 
+        <!-- Transferred Stock -->
+        <c-col [xs]="12" [md]="3">
+          <c-card class="process-card h-100" (click)="onCardClick('transferred-stock')">
+            <c-card-body class="text-center">
+              <div class="icon-wrap icon-mint">
+                <svg cIcon name="cil-layers" size="3xl" class="process-icon"></svg>
+              </div>
+              <h5 class="card-title">Transferred Stock</h5>
+              <p class="card-text">Transferred stock orders</p>
+            </c-card-body>
+          </c-card>
+        </c-col>
+
+        <!-- Quantity Adjustment Stock -->
+        <c-col [xs]="12" [md]="3">
+          <c-card class="process-card h-100" (click)="onCardClick('quantity-adjustment-stock')">
+            <c-card-body class="text-center">
+              <div class="icon-wrap icon-mint">
+                <svg cIcon name="cil-layers" size="3xl" class="process-icon"></svg>
+              </div>
+              <h5 class="card-title">Quantity Adjustment</h5>
+              <p class="card-text">Quantity adjustment stock orders</p>
+            </c-card-body>
+          </c-card>
+        </c-col>
+
         <!-- Received -->
         <c-col [xs]="12" [md]="3">
           <c-card class="process-card h-100" (click)="onCardClick('received')">

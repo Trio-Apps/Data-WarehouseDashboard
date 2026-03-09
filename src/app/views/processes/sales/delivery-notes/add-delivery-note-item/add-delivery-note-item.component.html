@@ -5,148 +5,143 @@
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
-      @if (loading) {
-        <div class="text-center py-5">
-          <span class="text-body-secondary">Loading items...</span>
-        </div>
-      } @else {
-        <div class="p-4">
-          <ul class="nav nav-tabs mb-4" role="tablist">
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link"
-                [class.active]="activeTab === 'barcode'"
-                (click)="activeTab = 'barcode'"
-                type="button">
-                Add by Barcode
-              </button>
-            </li>
-            <li class="nav-item" role="presentation">
-              <button
-                class="nav-link"
-                [class.active]="activeTab === 'manual'"
-                (click)="activeTab = 'manual'"
-                type="button">
-                Manual Entry
-              </button>
-            </li>
-          </ul>
+      <div class="p-4">
+        <ul class="nav nav-tabs mb-4" role="tablist">
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              [class.active]="activeTab === 'barcode'"
+              (click)="activeTab = 'barcode'"
+              type="button">
+              Add by Barcode
+            </button>
+          </li>
+          <li class="nav-item" role="presentation">
+            <button
+              class="nav-link"
+              [class.active]="activeTab === 'manual'"
+              (click)="activeTab = 'manual'"
+              type="button">
+              Manual Entry
+            </button>
+          </li>
+        </ul>
 
-          @if (activeTab === 'barcode') {
-            <form [formGroup]="barcodeForm" (ngSubmit)="onAddByBarcode()">
-              <c-row [gutter]="3">
-                <c-col [md]="12">
-                  <label class="form-label">
-                    Barcode <span class="text-danger">*</span>
-                  </label>
+        @if (activeTab === 'barcode') {
+          <form [formGroup]="barcodeForm" (ngSubmit)="onAddByBarcode()">
+            <c-row [gutter]="3">
+              <c-col [md]="12">
+                <label class="form-label">
+                  Barcode <span class="text-danger">*</span>
+                </label>
+                <input
+                  cFormControl
+                  type="text"
+                  formControlName="barCode"
+                  placeholder="Enter barcode"
+                  class="form-control"
+                  [class.is-invalid]="barcodeForm.get('barCode')?.invalid && barcodeForm.get('barCode')?.touched"
+                  required>
+                @if (barcodeForm.get('barCode')?.invalid && barcodeForm.get('barCode')?.touched) {
+                  <div class="invalid-feedback d-block">
+                    Barcode is required
+                  </div>
+                }
+                <small class="form-text text-muted">Scan or enter the item barcode</small>
+              </c-col>
+            </c-row>
+          </form>
+        }
+
+        @if (activeTab === 'manual') {
+          <form [formGroup]="manualForm" (ngSubmit)="onAddManually()">
+            <c-row [gutter]="3">
+              <c-col [md]="12">
+                <label class="form-label">
+                  Item <span class="text-danger">*</span>
+                </label>
+                <div class="d-flex align-items-center gap-2">
                   <input
                     cFormControl
                     type="text"
-                    formControlName="barCode"
-                    placeholder="Enter barcode"
-                    class="form-control"
-                    [class.is-invalid]="barcodeForm.get('barCode')?.invalid && barcodeForm.get('barCode')?.touched"
-                    required>
-                  @if (barcodeForm.get('barCode')?.invalid && barcodeForm.get('barCode')?.touched) {
-                    <div class="invalid-feedback d-block">
-                      Barcode is required
-                    </div>
-                  }
-                  <small class="form-text text-muted">Scan or enter the item barcode</small>
-                </c-col>
-              </c-row>
-            </form>
-          }
+                    class="form-control item-picker-display"
+                    [value]="selectedItemDisplay"
+                    placeholder="-- Select Item --"
+                    readonly
+                    (click)="onOpenItemSearchModal()" />
+                  <button cButton color="secondary" type="button" class="item-picker-btn" (click)="onOpenItemSearchModal()">
+                    <svg cIcon name="cil-search"></svg>
+                  </button>
+                </div>
+                <input type="hidden" formControlName="itemId" />
+                @if (manualForm.get('itemId')?.invalid && (manualForm.get('itemId')?.touched || manualForm.touched)) {
+                  <div class="invalid-feedback d-block">
+                    Item is required
+                  </div>
+                }
+              </c-col>
 
-          @if (activeTab === 'manual') {
-            <form [formGroup]="manualForm" (ngSubmit)="onAddManually()">
-              <c-row [gutter]="3">
-                <c-col [md]="12">
-                  <label class="form-label">
-                    Item <span class="text-danger">*</span>
-                  </label>
+              <c-col [md]="6">
+                <label class="form-label">
+                  UoM Entry <span class="text-danger">*</span>
+                </label>
+                @if (loadingUomGroups) {
+                  <div class="text-body-secondary">Loading units...</div>
+                } @else {
                   <select
                     cFormControl
-                    formControlName="itemId"
+                    formControlName="uoMEntry"
                     class="form-select"
-                    [class.is-invalid]="manualForm.get('itemId')?.invalid && manualForm.get('itemId')?.touched"
+                    [class.is-invalid]="manualForm.get('uoMEntry')?.invalid && manualForm.get('uoMEntry')?.touched"
+                    [disabled]="!manualForm.get('itemId')?.value"
                     required>
-                    <option value="">-- Select Item --</option>
-                    @for (item of items; track item.itemId) {
-                      <option [value]="item.itemId">
-                        {{ item.itemName }} ({{ item.itemCode }})
-                      </option>
+                    <option value="">-- Select Unit --</option>
+                    @if (manualForm.get('itemId')?.value) {
+                      @for (uom of uomGroups; track uom.uomEntry) {
+                        <option [value]="uom.uomEntry">
+                          {{ uom.uomCode }} (Entry: {{ uom.uomEntry }}, Base Qty: {{ uom.baseQty }})
+                        </option>
+                      }
+                      @if (uomGroups.length === 0) {
+                        <option disabled>No units available</option>
+                      }
+                    } @else {
+                      <option disabled>Please select an item first</option>
                     }
                   </select>
-                  @if (manualForm.get('itemId')?.invalid && manualForm.get('itemId')?.touched) {
+                  @if (manualForm.get('uoMEntry')?.invalid && manualForm.get('uoMEntry')?.touched) {
                     <div class="invalid-feedback d-block">
-                      Item is required
+                      Unit of measure is required
                     </div>
                   }
-                </c-col>
+                }
+                <small class="form-text text-muted">Select unit of measure</small>
+              </c-col>
 
-                <c-col [md]="6">
-                  <label class="form-label">
-                    UoM Entry <span class="text-danger">*</span>
-                  </label>
-                  @if (loadingUomGroups) {
-                    <div class="text-body-secondary">Loading units...</div>
-                  } @else {
-                    <select
-                      cFormControl
-                      formControlName="uoMEntry"
-                      class="form-select"
-                      [class.is-invalid]="manualForm.get('uoMEntry')?.invalid && manualForm.get('uoMEntry')?.touched"
-                      [disabled]="!manualForm.get('itemId')?.value"
-                      required>
-                      <option value="">-- Select Unit --</option>
-                      @if (manualForm.get('itemId')?.value) {
-                        @for (uom of uomGroups; track uom.uomEntry) {
-                          <option [value]="uom.uomEntry">
-                            {{ uom.uomCode }} (Entry: {{ uom.uomEntry }}, Base Qty: {{ uom.baseQty }})
-                          </option>
-                        }
-                        @if (uomGroups.length === 0) {
-                          <option disabled>No units available</option>
-                        }
-                      } @else {
-                        <option disabled>Please select an item first</option>
-                      }
-                    </select>
-                    @if (manualForm.get('uoMEntry')?.invalid && manualForm.get('uoMEntry')?.touched) {
-                      <div class="invalid-feedback d-block">
-                        Unit of measure is required
-                      </div>
-                    }
-                  }
-                  <small class="form-text text-muted">Select unit of measure</small>
-                </c-col>
-
-                <c-col [md]="6">
-                  <label class="form-label">
-                    Quantity <span class="text-danger">*</span>
-                  </label>
-                  <input
-                    cFormControl
-                    type="number"
-                    step="0.01"
-                    formControlName="quantity"
-                    placeholder="1"
-                    class="form-control"
-                    [class.is-invalid]="manualForm.get('quantity')?.invalid && manualForm.get('quantity')?.touched"
-                    required>
-                  @if (manualForm.get('quantity')?.invalid && manualForm.get('quantity')?.touched) {
-                    <div class="invalid-feedback d-block">
-                      Quantity is required and must be greater than 0
-                    </div>
-                  }
-                  <small class="form-text text-muted">Quantity to add</small>
-                </c-col>
-              </c-row>
-            </form>
-          }
-        </div>
-      }
+              <c-col [md]="6">
+                <label class="form-label">
+                  Quantity <span class="text-danger">*</span>
+                </label>
+                <input
+                  cFormControl
+                  type="number"
+                  step="0.01"
+                  formControlName="quantity"
+                  placeholder="1"
+                  class="form-control"
+                  [class.is-invalid]="manualForm.get('quantity')?.invalid && manualForm.get('quantity')?.touched"
+                  required>
+                @if (manualForm.get('quantity')?.invalid && manualForm.get('quantity')?.touched) {
+                  <div class="invalid-feedback d-block">
+                    Quantity is required and must be greater than 0
+                  </div>
+                }
+                <small class="form-text text-muted">Quantity to add</small>
+              </c-col>
+            </c-row>
+          </form>
+        }
+      </div>
     </c-card-body>
 
     <c-card-footer class="d-flex justify-content-end gap-2 p-3 border-top">
@@ -186,4 +181,13 @@
     </c-card-footer>
   </c-card>
 </div>
+
+<app-search-item-modal
+  [visible]="showItemSearchModal"
+  [warehouseId]="warehouseId"
+  [lookupSource]="'sales'"
+  (visibleChange)="onItemSearchModalVisibleChange($event)"
+  (itemSelected)="onItemSelected($event)"
+  (clearSelected)="onItemSelectionCleared()">
+</app-search-item-modal>
 

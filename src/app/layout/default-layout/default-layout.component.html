@@ -2,29 +2,28 @@
 <c-sidebar
   #sidebar1="cSidebar"
   class="d-print-none sidebar sidebar-fixed border-end"
-  colorScheme="light"
+  colorScheme="dark"
   id="sidebar1"
   visible
 >
   <c-sidebar-header class="border-bottom">
     <c-sidebar-brand [routerLink]="[]">
-      <img src="assets/image.png" alt="Beon IT logo" class="sidebar-brand-full">
+   <img src="../../../assets/image.png" alt="">
+      <svg cIcon class="sidebar-brand-narrow" height="32" name="signet" title="CoreUI Logo"></svg>
     </c-sidebar-brand>
   </c-sidebar-header>
+  
 
   <ng-scrollbar pointerEventsMethod="scrollbar" visibility="hover">
-    <c-sidebar-nav [navItems]="navItems" dropdownMode="path" compact />
+    <c-sidebar-nav [navItems]="navItems" dropdownMode="close" compact />
   </ng-scrollbar>
 
-  <c-sidebar-footer
-    *ngIf="!sidebar1.narrow"
-    cSidebarToggle="sidebar1"
-    class="border-top d-none d-lg-flex"
-    toggle="unfoldable"
-    style="cursor: pointer;"
-  >
-    <button cSidebarToggler aria-label="Toggle sidebar fold"></button>
-  </c-sidebar-footer>
+
+  @if (!sidebar1.narrow) {
+    <c-sidebar-footer cSidebarToggle="sidebar1" class="border-top d-none d-lg-flex" toggle="unfoldable" style="cursor: pointer;">
+      <button cSidebarToggler aria-label="Toggle sidebar fold"></button>
+    </c-sidebar-footer>
+  }
 </c-sidebar>
 
 <!--main-->
@@ -37,9 +36,6 @@
     sidebarId="sidebar1"
   />
 
-
-
-
   <!--app-body-->
   <div class="body flex-grow-1">
     <c-container breakpoint="lg" class="h-auto px-4">
@@ -47,6 +43,6 @@
     </c-container>
   </div>
 
-  <!--app footer-->
-  <!-- <app-default-footer /> -->
+  <!-- app footer -->
+  <!-- <app-default-footer/> -->
 </div>

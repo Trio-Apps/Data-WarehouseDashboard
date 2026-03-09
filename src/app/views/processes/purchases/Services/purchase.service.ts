@@ -120,10 +120,10 @@ getPurchasesWithFilterationByWarehouse(
   }
 
   /**
-   * Retry SAP sync for a purchase order that failed integration.
+   * Revert a partially failed purchase order back to processing for SAP sync.
    */
   retryPurchaseSap(purchaseOrderId: number): Observable<any> {
-    return this.http.patch<any>(`${this.baseUrl}PurchaseOrder/retry-sap/${purchaseOrderId}`, {}, this.headerOption);
+    return this.http.patch<any>(`${this.baseUrl}PurchaseOrder/${purchaseOrderId}/revert-partially-failed`, {}, this.headerOption);
   }
 
   /**

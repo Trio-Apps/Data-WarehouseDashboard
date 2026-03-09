@@ -69,6 +69,18 @@ export class ShowProcessesComponent implements OnInit {
         case 'goods-return':
           this.router.navigate(['/processes/purchases/goods-return-orders', this.warehouseId]);
           break;
+        case 'transferred':
+          this.router.navigate(['/processes/transferred-request', this.warehouseId]);
+          break;
+        case 'transferred-stock':
+          this.router.navigate(['/processes/transferred-request/transferred-stock-orders', this.warehouseId]);
+          break;
+        case 'quantity-adjustment-stock':
+          this.router.navigate([
+            '/processes/quantity-adjustment-stock/quantity-adjustment-stock-orders',
+            this.warehouseId
+          ]);
+          break;
         case 'production':
           this.router.navigate(['/processes/production/menu', this.warehouseId]);
           break;

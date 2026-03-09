@@ -248,8 +248,8 @@ export class ReceiptOrderComponent implements OnInit {
 
   onBackToPurchases(): void {
     if (this.purchaseOrderId) {
-       this.location.back();
-     // this.router.navigate(['/processes/purchases', this.receipt?.warehouseId]);
+       // this.location.back();
+     this.router.navigate(['/processes/purchases', this.receipt?.warehouseId]);
     } else {
       this.router.navigate(['/processes/purchases/receipt-orders', this.receipt?.warehouseId]);
     }

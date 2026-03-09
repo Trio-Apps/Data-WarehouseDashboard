@@ -98,10 +98,10 @@ createReturn(returnData: AddReturn): Observable<any> {
   }
 
   /**
-   * Retry SAP sync for a goods return order that failed integration.
+   * Revert a partially failed goods return order back to processing for SAP sync.
    */
   retryReturnSap(goodsReturnOrderId: number): Observable<any> {
-    return this.http.patch<any>(`${this.baseUrl}GoodsReturnOrder/retry-sap/${goodsReturnOrderId}`, {}, this.headerOption);
+    return this.http.patch<any>(`${this.baseUrl}GoodsReturnOrder/${goodsReturnOrderId}/revert-partially-failed`, {}, this.headerOption);
   }
 
   /**

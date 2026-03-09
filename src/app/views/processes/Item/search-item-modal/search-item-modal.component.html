@@ -1,0 +1,115 @@
+<c-modal
+  [visible]="visible"
+  (visibleChange)="onVisibleChange($event)"
+  size="lg"
+  alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>Search Item</h5>
+  </c-modal-header>
+
+  <c-modal-body>
+    <c-row [gutter]="3" class="align-items-end">
+      <c-col [md]="10">
+        <label class="form-label">Item Code / Item Name</label>
+        <input
+          cFormControl
+          type="text"
+          class="form-control"
+          [value]="itemModalSearchTerm"
+          (input)="itemModalSearchTerm = $any($event.target).value"
+          placeholder="Enter item code or item name" />
+      </c-col>
+      <c-col [md]="2" class="d-grid">
+        <button cButton color="primary" type="button" class="item-modal-search-btn" (click)="onSearch()">
+          Search
+        </button>
+      </c-col>
+    </c-row>
+
+    <div class="item-modal-table-container mt-3">
+      <table [hover]="true" [striped]="true" cTable class="mb-0 item-modal-table">
+        <thead class="table-header">
+          <tr>
+            <th scope="col" class="bg-body-tertiary">#</th>
+            <th scope="col" class="bg-body-tertiary">Item Code</th>
+            <th scope="col" class="bg-body-tertiary">Item Name</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (itemModalLoading) {
+          <tr>
+            <td colspan="3" class="text-center py-4">
+              <span class="text-body-secondary">Loading...</span>
+            </td>
+          </tr>
+          } @else if (itemModalItems.length > 0) {
+          @for (item of itemModalItems; track item.itemId || $index) {
+          <tr class="item-select-row" (click)="onSelectItem(item)">
+            <td>{{ (itemModalCurrentPage - 1) * itemModalItemsPerPage + $index + 1 }}</td>
+            <td>{{ item.itemCode || 'N/A' }}</td>
+            <td>{{ item.itemName || 'N/A' }}</td>
+          </tr>
+          }
+          } @else {
+          <tr>
+            <td colspan="3" class="text-center py-4">
+              <span class="text-body-secondary">No items found</span>
+            </td>
+          </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </c-modal-body>
+
+  <c-modal-footer class="justify-content-between">
+    <div class="d-flex flex-column">
+      @if (itemModalTotalPages > 0) {
+      <nav aria-label="Item pagination">
+        <ul class="pagination mb-1">
+          <li class="page-item" [class.disabled]="!itemModalHasPrevious">
+            <a
+              class="page-link"
+              (click)="onPreviousPage($event)"
+              href="#"
+              [attr.tabindex]="!itemModalHasPrevious ? -1 : null">
+              <span aria-hidden="true">&laquo;</span>
+            </a>
+          </li>
+
+          @for (page of getPageNumbers(); track page) {
+          <li class="page-item" [class.active]="page === itemModalCurrentPage">
+            <a class="page-link" (click)="onPageChange(page, $event)" href="#">{{ page }}</a>
+          </li>
+          }
+
+          <li class="page-item" [class.disabled]="!itemModalHasNext">
+            <a class="page-link" (click)="onNextPage($event)" href="#" [attr.tabindex]="!itemModalHasNext ? -1 : null">
+              <span aria-hidden="true">&raquo;</span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+      }
+
+      <small class="text-body-secondary">
+        @if (itemModalTotalItems > 0) {
+        Showing {{ (itemModalCurrentPage - 1) * itemModalItemsPerPage + 1 }} to
+        {{ Math.min(itemModalCurrentPage * itemModalItemsPerPage, itemModalTotalItems) }}
+        of {{ itemModalTotalItems }} items
+        } @else {
+        No items to display
+        }
+      </small>
+    </div>
+
+    <div class="d-flex gap-2">
+      <button cButton color="secondary" type="button" (click)="onClearSelection()">
+        Clear
+      </button>
+      <button cButton color="secondary" type="button" (click)="onVisibleChange(false)">
+        Close
+      </button>
+    </div>
+  </c-modal-footer>
+</c-modal>

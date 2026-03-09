@@ -44,12 +44,10 @@ export const navItems: NavItemWithPermissions[] = [
   //  //iconComponent: { name: 'cil-building' },
     permissions: ['Companys.Get']
   },
-
   {
     name: 'Components',
     title: true
   },
-
   {
     name: 'Users',
     url: '/users',
@@ -105,6 +103,12 @@ export const navItems: NavItemWithPermissions[] = [
       {
         name: 'SAP Auth Settings',
         url: '/settings/auth',
+        icon: 'nav-icon-bullet',
+        permissions: ['Saps.Get']
+      },     
+      {
+        name: 'SAP Sync Reset',
+        url: '/settings/sync-reset',
         icon: 'nav-icon-bullet',
         permissions: ['Saps.Get']
       }

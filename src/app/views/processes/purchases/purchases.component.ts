@@ -459,12 +459,14 @@ export class PurchasesComponent implements OnInit, OnDestroy {
       this.router.navigate(['/processes/purchases/purchase-items', purchase.purchaseOrderId]);
     }
   }
+  
 
   onViewReceiptOrder(purchase: Purchase): void {
     if (purchase.purchaseOrderId) {
       this.router.navigate(['/processes/purchases/receipt-order', purchase.purchaseOrderId,purchase.receiptOrderId||0]);
     }
   }
+
 
   hasErrorMessage(purchase: Purchase): boolean {
     return !!purchase.errorMessage?.trim();
@@ -497,14 +499,20 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     this.retryingPurchaseIds.add(purchaseOrderId);
     this.purchaseService.retryPurchaseSap(purchaseOrderId).subscribe({
       next: () => {
-        this.toastr.success(`Retry SAP requested for order #${purchaseOrderId}`, 'Success');
-        this.retryingPurchaseIds.delete(purchaseOrderId);
-        this.loadPurchases();
-        this.cdr.detectChanges();
+        this.toastr.success(`Sync SAP requested for order #${purchaseOrderId}`, 'Success');
+       
+
+        setTimeout(() => {
+          this.retryingPurchaseIds.delete(purchaseOrderId);
+          this.loadPurchases();
+          this.cdr.detectChanges();
+        }, 5000);
+      
+
       },
       error: (err) => {
-        console.error('Error retrying SAP:', err);
-        const errorMessage = err.error?.message || 'Failed to retry SAP. Please try again.';
+        console.error('Error syncing SAP:', err);
+        const errorMessage = err.error?.message || 'Failed to sync SAP. Please try again.';
         this.toastr.error(errorMessage, 'Error');
         this.retryingPurchaseIds.delete(purchaseOrderId);
         this.cdr.detectChanges();

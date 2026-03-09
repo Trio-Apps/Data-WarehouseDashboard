@@ -94,10 +94,10 @@ export class DeliveryNoteService {
   }
 
   /**
-   * Retry SAP sync for a delivery note order that failed integration.
+   * Revert a partially failed delivery note order back to processing for SAP sync.
    */
   retryDeliveryNoteSap(deliveryNoteOrderId: number): Observable<any> {
-    return this.http.patch<any>(`${this.baseUrl}DeliveryNoteOrder/retry-sap/${deliveryNoteOrderId}`, {}, this.headerOption);
+    return this.http.patch<any>(`${this.baseUrl}DeliveryNoteOrder/${deliveryNoteOrderId}/revert-partially-failed`, {}, this.headerOption);
   }
 
   getDeliveryNoteItemsByDeliveryNoteId(deliveryNoteId: number): Observable<any> {
