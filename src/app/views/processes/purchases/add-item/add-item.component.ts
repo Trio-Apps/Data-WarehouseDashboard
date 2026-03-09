@@ -7,17 +7,15 @@ import {
   CardModule,
   GridModule,
   UtilitiesModule,
-  GutterDirective,
-  FormCheckComponent,
-  FormCheckInputDirective,
-  FormCheckLabelDirective
+  GutterDirective
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PurchaseService } from '../Services/purchase.service';
-import { Item } from '../Models/purchase.model';
 import { ToastrService } from 'ngx-toastr';
 import { UoMGroup } from '../../barcodes/Models/item-barcode.model';
+import { SearchItemModalComponent } from '../../Item/search-item-modal/search-item-modal.component';
+import { WarehouseItemLookup } from '../../../Items/Services/items.service';
 
 @Component({
   selector: 'app-add-item',
@@ -30,10 +28,8 @@ import { UoMGroup } from '../../barcodes/Models/item-barcode.model';
     UtilitiesModule,
     ReactiveFormsModule,
     GutterDirective,
-    FormCheckComponent,
-    FormCheckInputDirective,
-    FormCheckLabelDirective,
-    IconDirective
+    IconDirective,
+    SearchItemModalComponent
   ],
   templateUrl: './add-item.component.html',
   styleUrl: './add-item.component.scss',
@@ -44,12 +40,12 @@ export class AddItemComponent implements OnInit {
 
   barcodeForm!: FormGroup;
   manualForm!: FormGroup;
-  items: Item[] = [];
   uomGroups: UoMGroup[] = [];
-  loading: boolean = false;
   saving: boolean = false;
   loadingUomGroups: boolean = false;
   activeTab: 'barcode' | 'manual' = 'barcode';
+  showItemSearchModal: boolean = false;
+  selectedItemDisplay: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -65,7 +61,6 @@ export class AddItemComponent implements OnInit {
     this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
 
     this.initializeForms();
-    this.loadItems();
   }
 
   initializeForms(): void {
@@ -91,29 +86,30 @@ export class AddItemComponent implements OnInit {
     });
   }
 
-  loadItems(): void {
-    if (!this.warehouseId) return;
+  onOpenItemSearchModal(): void {
+    this.showItemSearchModal = true;
+  }
 
-    this.loading = true;
-    this.purchaseService.getItemsByWarehouse(this.warehouseId).subscribe({
-      next: (res: any) => {
-        if (res.data) {
-          this.items = res.data.map((item: any) => ({
-            itemId: item.itemId,
-            itemName: item.itemName,
-            itemCode: item.itemCode
-          }));
-        }
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading items:', err);
-        this.loading = false;
-        this.toastr.error('Failed to load items. Please try again.', 'Error');
-        this.cdr.detectChanges();
-      }
-    });
+  onItemSearchModalVisibleChange(visible: boolean): void {
+    this.showItemSearchModal = visible;
+  }
+
+  onItemSelected(item: WarehouseItemLookup): void {
+    this.manualForm.patchValue({ itemId: item.itemId });
+    this.manualForm.get('itemId')?.markAsTouched();
+    this.selectedItemDisplay = this.getItemDisplayLabel(item);
+    this.showItemSearchModal = false;
+    this.cdr.detectChanges();
+  }
+
+  onItemSelectionCleared(): void {
+    this.manualForm.patchValue({ itemId: '' });
+    this.manualForm.get('itemId')?.markAsTouched();
+    this.selectedItemDisplay = '';
+    this.uomGroups = [];
+    this.manualForm.patchValue({ uoMEntry: '' });
+    this.showItemSearchModal = false;
+    this.cdr.detectChanges();
   }
 
   loadUomGroups(itemId: number): void {
@@ -150,6 +146,7 @@ export class AddItemComponent implements OnInit {
 
   onAddByBarcode(): void {
     if (this.barcodeForm.invalid) {
+      this.barcodeForm.markAllAsTouched();
       this.toastr.error('Please enter a valid barcode', 'Validation Error');
       return;
     }
@@ -178,6 +175,7 @@ export class AddItemComponent implements OnInit {
 
   onAddManually(): void {
     if (this.manualForm.invalid) {
+      this.manualForm.markAllAsTouched();
       this.toastr.error('Please fill in all required fields', 'Validation Error');
       return;
     }
@@ -212,8 +210,14 @@ export class AddItemComponent implements OnInit {
     });
   }
 
-  displayItemName(itemId: number | null): string {
-    const item = this.items.find(i => i.itemId === itemId);
-    return item ? `${item.itemName} (${item.itemCode})` : '';
+  private getItemDisplayLabel(item: WarehouseItemLookup): string {
+    const code = item.itemCode?.trim() || '';
+    const name = item.itemName?.trim() || '';
+
+    if (code && name) {
+      return `${name} (${code})`;
+    }
+
+    return name || code || `#${item.itemId}`;
   }
 }

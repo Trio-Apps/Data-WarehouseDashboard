@@ -15,10 +15,11 @@ import {
 import { IconDirective } from '@coreui/icons-angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { PurchaseService } from '../../Services/purchase.service';
-import { Item } from '../../Models/purchase.model';
 import { ToastrService } from 'ngx-toastr';
 import { UoMGroup } from '../../../barcodes/Models/item-barcode.model';
 import { ReceiptService } from '../../Services/receipt.service';
+import { SearchItemModalComponent } from '../../../Item/search-item-modal/search-item-modal.component';
+import { WarehouseItemLookup } from '../../../../Items/Services/items.service';
 
 @Component({
   selector: 'app-add-receipt-item',
@@ -34,7 +35,8 @@ import { ReceiptService } from '../../Services/receipt.service';
     FormCheckComponent,
     FormCheckInputDirective,
     FormCheckLabelDirective,
-    IconDirective
+    IconDirective,
+    SearchItemModalComponent
   ],
   templateUrl: './add-receipt-item.component.html',
   styleUrl: './add-receipt-item.component.scss',
@@ -46,12 +48,12 @@ export class AddReceiptItemComponent implements OnInit {
 
   barcodeForm!: FormGroup;
   manualForm!: FormGroup;
-  items: Item[] = [];
   uomGroups: UoMGroup[] = [];
-  loading: boolean = false;
   saving: boolean = false;
   loadingUomGroups: boolean = false;
   activeTab: 'barcode' | 'manual' = 'barcode';
+  showItemSearchModal: boolean = false;
+  selectedItemDisplay: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -69,7 +71,6 @@ export class AddReceiptItemComponent implements OnInit {
     this.warehouseId = +(this.route.snapshot.queryParamMap.get('warehouseId') || 0);
 
     this.initializeForms();
-    this.loadItems();
   }
 
   initializeForms(): void {
@@ -95,57 +96,33 @@ export class AddReceiptItemComponent implements OnInit {
     });
   }
 
-  loadItems(): void {
-    if (this.purchaseOrderId > 0) {
-      this.loadItemsByPurchase();
+  onOpenItemSearchModal(): void {
+    if (!this.warehouseId) {
+      this.toastr.warning('Warehouse is not available. Please open this page from receipt order.', 'Warning');
       return;
     }
+    this.showItemSearchModal = true;
+  }
 
-    if (this.warehouseId > 0) {
-      this.loadItemsByWarehouse();
-      return;
-    }
+  onItemSearchModalVisibleChange(visible: boolean): void {
+    this.showItemSearchModal = visible;
+  }
 
-    this.items = [];
-    this.toastr.warning('Warehouse is not available. Please open this page from receipt order.', 'Warning');
+  onItemSelected(item: WarehouseItemLookup): void {
+    this.manualForm.patchValue({ itemId: item.itemId });
+    this.manualForm.get('itemId')?.markAsTouched();
+    this.selectedItemDisplay = this.getItemDisplayLabel(item);
+    this.showItemSearchModal = false;
     this.cdr.detectChanges();
   }
 
-  private loadItemsByPurchase(): void {
-    this.loading = true;
-    this.purchaseService.getAllItemsbyPurchaseId(this.purchaseOrderId).subscribe({
-      next: (res: any) => this.handleItemsResponse(res),
-      error: (err) => this.handleItemsError(err)
-    });
-  }
-
-  private loadItemsByWarehouse(): void {
-    this.loading = true;
-    this.purchaseService.getItemsByWarehouse(this.warehouseId).subscribe({
-      next: (res: any) => this.handleItemsResponse(res),
-      error: (err) => this.handleItemsError(err)
-    });
-  }
-
-  private handleItemsResponse(res: any): void {
-    if (res.data) {
-      this.items = res.data.map((item: any) => ({
-        itemId: item.itemId,
-        itemName: item.itemName,
-        itemCode: item.itemCode
-      }));
-    } else {
-      this.items = [];
-    }
-    this.loading = false;
-    this.cdr.detectChanges();
-  }
-
-  private handleItemsError(err: any): void {
-    console.error('Error loading items:', err);
-    this.items = [];
-    this.loading = false;
-    this.toastr.error('Failed to load items. Please try again.', 'Error');
+  onItemSelectionCleared(): void {
+    this.manualForm.patchValue({ itemId: '' });
+    this.manualForm.get('itemId')?.markAsTouched();
+    this.selectedItemDisplay = '';
+    this.uomGroups = [];
+    this.manualForm.patchValue({ uoMEntry: '' });
+    this.showItemSearchModal = false;
     this.cdr.detectChanges();
   }
 
@@ -245,8 +222,14 @@ export class AddReceiptItemComponent implements OnInit {
     });
   }
 
-  displayItemName(itemId: number | null): string {
-    const item = this.items.find(i => i.itemId === itemId);
-    return item ? `${item.itemName} (${item.itemCode})` : '';
+  private getItemDisplayLabel(item: WarehouseItemLookup): string {
+    const code = item.itemCode?.trim() || '';
+    const name = item.itemName?.trim() || '';
+
+    if (code && name) {
+      return `${name} (${code})`;
+    }
+
+    return name || code || `#${item.itemId}`;
   }
 }

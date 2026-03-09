@@ -15,10 +15,11 @@ import {
 import { IconDirective } from '@coreui/icons-angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { SalesService } from '../../Services/sales.service';
-import { Item } from '../../Models/sales-model';
 import { ToastrService } from 'ngx-toastr';
 import { UoMGroup } from '../../../barcodes/Models/item-barcode.model';
 import { SalesReturnService } from '../../Services/sales-return.service';
+import { SearchItemModalComponent } from '../../../Item/search-item-modal/search-item-modal.component';
+import { WarehouseItemLookup } from '../../../../Items/Services/items.service';
 
 @Component({
   selector: 'app-add-sales-return-item',
@@ -34,7 +35,8 @@ import { SalesReturnService } from '../../Services/sales-return.service';
     FormCheckComponent,
     FormCheckInputDirective,
     FormCheckLabelDirective,
-    IconDirective
+    IconDirective,
+    SearchItemModalComponent
   ],
   templateUrl: './add-sales-return-item.component.html',
   styleUrl: './add-sales-return-item.component.scss',
@@ -46,12 +48,12 @@ export class AddSalesReturnItemComponent implements OnInit {
 
   barcodeForm!: FormGroup;
   manualForm!: FormGroup;
-  items: Item[] = [];
   uomGroups: UoMGroup[] = [];
-  loading: boolean = false;
   saving: boolean = false;
   loadingUomGroups: boolean = false;
   activeTab: 'barcode' | 'manual' = 'barcode';
+  showItemSearchModal: boolean = false;
+  selectedItemDisplay: string = '';
 
   constructor(
     private route: ActivatedRoute,
@@ -69,7 +71,6 @@ export class AddSalesReturnItemComponent implements OnInit {
     this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
 
     this.initializeForms();
-    this.loadItems();
   }
 
   initializeForms(): void {
@@ -93,35 +94,35 @@ export class AddSalesReturnItemComponent implements OnInit {
     });
   }
 
-  loadItems(): void {
+  onOpenItemSearchModal(): void {
     if (!this.warehouseId) {
-      this.items = [];
-      this.toastr.error('Warehouse is missing. Please go back and open Add Item again.', 'Error');
+      this.toastr.warning('Warehouse is missing. Please go back and open Add Item again.', 'Warning');
       return;
     }
 
-    this.loading = true;
-    this.salesService.getItemForSalesByWarehouse(this.warehouseId).subscribe({
-      next: (res: any) => {
-        if (res.data) {
-          this.items = res.data.map((item: any) => ({
-            itemId: item.itemId,
-            itemName: item.itemName,
-            itemCode: item.itemCode
-          }));
-        } else {
-          this.items = [];
-        }
-        this.loading = false;
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error loading items:', err);
-        this.loading = false;
-        this.toastr.error('Failed to load items. Please try again.', 'Error');
-        this.cdr.detectChanges();
-      }
-    });
+    this.showItemSearchModal = true;
+  }
+
+  onItemSearchModalVisibleChange(visible: boolean): void {
+    this.showItemSearchModal = visible;
+  }
+
+  onItemSelected(item: WarehouseItemLookup): void {
+    this.manualForm.patchValue({ itemId: item.itemId });
+    this.manualForm.get('itemId')?.markAsTouched();
+    this.selectedItemDisplay = this.getItemDisplayLabel(item);
+    this.showItemSearchModal = false;
+    this.cdr.detectChanges();
+  }
+
+  onItemSelectionCleared(): void {
+    this.manualForm.patchValue({ itemId: '' });
+    this.manualForm.get('itemId')?.markAsTouched();
+    this.selectedItemDisplay = '';
+    this.uomGroups = [];
+    this.manualForm.patchValue({ uoMEntry: '' });
+    this.showItemSearchModal = false;
+    this.cdr.detectChanges();
   }
 
   loadUomGroups(itemId: number): void {
@@ -153,6 +154,17 @@ export class AddSalesReturnItemComponent implements OnInit {
 
   onCancel(): void {
     this.location.back();
+  }
+
+  private getItemDisplayLabel(item: WarehouseItemLookup): string {
+    const code = item.itemCode?.trim() || '';
+    const name = item.itemName?.trim() || '';
+
+    if (code && name) {
+      return `${name} (${code})`;
+    }
+
+    return name || code || `#${item.itemId}`;
   }
 
   onAddByBarcode(): void {

@@ -486,14 +486,16 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
     this.retryingReturnIds.add(goodsReturnOrderId);
     this.returnService.retryReturnSap(goodsReturnOrderId).subscribe({
       next: () => {
-        this.toastr.success(`Retry SAP requested for return #${goodsReturnOrderId}`, 'Success');
-        this.retryingReturnIds.delete(goodsReturnOrderId);
-        this.loadReturns();
-        this.cdr.detectChanges();
+        this.toastr.success(`Sync SAP requested for return #${goodsReturnOrderId}`, 'Success');
+        setTimeout(() => {
+          this.retryingReturnIds.delete(goodsReturnOrderId);
+          this.loadReturns();
+          this.cdr.detectChanges();
+        }, 10000);
       },
       error: (err) => {
-        console.error('Error retrying SAP:', err);
-        const errorMessage = err.error?.message || 'Failed to retry SAP. Please try again.';
+        console.error('Error syncing SAP:', err);
+        const errorMessage = err.error?.message || 'Failed to sync SAP. Please try again.';
         this.toastr.error(errorMessage, 'Error');
         this.retryingReturnIds.delete(goodsReturnOrderId);
         this.cdr.detectChanges();
@@ -554,6 +556,7 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
       this.toastr.warning('Approval data not found', 'Warning');
       return;
     }
+
     this.selectedReturnForApproval = returnOrder;
     this.approvalComment = '';
     this.setApprovalModalVisible(true);
@@ -567,12 +570,15 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
     this.setApprovalModalVisible(false);
   }
 
+
   onApprovalVisibleChange(visible: boolean): void {
     if (!visible && !this.approvalSubmitting) {
       this.selectedReturnForApproval = null;
     }
+
     this.setApprovalModalVisible(visible);
   }
+
 
   private setApprovalModalVisible(visible: boolean): void {
     setTimeout(() => {
@@ -587,6 +593,7 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
       this.cdr.detectChanges();
     });
   }
+
 
   submitApproval(approved: boolean): void {
     if (!this.selectedReturnForApproval?.processApprovalId) {

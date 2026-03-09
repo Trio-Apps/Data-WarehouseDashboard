@@ -449,14 +449,16 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
     this.retryingReceiptIds.add(receiptPurchaseOrderId);
     this.receiptService.retryReceiptSap(receiptPurchaseOrderId).subscribe({
       next: () => {
-        this.toastr.success(`Retry SAP requested for receipt #${receiptPurchaseOrderId}`, 'Success');
-        this.retryingReceiptIds.delete(receiptPurchaseOrderId);
-        this.loadReceipts();
-        this.cdr.markForCheck();
+        this.toastr.success(`Sync SAP requested for receipt #${receiptPurchaseOrderId}`, 'Success');
+        setTimeout(() => {
+          this.retryingReceiptIds.delete(receiptPurchaseOrderId);
+          this.loadReceipts();
+          this.cdr.markForCheck();
+        }, 10000);
       },
       error: (err) => {
-        console.error('Error retrying SAP:', err);
-        const errorMessage = err.error?.message || 'Failed to retry SAP. Please try again.';
+        console.error('Error syncing SAP:', err);
+        const errorMessage = err.error?.message || 'Failed to sync SAP. Please try again.';
         this.toastr.error(errorMessage, 'Error');
         this.retryingReceiptIds.delete(receiptPurchaseOrderId);
         this.cdr.markForCheck();

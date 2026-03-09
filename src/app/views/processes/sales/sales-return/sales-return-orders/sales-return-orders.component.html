@@ -78,12 +78,18 @@
                   <td>
                     @if (hasErrorMessage(returnOrder)) {
                     <div class="d-flex justify-content-center align-items-center gap-3 mt-2">
-                      <button type="button" class="btn btn-link btn-sm text-danger p-0" (click)="onOpenErrorModal(returnOrder)">
+                      <button
+                        type="button"
+                        class="status-action-button status-action-button-error"
+                        (click)="onOpenErrorModal(returnOrder)">
                         Error
                       </button>
-                      <button type="button" class="btn btn-link btn-sm text-warning p-0" (click)="onRetrySap(returnOrder)"
+                      <button
+                        type="button"
+                        class="status-action-button status-action-button-sync"
+                        (click)="onRetrySap(returnOrder)"
                         [disabled]="isRetryingSap(returnOrder)">
-                        {{ isRetryingSap(returnOrder) ? 'Retrying...' : 'Retry SAP' }}
+                        {{ isRetryingSap(returnOrder) ? 'Syncing...' : 'Sync SAP' }}
                       </button>
                     </div>
                     }
@@ -190,17 +196,26 @@
 </app-search-customer-modal>
 
 <c-modal
+  class="purchase-error-modal"
   [visible]="showErrorModal"
-  (visibleChange)="onErrorModalVisibleChange($event)">
+  (visibleChange)="onErrorModalVisibleChange($event)"
+  alignment="center">
   <c-modal-header>
     <h5 cModalTitle>Error</h5>
   </c-modal-header>
   <c-modal-body>
-    <div class="text-danger fw-semibold mb-2">SAP Error Message</div>
-    <div style="white-space: pre-wrap;">{{ selectedErrorMessage }}</div>
+    <div class="purchase-error-title">SAP Error Message</div>
+    <div class="purchase-error-content">{{ selectedErrorMessage }}</div>
   </c-modal-body>
   <c-modal-footer>
-    <button cButton color="secondary" type="button" (click)="onErrorModalVisibleChange(false)">Close</button>
+    <button
+      cButton
+      color="secondary"
+      type="button"
+      class="purchase-error-close-btn"
+      (click)="onErrorModalVisibleChange(false)">
+      Close
+    </button>
   </c-modal-footer>
 </c-modal>
 

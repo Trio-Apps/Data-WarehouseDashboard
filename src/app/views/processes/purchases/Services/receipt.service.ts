@@ -117,10 +117,10 @@ getReceiptsWithFilterationByWarehouse(
   }
 
   /**
-   * Retry SAP sync for a receipt order that failed integration.
+   * Revert a partially failed receipt order back to processing for SAP sync.
    */
   retryReceiptSap(receiptPurchaseOrderId: number): Observable<any> {
-    return this.http.patch<any>(`${this.baseUrl}ReceiptPurchaseOrder/retry-sap/${receiptPurchaseOrderId}`, {}, this.headerOption);
+    return this.http.patch<any>(`${this.baseUrl}ReceiptPurchaseOrder/${receiptPurchaseOrderId}/revert-partially-failed`, {}, this.headerOption);
   }
 
   /**

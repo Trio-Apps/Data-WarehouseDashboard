@@ -95,10 +95,10 @@ export class SalesReturnService {
   }
 
   /**
-   * Retry SAP sync for a sales return order that failed integration.
+   * Revert a partially failed sales return order back to processing for SAP sync.
    */
   retrySalesReturnSap(salesReturnOrderId: number): Observable<any> {
-    return this.http.patch<any>(`${this.baseUrl}SalesReturnOrder/retry-sap/${salesReturnOrderId}`, {}, this.headerOption);
+    return this.http.patch<any>(`${this.baseUrl}SalesReturnOrder/${salesReturnOrderId}/revert-partially-failed`, {}, this.headerOption);
   }
 
   getReturnItemsByReturnId(returnId: number): Observable<any> {

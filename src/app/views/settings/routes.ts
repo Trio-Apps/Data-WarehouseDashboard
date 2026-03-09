@@ -19,6 +19,14 @@ export const routes: Routes = [
         data: {
           title: 'SAP Auth Settings'
         }
+      },
+      {
+        path: 'sync-reset',
+        loadComponent: () => import('../sync/sync.component')
+          .then(m => m.SyncComponent),
+        data: {
+          title: 'SAP Sync Reset'
+        }
       }
     ]
   }

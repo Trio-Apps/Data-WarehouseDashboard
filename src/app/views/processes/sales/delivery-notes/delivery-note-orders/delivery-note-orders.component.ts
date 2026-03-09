@@ -462,14 +462,16 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     this.retryingDeliveryNoteIds.add(deliveryNoteOrderId);
     this.returnService.retryDeliveryNoteSap(deliveryNoteOrderId).subscribe({
       next: () => {
-        this.toastr.success(`Retry SAP requested for delivery note #${deliveryNoteOrderId}`, 'Success');
-        this.retryingDeliveryNoteIds.delete(deliveryNoteOrderId);
-        this.loadDeliveryNotes();
-        this.cdr.detectChanges();
+        this.toastr.success(`Sync SAP requested for delivery note #${deliveryNoteOrderId}`, 'Success');
+        setTimeout(() => {
+          this.retryingDeliveryNoteIds.delete(deliveryNoteOrderId);
+          this.loadDeliveryNotes();
+          this.cdr.detectChanges();
+        }, 10000);
       },
       error: (err) => {
-        console.error('Error retrying SAP:', err);
-        const errorMessage = err.error?.message || 'Failed to retry SAP. Please try again.';
+        console.error('Error syncing SAP:', err);
+        const errorMessage = err.error?.message || 'Failed to sync SAP. Please try again.';
         this.toastr.error(errorMessage, 'Error');
         this.retryingDeliveryNoteIds.delete(deliveryNoteOrderId);
         this.cdr.detectChanges();
