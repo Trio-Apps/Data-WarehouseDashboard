@@ -48,8 +48,14 @@
                     <td>{{ approval.createdDate ? (approval.createdDate | date:'yyyy-MM-dd HH:mm') : 'N/A' }}</td>
                     @if (canActionApprovals) {
                       <td class="text-center">
-                        <button cButton color="primary" size="sm" (click)="goToProcess(approval)">
-                          <svg cIcon name="cil-external-link"></svg>
+                        <button
+                          cButton
+                          color="success"
+                          size="sm"
+                          [disabled]="approvingIds.has(approval.processApprovalId)"
+                          (click)="goToProcess(approval)"
+                        >
+                          <svg cIcon name="cil-check-circle"></svg>
                         </button>
                       </td>
                     }

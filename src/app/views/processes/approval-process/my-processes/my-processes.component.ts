@@ -25,6 +25,7 @@ import { AuthService } from '../../../pages/Services/auth.service';
 export class MyProcessesComponent implements OnInit, OnDestroy {
   approvals: ProcessApproval[] = [];
   filteredApprovals: ProcessApproval[] = [];
+  approvingIds = new Set<number>();
 
   // Pagination
   currentPage: number = 1;
@@ -202,37 +203,36 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const processType = approval.processItemIsProgress?.processType || '';
-    const referenceId = approval.processItemIsProgress?.referenceId;
-
-    if (!referenceId) {
-      this.toastr.warning('No reference ID found for this process.', 'Warning');
+    const processApprovalId = approval.processApprovalId;
+    if (!processApprovalId) {
+      this.toastr.warning('No approval ID found for this process.', 'Warning');
       return;
     }
-//       
-    switch (processType.toLowerCase()) {
-      case 'sales':
-        this.router.navigate(['/processes/sales/sales-items', referenceId]);
-        break;
-      case 'purchase':
-      case 'purchases':
-        this.router.navigate(['/processes/purchases/purchase-items', referenceId]);
-        break;
-     case 'receipt':
-            this.router.navigate(['/processes/purchases/receipt-order', 0,referenceId]);
-        break;
 
-        case 'goodsreturn':
-            this.router.navigate(['/processes/purchases/goods-return-order', 0, 0, referenceId]);
-        break;
-      case 'deliverynote':
-        this.router.navigate(['/processes/sales/delivery-note-order', 0, referenceId]);
-        break;
-    
-        default:
-        this.toastr.info(`No navigation defined for ${processType}.`, 'Info');
-        break;
+    if (this.approvingIds.has(processApprovalId)) {
+      return;
     }
+
+    this.approvingIds.add(processApprovalId);
+    this.approvalService.changeApprovalStatus(true, processApprovalId, 'approved from approvals page').subscribe({
+      next: (res) => {
+        if (res?.success === false) {
+          this.toastr.error(res?.message || 'Approval failed.', 'Error');
+          return;
+        }
+
+        this.toastr.success('Approval completed successfully.', 'Success');
+        this.loadMyApprovals();
+      },
+      error: (err) => {
+        console.error('Error approving process:', err);
+        this.toastr.error(err?.error?.message || 'Failed to approve this process.', 'Error');
+        this.approvingIds.delete(processApprovalId);
+      },
+      complete: () => {
+        this.approvingIds.delete(processApprovalId);
+      }
+    });
   }
 
   get tableColumnCount(): number {

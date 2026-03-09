@@ -1,0 +1,115 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0">
+    <c-card-header class="d-flex justify-content-between align-items-center">
+      <h4 class="mb-0">Stock Counting Order #{{ countStockId }}</h4>
+      <button cButton color="secondary" (click)="onBackToOrders()">
+        <svg cIcon name="cil-arrow-left" class="me-2"></svg>
+        Back
+      </button>
+    </c-card-header>
+
+    <c-card-body class="p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div>
+          <strong>Status:</strong>
+          <span class="badge" [class.bg-warning]="isDraftOrder" [class.bg-info]="!isDraftOrder">
+            {{ orderStatusText }}
+          </span>
+        </div>
+        @if (isDraftOrder) {
+          <button cButton color="primary" size="sm" (click)="onAddItem()">
+            <svg cIcon name="cil-plus" class="me-2"></svg>
+            Add Item
+          </button>
+        }
+      </div>
+
+      <table cTable [striped]="true" [hover]="true" class="mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Item ID</th>
+            <th>Qty</th>
+            <th>UoM Entry</th>
+            <th>Status</th>
+            <th class="text-center">Batches</th>
+            @if (isDraftOrder) {
+              <th class="text-center">Actions</th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading) {
+            <tr>
+              <td [attr.colspan]="tableColSpan" class="text-center py-4 text-body-secondary">Loading...</td>
+            </tr>
+          } @else if (items.length === 0) {
+            <tr>
+              <td [attr.colspan]="tableColSpan" class="text-center py-4 text-body-secondary">No items found.</td>
+            </tr>
+          } @else {
+            @for (item of items; track item.countStockItemId; let i = $index) {
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td>{{ item.itemId }}</td>
+                <td>{{ item.quantity }}</td>
+                <td>{{ item.uoMEntry }}</td>
+                <td>{{ item.status }}</td>
+                <td class="text-center">
+                  <button cButton color="success" size="sm" (click)="onViewBatches(item)">
+                    <svg cIcon name="cil-layers"></svg>
+                  </button>
+                </td>
+                @if (isDraftOrder) {
+                  <td class="text-center d-flex gap-1 justify-content-center">
+                    <button cButton color="info" size="sm" (click)="onEditItem(item)">
+                      <svg cIcon name="cil-pencil"></svg>
+                    </button>
+                    <button cButton color="danger" size="sm" (click)="onRemoveItem(item)">
+                      <svg cIcon name="cil-trash"></svg>
+                    </button>
+                  </td>
+                }
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </c-card-body>
+  </c-card>
+</div>
+
+<c-modal [visible]="showItemModal" (visibleChange)="onItemModalVisibleChange($event)" [backdrop]="true">
+  <c-modal-header>
+    <h5 cModalTitle>{{ editingItemId ? 'Edit Item' : 'Add Item' }}</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <form [formGroup]="itemForm" id="countStockItemForm" (ngSubmit)="onSaveItem()">
+      <c-row [gutter]="3">
+        <c-col [md]="12">
+          <label class="form-label">Item ID</label>
+          <select cFormControl class="form-select" formControlName="itemId" [disabled]="loadingItemOptions || savingItem">
+            <option [ngValue]="null">-- Select item --</option>
+            @for (opt of itemOptions; track opt.itemId) {
+              <option [ngValue]="opt.itemId">{{ opt.itemCode }} - {{ opt.itemName }}</option>
+            }
+          </select>
+        </c-col>
+        <c-col [md]="6">
+          <label class="form-label">Quantity</label>
+          <input cFormControl type="number" step="0.000001" min="0.000001" class="form-control" formControlName="quantity" />
+        </c-col>
+        <c-col [md]="6">
+          <label class="form-label">UoM Entry</label>
+          <input cFormControl type="number" min="1" class="form-control" formControlName="uoMEntry" />
+        </c-col>
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" type="button" (click)="onItemModalVisibleChange(false)">Cancel</button>
+    <button cButton color="primary" type="submit" form="countStockItemForm" [disabled]="savingItem">
+      {{ savingItem ? 'Saving...' : (editingItemId ? 'Update' : 'Add') }}
+    </button>
+  </c-modal-footer>
+</c-modal>

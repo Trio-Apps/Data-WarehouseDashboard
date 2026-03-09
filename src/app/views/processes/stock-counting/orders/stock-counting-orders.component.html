@@ -1,0 +1,69 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0">
+    <c-card-header class="d-flex justify-content-between align-items-center">
+      <h4 class="mb-0">Stock Counting Orders - Warehouse #{{ warehouseId }}</h4>
+      <div class="d-flex gap-2">
+        <button cButton color="secondary" (click)="onBack()">
+          <svg cIcon name="cil-arrow-left" class="me-2"></svg>
+          Back
+        </button>
+        <button cButton color="success" (click)="onAddOrder()">
+          <svg cIcon name="cil-plus" class="me-2"></svg>
+          New Order
+        </button>
+      </div>
+    </c-card-header>
+
+    <c-card-body class="p-0">
+      <table cTable [striped]="true" [hover]="true" class="mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Order ID</th>
+            <th>Posting Date</th>
+            <th>Status</th>
+            <th>Mode</th>
+            <th>Comment</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading) {
+            <tr>
+              <td colspan="7" class="text-center py-4 text-body-secondary">Loading...</td>
+            </tr>
+          } @else if (orders.length === 0) {
+            <tr>
+              <td colspan="7" class="text-center py-4 text-body-secondary">No orders found.</td>
+            </tr>
+          } @else {
+            @for (order of orders; track order.countStockId; let i = $index) {
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td>{{ order.countStockId }}</td>
+                <td>{{ order.postingDate | date:'yyyy-MM-dd' }}</td>
+                <td><span [class]="order.statusBadgeClass">{{ order.statusText }}</span></td>
+                <td>{{ order.modeText }}</td>
+                <td>{{ order.comment || '-' }}</td>
+                <td class="text-center d-flex gap-1 justify-content-center">
+                  <button cButton color="primary" size="sm" (click)="onOpenItems(order)" title="Items">
+                    <svg cIcon name="cil-list-rich"></svg>
+                  </button>
+                  <button cButton color="info" size="sm" (click)="onEditOrder(order)" title="Edit">
+                    <svg cIcon name="cil-pencil"></svg>
+                  </button>
+                  <button cButton color="danger" size="sm" (click)="onDeleteOrder(order)" title="Delete">
+                    <svg cIcon name="cil-trash"></svg>
+                  </button>
+                  <button cButton color="success" size="sm" [disabled]="!order.canSubmit" (click)="onSubmit(order)" title="Submit">
+                    <svg cIcon name="cil-check-circle"></svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </c-card-body>
+  </c-card>
+</div>

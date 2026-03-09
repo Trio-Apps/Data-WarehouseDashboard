@@ -1,0 +1,95 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0">
+    <c-card-header class="d-flex justify-content-between align-items-center">
+      <h4 class="mb-0">Batches - Item #{{ countStockItemId }}</h4>
+      <div class="d-flex gap-2">
+        <button cButton color="secondary" (click)="onBackToItems()">
+          <svg cIcon name="cil-arrow-left" class="me-2"></svg>
+          Back
+        </button>
+        <button cButton color="primary" (click)="onAddBatch()">
+          <svg cIcon name="cil-plus" class="me-2"></svg>
+          Add Batch
+        </button>
+      </div>
+    </c-card-header>
+
+    <c-card-body class="p-0">
+      <table cTable [striped]="true" [hover]="true" class="mb-0">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Batch Number</th>
+            <th>Expiry Date</th>
+            <th>Quantity</th>
+            <th>Comment</th>
+            <th class="text-center">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @if (loading) {
+            <tr>
+              <td colspan="6" class="text-center py-4 text-body-secondary">Loading...</td>
+            </tr>
+          } @else if (batches.length === 0) {
+            <tr>
+              <td colspan="6" class="text-center py-4 text-body-secondary">No batches found.</td>
+            </tr>
+          } @else {
+            @for (batch of batches; track batch.countStockBatchId; let i = $index) {
+              <tr>
+                <td>{{ i + 1 }}</td>
+                <td>{{ batch.batchNumber || '-' }}</td>
+                <td>{{ batch.expiryDate ? (batch.expiryDate | date:'yyyy-MM-dd') : '-' }}</td>
+                <td>{{ batch.quantity }}</td>
+                <td>{{ batch.comment || '-' }}</td>
+                <td class="text-center d-flex gap-1 justify-content-center">
+                  <button cButton color="info" size="sm" (click)="onEditBatch(batch)">
+                    <svg cIcon name="cil-pencil"></svg>
+                  </button>
+                  <button cButton color="danger" size="sm" (click)="onDeleteBatch(batch)">
+                    <svg cIcon name="cil-trash"></svg>
+                  </button>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </c-card-body>
+  </c-card>
+</div>
+
+<c-modal [visible]="showModal" (visibleChange)="onModalVisibleChange($event)" [backdrop]="true">
+  <c-modal-header>
+    <h5 cModalTitle>{{ editingBatchId ? 'Edit Batch' : 'Add Batch' }}</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <form [formGroup]="form" id="countStockBatchForm" (ngSubmit)="onSaveBatch()">
+      <c-row [gutter]="3">
+        <c-col [md]="6">
+          <label class="form-label">Quantity</label>
+          <input cFormControl type="number" step="0.000001" min="0.000001" formControlName="quantity" class="form-control" />
+        </c-col>
+        <c-col [md]="6">
+          <label class="form-label">Batch Number</label>
+          <input cFormControl type="text" formControlName="batchNumber" class="form-control" />
+        </c-col>
+        <c-col [md]="6">
+          <label class="form-label">Expiry Date</label>
+          <input cFormControl type="date" formControlName="expiryDate" class="form-control" />
+        </c-col>
+        <c-col [md]="12">
+          <label class="form-label">Comment</label>
+          <textarea cFormControl rows="3" formControlName="comment" class="form-control"></textarea>
+        </c-col>
+      </c-row>
+    </form>
+  </c-modal-body>
+  <c-modal-footer>
+    <button cButton color="secondary" type="button" (click)="onModalVisibleChange(false)">Cancel</button>
+    <button cButton color="primary" type="submit" form="countStockBatchForm" [disabled]="saving">
+      {{ saving ? 'Saving...' : (editingBatchId ? 'Update' : 'Add') }}
+    </button>
+  </c-modal-footer>
+</c-modal>

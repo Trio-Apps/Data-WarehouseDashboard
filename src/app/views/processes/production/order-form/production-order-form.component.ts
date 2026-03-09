@@ -44,6 +44,8 @@ import { ProductionService } from '../Services/production.service';
   styleUrl: './production-order-form.component.scss'
 })
 export class ProductionOrderFormComponent implements OnInit {
+  private readonly minHeaderBatchQuantity = 0.01;
+
   form!: FormGroup;
   headerBatchForm!: FormGroup;
 
@@ -84,7 +86,7 @@ export class ProductionOrderFormComponent implements OnInit {
 
     this.headerBatchForm = this.fb.group({
       batchNumber: ['', [Validators.required, Validators.maxLength(100)]],
-      quantity: [null, [Validators.required, Validators.min(0.000001)]],
+      quantity: [null, [Validators.required, Validators.min(this.minHeaderBatchQuantity)]],
       expiryDate: [null]
     });
 

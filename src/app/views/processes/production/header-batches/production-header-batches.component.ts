@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -35,6 +35,8 @@ import { ProductionService } from '../Services/production.service';
   styleUrl: './production-header-batches.component.scss'
 })
 export class ProductionHeaderBatchesComponent implements OnInit {
+  private readonly minBatchQuantity = 0.01;
+
   warehouseId = 0;
   productionOrderId = 0;
   itemQuantity = 0;
@@ -56,7 +58,8 @@ export class ProductionHeaderBatchesComponent implements OnInit {
     private router: Router,
     private fb: FormBuilder,
     private productionService: ProductionService,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -73,7 +76,7 @@ export class ProductionHeaderBatchesComponent implements OnInit {
   }
 
   onAddBatch(): void {
-    this.showAddModal = true;
+    this.setAddModalVisible(true);
     this.addForm.reset({
       batchNumber: '',
       quantity: null,
@@ -83,7 +86,7 @@ export class ProductionHeaderBatchesComponent implements OnInit {
 
   onEditBatch(batch: ProductionHeaderBatch): void {
     this.selectedBatch = { ...batch };
-    this.showEditModal = true;
+    this.setEditModalVisible(true);
     this.editForm.patchValue({
       productionHeaderBatchId: batch.productionHeaderBatchId,
       batchNumber: batch.batchNumber || '',
@@ -109,13 +112,17 @@ export class ProductionHeaderBatchesComponent implements OnInit {
   }
 
   onSubmitAdd(): void {
+    if (this.saving) {
+      return;
+    }
+
     if (this.addForm.invalid) {
       this.addForm.markAllAsTouched();
       this.toastr.error('Please fill all required fields.', 'Validation');
       return;
     }
 
-    this.saving = true;
+    this.setSaving(true, false);
     const formValue = this.addForm.value;
 
     this.productionService.createProductionHeaderBatch({
@@ -125,26 +132,30 @@ export class ProductionHeaderBatchesComponent implements OnInit {
       expiryDate: this.formatDateToISOString(formValue.expiryDate)
     }).subscribe({
       next: () => {
-        this.saving = false;
-        this.showAddModal = false;
+        this.setSaving(false);
+        this.setAddModalVisible(false);
         this.toastr.success('Batch added successfully.', 'Success');
         this.loadBatches();
       },
       error: (err) => {
-        this.saving = false;
+        this.setSaving(false);
         this.toastr.error(this.extractError(err, 'Failed to add batch.'), 'Error');
       }
     });
   }
 
   onSubmitEdit(): void {
+    if (this.saving) {
+      return;
+    }
+
     if (this.editForm.invalid) {
       this.editForm.markAllAsTouched();
       this.toastr.error('Please fill all required fields.', 'Validation');
       return;
     }
 
-    this.saving = true;
+    this.setSaving(true, false);
     const formValue = this.editForm.value;
     const batchId = Number(formValue.productionHeaderBatchId || 0);
 
@@ -154,28 +165,43 @@ export class ProductionHeaderBatchesComponent implements OnInit {
       expiryDate: this.formatDateToISOString(formValue.expiryDate)
     }).subscribe({
       next: () => {
-        this.saving = false;
-        this.showEditModal = false;
+        this.setSaving(false);
+        this.setEditModalVisible(false);
         this.selectedBatch = null;
         this.toastr.success('Batch updated successfully.', 'Success');
         this.loadBatches();
       },
       error: (err) => {
-        this.saving = false;
+        this.setSaving(false);
         this.toastr.error(this.extractError(err, 'Failed to update batch.'), 'Error');
       }
     });
   }
 
   onCloseAddModal(): void {
-    this.showAddModal = false;
-    this.saving = false;
+    this.setAddModalVisible(false);
+    this.setSaving(false);
   }
 
   onCloseEditModal(): void {
-    this.showEditModal = false;
+    this.setEditModalVisible(false);
     this.selectedBatch = null;
-    this.saving = false;
+    this.setSaving(false);
+  }
+
+  onAddModalVisibleChange(visible: boolean): void {
+    this.setAddModalVisible(visible);
+    if (!visible) {
+      this.setSaving(false);
+    }
+  }
+
+  onEditModalVisibleChange(visible: boolean): void {
+    this.setEditModalVisible(visible);
+    if (!visible) {
+      this.selectedBatch = null;
+      this.setSaving(false);
+    }
   }
 
   getTotalQuantity(): number {
@@ -185,14 +211,14 @@ export class ProductionHeaderBatchesComponent implements OnInit {
   private initializeForms(): void {
     this.addForm = this.fb.group({
       batchNumber: ['', [Validators.required, Validators.maxLength(100)]],
-      quantity: [null, [Validators.required, Validators.min(0.000001)]],
+      quantity: [null, [Validators.required, Validators.min(this.minBatchQuantity)]],
       expiryDate: [null]
     });
 
     this.editForm = this.fb.group({
       productionHeaderBatchId: [0, Validators.required],
       batchNumber: ['', [Validators.required, Validators.maxLength(100)]],
-      quantity: [null, [Validators.required, Validators.min(0.000001)]],
+      quantity: [null, [Validators.required, Validators.min(this.minBatchQuantity)]],
       expiryDate: [null]
     });
   }
@@ -348,5 +374,31 @@ export class ProductionHeaderBatchesComponent implements OnInit {
     }
 
     return fallback;
+  }
+
+  private setSaving(value: boolean, defer = true): void {
+    if (!defer) {
+      this.saving = value;
+      return;
+    }
+
+    setTimeout(() => {
+      this.saving = value;
+      this.cdr.detectChanges();
+    });
+  }
+
+  private setAddModalVisible(visible: boolean): void {
+    setTimeout(() => {
+      this.showAddModal = visible;
+      this.cdr.detectChanges();
+    });
+  }
+
+  private setEditModalVisible(visible: boolean): void {
+    setTimeout(() => {
+      this.showEditModal = visible;
+      this.cdr.detectChanges();
+    });
   }
 }

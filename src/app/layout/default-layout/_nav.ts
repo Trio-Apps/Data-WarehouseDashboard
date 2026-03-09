@@ -131,6 +131,12 @@ export const navItems: NavItemWithPermissions[] = [
     iconComponent: { name: 'cil-industry' },
     permissions: ['Productions.Get']
   },
+  {
+    name: 'Stock Counting',
+    url: '/processes/stock-counting/menu',
+    iconComponent: { name: 'cil-calculator' },
+    permissions: ['Counting.Get']
+  },
 
 //
 

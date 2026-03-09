@@ -19,6 +19,10 @@ export const routes: Routes = [
     loadChildren: () => import('./production/routes').then((m) => m.routes)
   },
   {
+    path: 'stock-counting',
+    loadChildren: () => import('./stock-counting/routes').then((m) => m.routes)
+  },
+  {
         path: 'item-barcodes/:itemId',
         loadComponent: () => import('./item-barcodes/item-barcodes.component').then(m => m.ItemBarcodesComponent),
         data: {

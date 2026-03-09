@@ -110,7 +110,7 @@ export class ApprovalService {
 
    changeApprovalStatus(approval:boolean, orderProcessApprovalId: number, comment?: string): Observable<any> {
     const url = `${this.baseUrl}Approval/make-order-is-approval/${approval}/order-process-approval-id/${orderProcessApprovalId}${comment ? `?comment=${encodeURIComponent(comment)}` : ''}`;
-    return this.http.patch<any>(url, this.headerOption);
+    return this.http.patch<any>(url, {}, this.headerOption);
   }
 
 
