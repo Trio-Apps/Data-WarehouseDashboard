@@ -23,6 +23,7 @@
 // Examples
 // We use those styles to show code examples, you should remove them in your application.
 @use "examples";
+@use "ngx-toastr/toastr";
 @use '@angular/material' as mat;
 html {
   height: 100%;
@@ -55,10 +56,6 @@ body {
 }
 /* You can add global styles to this file, and also import other style files */
 
-// Import Toastr styles
-@import 'ngx-toastr/toastr';
-
 // Import styles with default layout.
-
 
 

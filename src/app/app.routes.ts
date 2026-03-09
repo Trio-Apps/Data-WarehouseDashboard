@@ -61,7 +61,40 @@ export const routes: Routes = [
         path: 'processes',
         canMatch: [authGuard],
         loadChildren: () => import('./views/processes/routes').then((m) => m.routes)
-      },     
+      },
+      {
+        path: 'production-header-batches',
+        canMatch: [authGuard],
+        loadComponent: () =>
+          import('./views/processes/production/order-form/production-order-form.component').then(
+            (m) => m.ProductionOrderFormComponent
+          ),
+        data: {
+          title: 'Production Header Batches'
+        }
+      },
+      {
+        path: 'production-header-batches/:warehouseId',
+        canMatch: [authGuard],
+        loadComponent: () =>
+          import('./views/processes/production/order-form/production-order-form.component').then(
+            (m) => m.ProductionOrderFormComponent
+          ),
+        data: {
+          title: 'Production Header Batches'
+        }
+      },
+      {
+        path: 'production-header-batches/:warehouseId/:productionOrderId',
+        canMatch: [authGuard],
+        loadComponent: () =>
+          import('./views/processes/production/order-form/production-order-form.component').then(
+            (m) => m.ProductionOrderFormComponent
+          ),
+        data: {
+          title: 'Production Header Batches'
+        }
+      },
       {
         path: 'icons',
         loadChildren: () => import('./views/icons/routes').then((m) => m.routes)

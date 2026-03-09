@@ -2,16 +2,15 @@
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
       <div>
-        <h4 class="mb-0 header-title">Production Orders Management</h4>
-        <p class="header-subtitle mb-0">Managing production orders for warehouse ID {{ warehouseId }}</p>
+        <h4 class="mb-0 header-title">Production Orders - Warehouse #{{ warehouseId }}</h4>
       </div>
-      <div class="d-flex gap-2">
+      <div class="d-flex align-items-center gap-2">
         <button cButton color="light" class="icon-button" (click)="onRefresh()" title="Refresh">
           <svg cIcon name="cil-reload"></svg>
         </button>
         <button cButton color="primary" class="header-button" (click)="onAddOrder()">
           <svg cIcon name="cil-plus" class="me-2"></svg>
-          New Order
+          Add Production
         </button>
         <button cButton color="secondary" class="header-button" (click)="onBack()">
           <svg cIcon name="cil-arrow-left" class="me-2"></svg>
@@ -23,9 +22,9 @@
     <c-card-body class="p-0">
       <div class="breadcrumb-bar mx-3 mt-3">
         <span class="crumb">Dashboard</span>
-        <span class="crumb-sep">›</span>
+        <span class="crumb-sep">></span>
         <span class="crumb">Production</span>
-        <span class="crumb-sep">›</span>
+        <span class="crumb-sep">></span>
         <span class="crumb current">Orders</span>
       </div>
 
@@ -36,23 +35,12 @@
           </span>
           <h5 class="list-title mb-0">Orders List</h5>
         </div>
-
-        <div class="search-wrap">
-          <svg cIcon name="cil-search" class="search-icon"></svg>
-          <input
-            cFormControl
-            type="text"
-            class="search-input"
-            placeholder="Search orders..."
-            [(ngModel)]="searchTerm"
-            [ngModelOptions]="{ standalone: true }"
-          />
-        </div>
       </div>
 
       <div class="summary-bar px-3 py-2">
-        <span class="summary-pill">Orders: {{ filteredOrders.length }}</span>
+        <span class="summary-pill">Orders: {{ totalItems }}</span>
       </div>
+
       <div class="table-container p-3">
         <table cTable [hover]="true" [striped]="true" class="mb-0">
           <thead>
@@ -72,14 +60,14 @@
               <tr>
                 <td colspan="8" class="text-center py-4 text-body-secondary">Loading...</td>
               </tr>
-            } @else if (filteredOrders.length === 0) {
+            } @else if (paginatedOrders.length === 0) {
               <tr>
                 <td colspan="8" class="text-center py-4 text-body-secondary">No production orders found.</td>
               </tr>
             } @else {
-              @for (order of filteredOrders; track order.productionOrderId) {
+              @for (order of paginatedOrders; track order.productionOrderId) {
                 <tr>
-                  <td>{{ $index + 1 }}</td>
+                  <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
                   <td>{{ order.productionOrderId }}</td>
                   <td>{{ order.postingDate | date:'shortDate' }}</td>
                   <td>{{ order.dueDate | date:'shortDate' }}</td>
@@ -87,11 +75,8 @@
                     <span [class]="getStatusBadgeClass(order.status)">{{ order.status }}</span>
                   </td>
                   <td>{{ order.numberOfProductionItem || 0 }}</td>
-                <td>{{ order.remarks || '-' }}</td>
-                <td class="text-center">
-                    <button cButton color="primary" size="sm" class="me-2" title="Go to Components" (click)="onOpenComponents(order)">
-                      <svg cIcon name="cil-layers"></svg>
-                    </button>
+                  <td>{{ order.remarks || '-' }}</td>
+                  <td class="text-center">
                     <button cButton color="info" size="sm" class="me-2" (click)="onOpen(order)">
                       <svg cIcon name="cil-pencil"></svg>
                     </button>
@@ -111,6 +96,131 @@
           </tbody>
         </table>
       </div>
+
+      @if (totalPages > 0) {
+        <div class="pagination-container p-3 border-top">
+          <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-2">
+              <li class="page-item" [class.disabled]="!hasPrevious">
+                <a class="page-link" (click)="onPreviousPage($event)" href="#">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+
+              @for (page of getPageNumbers(); track page) {
+                <li class="page-item" [class.active]="page === currentPage">
+                  <a class="page-link" (click)="onPageChange(page, $event)" href="#">{{ page }}</a>
+                </li>
+              }
+
+              <li class="page-item" [class.disabled]="!hasNext">
+                <a class="page-link" (click)="onNextPage($event)" href="#">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+
+          <div class="text-body-secondary small text-center">
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }}
+            of {{ totalItems }} production orders
+          </div>
+        </div>
+      }
     </c-card-body>
+
+    <div class="form-section p-3 border-top">
+      <form [formGroup]="form" (ngSubmit)="onSearch()">
+        <c-row [gutter]="3">
+          <c-col [md]="3">
+            <label class="form-label">Status</label>
+            <select cFormControl formControlName="status" class="form-select">
+              <option value="">-- All Statuses --</option>
+              <option value="Draft">Draft</option>
+              <option value="Processing">Processing</option>
+              <option value="Completed">Completed</option>
+              <option value="PartiallyFailed">PartiallyFailed</option>
+              <option value="Final">Final</option>
+            </select>
+          </c-col>
+
+          <c-col [md]="2">
+            <label class="form-label">Posting Date</label>
+            <input cFormControl type="date" formControlName="postingDate" class="form-control" />
+          </c-col>
+
+          <c-col [md]="2">
+            <label class="form-label">Due Date</label>
+            <input cFormControl type="date" formControlName="dueDate" class="form-control" />
+          </c-col>
+
+          <c-col [md]="3">
+            <label class="form-label">Search</label>
+            <input cFormControl type="text" formControlName="searchTerm" class="form-control" placeholder="Order ID / status / remarks" />
+          </c-col>
+
+          <c-col [md]="2" class="d-flex align-items-end gap-2">
+            <button cButton color="primary" type="submit" class="flex-fill">Search</button>
+            <button cButton color="secondary" type="button" class="flex-fill" (click)="onResetFilters()">Reset</button>
+          </c-col>
+        </c-row>
+      </form>
+    </div>
   </c-card>
 </div>
+
+<c-modal
+  [visible]="showAddModal"
+  (visibleChange)="onAddModalVisibleChange($event)"
+  [backdrop]="true"
+>
+  <c-modal-header>
+    <h5 cModalTitle>Add Production Order</h5>
+  </c-modal-header>
+
+  <c-modal-body>
+    <form [formGroup]="addOrderForm" id="addProductionOrderForm" (ngSubmit)="onCreateOrder()">
+      <c-row [gutter]="3">
+        <c-col [md]="12">
+          <label class="form-label">Warehouse <span class="text-danger">*</span></label>
+          <select cFormControl formControlName="warehouseId" class="form-select">
+            @if (loadingWarehouses) {
+              <option [ngValue]="null">Loading warehouses...</option>
+            } @else {
+              <option [ngValue]="null">-- Select warehouse --</option>
+              @for (warehouse of allowedWarehouses; track warehouse.warehouseId) {
+                <option [ngValue]="warehouse.warehouseId">
+                  {{ warehouse.warehouseName || ('Warehouse #' + warehouse.warehouseId) }}
+                </option>
+              }
+            }
+          </select>
+        </c-col>
+
+        <c-col [md]="6">
+          <label class="form-label">Posting Date <span class="text-danger">*</span></label>
+          <input cFormControl type="date" formControlName="postingDate" class="form-control" />
+        </c-col>
+
+        <c-col [md]="6">
+          <label class="form-label">Due Date <span class="text-danger">*</span></label>
+          <input cFormControl type="date" formControlName="dueDate" class="form-control" />
+        </c-col>
+
+        <c-col [md]="12">
+          <label class="form-label">Remarks</label>
+          <textarea cFormControl rows="3" formControlName="remarks" class="form-control" placeholder="Optional remarks"></textarea>
+        </c-col>
+      </c-row>
+    </form>
+  </c-modal-body>
+
+  <c-modal-footer>
+    <button cButton color="secondary" type="button" [disabled]="savingAddOrder" (click)="onAddModalVisibleChange(false)">
+      Cancel
+    </button>
+    <button cButton color="primary" type="submit" form="addProductionOrderForm" [disabled]="savingAddOrder || loadingWarehouses || allowedWarehouses.length === 0">
+      {{ savingAddOrder ? 'Saving...' : 'Save' }}
+    </button>
+  </c-modal-footer>
+</c-modal>
