@@ -214,13 +214,12 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const processType = (approval.processItemIsProgress?.processType || '')
-      .toLowerCase()
-      .replace(/\s+/g, '');
-    const referenceId = approval.processItemIsProgress?.referenceId;
+    const processItem = approval.processItemIsProgress;
+    const processType = (processItem?.processType || '').toLowerCase().replace(/\s+/g, '');
+    const referenceId = processItem?.referenceId;
 
-    if (!referenceId) {
-      this.toastr.warning('No reference ID found for this process.', 'Warning');
+    if (!processType || referenceId == null) {
+      this.toastr.warning('Missing process type or reference ID for this approval.', 'Warning');
       return;
     }
 
