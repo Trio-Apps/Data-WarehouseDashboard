@@ -342,8 +342,10 @@ export class ProductionItemsComponent implements OnInit {
   private loadFinishedGoods(): void {
     if (!this.warehouseId) {
       this.finishedGoods = [];
+      console.log("jjjjjjjjjjj");
       return;
     }
+      console.log("jjjjjjjjjjj");
 
     this.productionService.getFinishedGoodsByWarehouse(this.warehouseId, 1, 500).subscribe({
       next: (res: any) => {

@@ -1,6 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import {
   CardBodyComponent,
   CardComponent,
@@ -27,6 +27,8 @@ interface ModuleTile {
   icon: string;
   iconClass: string;
   route?: string;
+  inquiryRoute?: 'show-items' | 'show-processes';
+  processSection?: 'purchasing' | 'outbound' | 'production' | 'inventory';
   permissions?: string[];
   disabled?: boolean;
   isAuthorized?: boolean;
@@ -65,7 +67,8 @@ export class DashboardComponent implements OnInit {
       description: 'Core items and catalogs',
       icon: 'cilLayers',
       iconClass: 'icon-emerald',
-      route: '/items/items',
+      route: '/inquiries/items-inquiry',
+      inquiryRoute: 'show-items',
       permissions: ['Items.Get']
     },
     {
@@ -74,6 +77,8 @@ export class DashboardComponent implements OnInit {
       icon: 'cilBasket',
       iconClass: 'icon-green',
       route: '/inquiries/processes-inquiry',
+      inquiryRoute: 'show-processes',
+      processSection: 'purchasing',
       permissions: ['Warehouses.Get']
     },
     {
@@ -82,6 +87,8 @@ export class DashboardComponent implements OnInit {
       icon: 'cilShareBoxed',
       iconClass: 'icon-blue',
       route: '/inquiries/processes-inquiry',
+      inquiryRoute: 'show-processes',
+      processSection: 'outbound',
       permissions: ['Warehouses.Get']
     },
     {
@@ -89,7 +96,9 @@ export class DashboardComponent implements OnInit {
       description: 'Manufacturing processes',
       icon: 'cilTask',
       iconClass: 'icon-orange',
-      route: '/processes/production/menu',
+      route: '/inquiries/processes-inquiry',
+      inquiryRoute: 'show-processes',
+      processSection: 'production',
       permissions: ['Warehouses.Get']
     },
     {
@@ -97,7 +106,9 @@ export class DashboardComponent implements OnInit {
       description: 'Stock visibility & checks',
       icon: 'cilGrid',
       iconClass: 'icon-mint',
-      route: '/inquiries/items-inquiry',
+      route: '/inquiries/processes-inquiry',
+      inquiryRoute: 'show-processes',
+      processSection: 'inventory',
       permissions: ['Warehouses.Get']
     },
     {
@@ -128,6 +139,7 @@ export class DashboardComponent implements OnInit {
     private authService: AuthService,
     private sapAuthService: SapAuthService,
     private dashboardService: DashboardService,
+    private route: ActivatedRoute,
     private router: Router
   ) {}
 
@@ -146,6 +158,29 @@ export class DashboardComponent implements OnInit {
     if (!tile.isAuthorized || tile.disabled || !tile.route) {
       return;
     }
+
+    const warehouseId = this.getWarehouseIdFromUrl();
+
+    if (tile.inquiryRoute === 'show-items') {
+      if (warehouseId) {
+        this.router.navigate(['/inquiries/show-items', warehouseId]);
+      } else {
+        this.router.navigate(['/inquiries/items-inquiry']);
+      }
+      return;
+    }
+
+    if (tile.inquiryRoute === 'show-processes') {
+      if (warehouseId) {
+        this.router.navigate(['/inquiries/show-processes', warehouseId], {
+          queryParams: tile.processSection ? { section: tile.processSection } : {}
+        });
+      } else {
+        this.router.navigate(['/inquiries/processes-inquiry']);
+      }
+      return;
+    }
+
     this.router.navigate([tile.route]);
   }
 
@@ -229,5 +264,19 @@ export class DashboardComponent implements OnInit {
       return true;
     }
     return this.authService.hasAnyPermission(tile.permissions);
+  }
+
+  private getWarehouseIdFromUrl(): number | null {
+    const rawWarehouseId = this.route.snapshot.queryParamMap.get('warehouseId');
+    if (!rawWarehouseId) {
+      return null;
+    }
+
+    const parsedWarehouseId = Number(rawWarehouseId);
+    if (!Number.isFinite(parsedWarehouseId) || parsedWarehouseId <= 0) {
+      return null;
+    }
+
+    return parsedWarehouseId;
   }
 }

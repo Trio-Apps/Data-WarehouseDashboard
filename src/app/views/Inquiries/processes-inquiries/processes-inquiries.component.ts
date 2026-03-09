@@ -133,8 +133,10 @@ submit() {
   const selectedWarehouse = this.warehouseList.find(w => w.warehouseId === warehouseId);
   
   if (selectedWarehouse) {
-    this.toastr.success(`Loading items for ${selectedWarehouse.warehouseName}...`, 'Success');
-    this.router.navigate(['inquiries/show-processes', warehouseId]);
+    this.toastr.success(`Warehouse ${selectedWarehouse.warehouseName} selected successfully.`, 'Success');
+    this.router.navigate(['/dashboard'], {
+      queryParams: { warehouseId }
+    });
   } else {
     this.toastr.error('Invalid warehouse selected', 'Error');
   }

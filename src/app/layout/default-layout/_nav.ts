@@ -8,36 +8,40 @@ export interface NavItemWithPermissions extends INavData {
 export const navItems: NavItemWithPermissions[] = [
   {
     name: 'Dashboard',
-    url: '/dashboard',
+    url: '/inquiries/processes-inquiry',
     //iconComponent: { name: 'cil-speedometer' },
-    badge: {
-      color: 'info',
-      text: 'NEW'
-    }
+   
+    // badge: {
+    //   color: 'info',
+    //   text: 'NEW'
+    // }
+
   },
   {
     title: true,
-    name: 'Theme'
+    name: 'Theme',
+    permissions: ['Companys.Get']
   },
-  {
-    name: 'Inquiries',
-    url: '/inquiries',
-   // //iconComponent: { name: 'cil-drop' },
-    children: [
-      {
-        name: 'Barcodes Inquiry',
-        url: '/inquiries/items-inquiry',
-        icon: 'nav-icon-bullet',
-        permissions: ['Warehouses.Get']
-      },
-       {
-        name: 'Processes Inquiry',
-        url: '/inquiries/processes-inquiry',
-        icon: 'nav-icon-bullet',
-        permissions: ['Warehouses.Get']
-      }
-    ]
-  },
+
+  // {
+  //   name: 'Inquiries',
+  //   url: '/inquiries',
+  //  // //iconComponent: { name: 'cil-drop' },
+  //   children: [
+  //     {
+  //       name: 'Barcodes Inquiry',
+  //       url: '/inquiries/items-inquiry',
+  //       icon: 'nav-icon-bullet',
+  //       permissions: ['Warehouses.Get']
+  //     },
+  //      {
+  //       name: 'Processes Inquiry',
+  //       url: '/inquiries/processes-inquiry',
+  //       icon: 'nav-icon-bullet',
+  //       permissions: ['Warehouses.Get']
+  //     }
+  //   ]
+  // },
   {
     name: 'Companies',
     url: '/companies/companies',
@@ -48,40 +52,27 @@ export const navItems: NavItemWithPermissions[] = [
     name: 'Components',
     title: true
   },
-  {
-    name: 'Users',
-    url: '/users',
-    //iconComponent: { name: 'cil-people' },
-    permissions: ['Users.Get'],
-    children: [
-      {
+ {
         name: 'Users Management',
         url: '/users/users',
         icon: 'nav-icon-bullet',
         permissions: ['Users.Get']
-      }
-    ]
-  },
-  {
-    name: 'Roles',
-    url: '/roles',
-    //iconComponent: { name: 'cil-arrow-top' },
-    permissions: ['Roles.Get'],
-    children: [
-      {
+      },
+
+        {
         name: 'Roles Management',
         url: '/roles/roles',
         icon: 'nav-icon-bullet',
         permissions: ['Roles.Get']
       }
-    ]
-  },
+,
+
    {
-    name: 'Approval Process',
-    url: '/approval-process',
-    //iconComponent: { name: 'cil-arrow-top' },
-    children: [
-      {
+    title: true,
+    name: 'Approval'
+  }
+  ,
+    {
         name: 'Approval Steps Management',
         url: '/processes/approval-process/approval-steps',
         icon: 'nav-icon-bullet',
@@ -92,15 +83,14 @@ export const navItems: NavItemWithPermissions[] = [
         url: '/processes/approval-process/my-processes',
         icon: 'nav-icon-bullet',
         permissions: ['Approvals.GetMy']
-      }
-    ]
+      },
+
+ 
+   {
+    title: true,
+    name: 'Setting'
   },
-  {
-    name: 'Settings',
-    url: '/settings',
-    //iconComponent: { name: 'cil-settings' },
-    children: [
-      {
+   {
         name: 'SAP Auth Settings',
         url: '/settings/auth',
         icon: 'nav-icon-bullet',
@@ -111,36 +101,26 @@ export const navItems: NavItemWithPermissions[] = [
         url: '/settings/sync-reset',
         icon: 'nav-icon-bullet',
         permissions: ['Saps.Get']
-      }
-    ],
-    permissions: ['Saps.Get']
-  },
+      },
   {
-    name: 'Barcodes',
-    url: '/barcodes',
-    //iconComponent: { name: 'cil-barcode' },
-    permissions: ['Items.Get'],
-    children: [
-      {
-        name: 'Barcode Settings',
+    name: 'Barcode Settings',
         url: '/barcodes/barcodes',
         icon: 'nav-icon-bullet',
-        permissions: ['Items.Get']
-      }
-    ]
+    permissions: ['Items.Get']
   },
-  {
-    name: 'Production',
-    url: '/processes/production/menu',
-    iconComponent: { name: 'cil-industry' },
-    permissions: ['Productions.Get']
-  },
-  {
-    name: 'Stock Counting',
-    url: '/processes/stock-counting/menu',
-    iconComponent: { name: 'cil-calculator' },
-    permissions: ['Counting.Get']
-  },
+    // },
+  // {
+  //   name: 'Production',
+  //   url: '/processes/production/menu',
+  //   iconComponent: { name: 'cil-industry' },
+  //   permissions: ['Productions.Get']
+  // },
+  // {
+  //   name: 'Stock Counting',
+  //   url: '/processes/stock-counting/menu',
+  //   iconComponent: { name: 'cil-calculator' },
+  //   permissions: ['Counting.Get']
+  // },
 
 //
 
