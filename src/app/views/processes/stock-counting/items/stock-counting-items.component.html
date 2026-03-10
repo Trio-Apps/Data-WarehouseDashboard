@@ -62,7 +62,12 @@
                     <td>{{ item.uoMEntry }}</td>
                     <td>{{ item.status }}</td>
                     <td class="text-center">
-                      <button cButton color="success" size="sm" (click)="onViewBatches(item)">
+                      <button
+                        cButton
+                        color="success"
+                        size="sm"
+                        (click)="onViewBatches(item)"
+                        [title]="'View Batches'">
                         <svg cIcon name="cil-layers"></svg>
                       </button>
                     </td>

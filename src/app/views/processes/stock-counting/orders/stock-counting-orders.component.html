@@ -41,10 +41,10 @@
                   <span class="text-body-secondary">No orders found.</span>
                 </td>
               </tr>
-            } @else {
-              @for (order of orders; track order.countStockId; let i = $index) {
+              } @else {
+                @for (order of orders; track order.countStockId; let i = $index) {
                 <tr>
-                  <td>{{ i + 1 }}</td>
+                  <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
                   <td>{{ order.countStockId }}</td>
                   <td>{{ order.postingDate | date:'yyyy-MM-dd' }}</td>
                   <td><span [class]="order.statusBadgeClass">{{ order.statusText }}</span></td>
@@ -70,6 +70,50 @@
           </tbody>
         </table>
       </div>
+
+      @if (totalPages > 0) {
+      <div class="pagination-container p-3 border-top">
+        <nav aria-label="Page navigation">
+          <ul class="pagination justify-content-center mb-2">
+            <li class="page-item" [class.disabled]="!hasPrevious">
+              <a
+                class="page-link"
+                (click)="onPreviousPage($event)"
+                [attr.aria-label]="'Previous'"
+                [attr.tabindex]="!hasPrevious ? -1 : null"
+                [class.disabled]="!hasPrevious"
+                href="#">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+
+            @for (page of getPageNumbers(); track page) {
+            <li class="page-item" [class.active]="page === currentPage">
+              <a class="page-link" (click)="onPageChange(page, $event)" href="#">{{ page }}</a>
+            </li>
+            }
+
+            <li class="page-item" [class.disabled]="!hasNext">
+              <a
+                class="page-link"
+                (click)="onNextPage($event)"
+                [attr.aria-label]="'Next'"
+                [attr.tabindex]="!hasNext ? -1 : null"
+                [class.disabled]="!hasNext"
+                href="#">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="text-body-secondary small text-center">
+          Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
+          {{ Math.min(currentPage * itemsPerPage, totalItems) }}
+          of {{ totalItems }} stock counting orders
+        </div>
+      </div>
+      }
     </c-card-body>
   </c-card>
 </div>

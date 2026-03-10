@@ -249,3 +249,38 @@ c-card.full-height-card{
   background:rgba(40,106,97,0.38);
 }
 
+/* ===== Pagination ===== */
+.pagination-container{
+  background:linear-gradient(180deg, rgba(255,255,255,0.95), rgba(240,247,245,0.8));
+}
+
+.pagination .page-item{
+  margin:0 2px;
+}
+
+.pagination .page-link{
+  border-radius:10px;
+  border:1px solid rgba(40,106,97,0.18);
+  color:var(--text-heading);
+  background:#fff;
+  min-width:38px;
+  text-align:center;
+}
+
+.pagination .page-item:not(.disabled) .page-link:hover{
+  background:rgba(0,235,181,0.14);
+  border-color:rgba(40,106,97,0.35);
+  color:var(--text-heading);
+}
+
+.pagination .page-item.active .page-link{
+  background:var(--gradient-main);
+  border-color:transparent;
+  color:#fff;
+}
+
+.pagination .page-item.disabled .page-link{
+  opacity:0.55;
+  pointer-events:none;
+}
+

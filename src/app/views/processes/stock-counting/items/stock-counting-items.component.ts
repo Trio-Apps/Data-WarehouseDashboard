@@ -45,6 +45,7 @@ export class StockCountingItemsComponent implements OnInit {
   isDraftOrder = false;
   orderStatusText = '-';
   tableColSpan = 6;
+  private pageLoadToken = 0;
 
   order: CountStockOrder | null = null;
   items: CountStockItem[] = [];
@@ -125,6 +126,12 @@ export class StockCountingItemsComponent implements OnInit {
   onRemoveItem(item: CountStockItem): void {
     if (!this.isDraftOrder) {
       this.toastr.warning('Only Draft orders can be edited.', 'Warning');
+      return;
+    }
+
+    if (Number(item.countStockId || 0) !== this.countStockId) {
+      this.toastr.warning('Item list was out of date. Reloaded latest items.', 'Warning');
+      this.loadItems();
       return;
     }
 
@@ -227,22 +234,31 @@ export class StockCountingItemsComponent implements OnInit {
   }
 
   private loadPage(): void {
+    const currentLoadToken = ++this.pageLoadToken;
+    const requestedCountStockId = this.countStockId;
+
     this.runUiUpdate(() => {
       this.loading = true;
       this.order = null;
       this.items = [];
       this.syncOrderViewState();
     });
-    this.stockService.getOrderById(this.countStockId).pipe(timeout(10000)).subscribe({
+    this.stockService.getOrderById(requestedCountStockId).pipe(timeout(10000)).subscribe({
       next: (res) => {
         this.runUiUpdate(() => {
+          if (currentLoadToken !== this.pageLoadToken || requestedCountStockId !== this.countStockId) {
+            return;
+          }
           this.order = this.mapOrder(this.pickData<any>(res));
           this.syncOrderViewState();
-          this.loadItems();
+          this.loadItems(currentLoadToken, requestedCountStockId);
         });
       },
       error: (err) => {
         this.runUiUpdate(() => {
+          if (currentLoadToken !== this.pageLoadToken || requestedCountStockId !== this.countStockId) {
+            return;
+          }
           this.loading = false;
           this.order = null;
           this.items = [];
@@ -256,16 +272,23 @@ export class StockCountingItemsComponent implements OnInit {
     });
   }
 
-  private loadItems(): void {
-    this.stockService.getItemsByOrder(this.countStockId).pipe(timeout(10000)).subscribe({
+  private loadItems(loadToken = this.pageLoadToken, requestedCountStockId = this.countStockId): void {
+    this.stockService.getItemsByOrder(requestedCountStockId).pipe(timeout(10000)).subscribe({
       next: (res) => {
         this.runUiUpdate(() => {
-          this.items = this.toArray<any>(res).map((item) => this.mapItem(item));
+          if (loadToken !== this.pageLoadToken || requestedCountStockId !== this.countStockId) {
+            return;
+          }
+          const mappedItems = this.toArray<any>(res).map((item) => this.mapItem(item, requestedCountStockId));
+          this.items = mappedItems.filter((item) => Number(item.countStockId || 0) === requestedCountStockId);
           this.loading = false;
         });
       },
       error: (err) => {
         this.runUiUpdate(() => {
+          if (loadToken !== this.pageLoadToken || requestedCountStockId !== this.countStockId) {
+            return;
+          }
           this.items = [];
           this.loading = false;
           const fallback = this.isTimeoutError(err)
@@ -383,7 +406,7 @@ export class StockCountingItemsComponent implements OnInit {
     };
   }
 
-  private mapItem(raw: any): CountStockItem {
+  private mapItem(raw: any, fallbackCountStockId: number = this.countStockId): CountStockItem {
     return {
       countStockItemId: Number(this.readProp(raw, 'countStockItemId', 'CountStockItemId') || 0),
       quantity: Number(this.readProp(raw, 'quantity', 'Quantity') || 0),
@@ -393,8 +416,9 @@ export class StockCountingItemsComponent implements OnInit {
       barCode: this.toNullableString(this.readProp(raw, 'barCode', 'BarCode')),
       unitPrice: this.toNullableNumber(this.readProp(raw, 'unitPrice', 'UnitPrice')),
       comment: this.toNullableString(this.readProp(raw, 'comment', 'Comment')),
-      countStockId: Number(this.readProp(raw, 'countStockId', 'CountStockId') || this.countStockId || 0),
-      itemId: Number(this.readProp(raw, 'itemId', 'ItemId') || 0)
+      countStockId: Number(this.readProp(raw, 'countStockId', 'CountStockId') || fallbackCountStockId || 0),
+      itemId: Number(this.readProp(raw, 'itemId', 'ItemId') || 0),
+      isBatchManaged: this.toNullableBoolean(this.readProp(raw, 'isBatchManaged', 'IsBatchManaged')) ?? true
     };
   }
 
@@ -451,6 +475,26 @@ export class StockCountingItemsComponent implements OnInit {
 
     const asNumber = Number(value);
     return Number.isNaN(asNumber) ? null : asNumber;
+  }
+
+  private toNullableBoolean(value: any): boolean | null {
+    if (value === undefined || value === null || value === '') {
+      return null;
+    }
+
+    if (typeof value === 'boolean') {
+      return value;
+    }
+
+    const normalized = String(value).trim().toLowerCase();
+    if (normalized === 'true' || normalized === '1') {
+      return true;
+    }
+    if (normalized === 'false' || normalized === '0') {
+      return false;
+    }
+
+    return null;
   }
 
   private isTimeoutError(err: any): boolean {

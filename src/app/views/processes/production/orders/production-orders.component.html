@@ -41,6 +41,46 @@
         <span class="summary-pill">Orders: {{ totalItems }}</span>
       </div>
 
+      <div class="form-section p-3 border-top">
+        <form [formGroup]="form" (ngSubmit)="onSearch()">
+          <c-row [gutter]="3">
+            <c-col [md]="3">
+              <label class="form-label">Status</label>
+              <select cFormControl formControlName="status" class="form-select">
+                <option value="">-- All Statuses --</option>
+                <option value="Draft">Draft</option>
+                <option value="Processing">Processing</option>
+                <option value="Approved">Approved</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Completed">Completed</option>
+                <option value="PartiallyFailed">PartiallyFailed</option>
+                <option value="Final">Final</option>
+              </select>
+            </c-col>
+
+            <c-col [md]="2">
+              <label class="form-label">Posting Date</label>
+              <input cFormControl type="date" formControlName="postingDate" class="form-control" />
+            </c-col>
+
+            <c-col [md]="2">
+              <label class="form-label">Due Date</label>
+              <input cFormControl type="date" formControlName="dueDate" class="form-control" />
+            </c-col>
+
+            <c-col [md]="3">
+              <label class="form-label">Search</label>
+              <input cFormControl type="text" formControlName="searchTerm" class="form-control" placeholder="Order ID / status / remarks" />
+            </c-col>
+
+            <c-col [md]="2" class="d-flex align-items-end gap-2">
+              <button cButton color="primary" type="submit" class="flex-fill">Search</button>
+              <button cButton color="secondary" type="button" class="flex-fill" (click)="onResetFilters()">Reset</button>
+            </c-col>
+          </c-row>
+        </form>
+      </div>
+
       <div class="table-container p-3">
         <table cTable [hover]="true" [striped]="true" class="mb-0">
           <thead>
@@ -72,7 +112,7 @@
                   <td>{{ order.postingDate | date:'shortDate' }}</td>
                   <td>{{ order.dueDate | date:'shortDate' }}</td>
                   <td>
-                    <span [class]="getStatusBadgeClass(order.status)">{{ order.status }}</span>
+                    <span [class]="getStatusBadgeClass(getDisplayStatus(order))">{{ getDisplayStatus(order) }}</span>
                   </td>
                   <td>{{ order.numberOfProductionItem || 0 }}</td>
                   <td>{{ order.remarks || '-' }}</td>
@@ -129,43 +169,6 @@
       }
     </c-card-body>
 
-    <div class="form-section p-3 border-top">
-      <form [formGroup]="form" (ngSubmit)="onSearch()">
-        <c-row [gutter]="3">
-          <c-col [md]="3">
-            <label class="form-label">Status</label>
-            <select cFormControl formControlName="status" class="form-select">
-              <option value="">-- All Statuses --</option>
-              <option value="Draft">Draft</option>
-              <option value="Processing">Processing</option>
-              <option value="Completed">Completed</option>
-              <option value="PartiallyFailed">PartiallyFailed</option>
-              <option value="Final">Final</option>
-            </select>
-          </c-col>
-
-          <c-col [md]="2">
-            <label class="form-label">Posting Date</label>
-            <input cFormControl type="date" formControlName="postingDate" class="form-control" />
-          </c-col>
-
-          <c-col [md]="2">
-            <label class="form-label">Due Date</label>
-            <input cFormControl type="date" formControlName="dueDate" class="form-control" />
-          </c-col>
-
-          <c-col [md]="3">
-            <label class="form-label">Search</label>
-            <input cFormControl type="text" formControlName="searchTerm" class="form-control" placeholder="Order ID / status / remarks" />
-          </c-col>
-
-          <c-col [md]="2" class="d-flex align-items-end gap-2">
-            <button cButton color="primary" type="submit" class="flex-fill">Search</button>
-            <button cButton color="secondary" type="button" class="flex-fill" (click)="onResetFilters()">Reset</button>
-          </c-col>
-        </c-row>
-      </form>
-    </div>
   </c-card>
 </div>
 
