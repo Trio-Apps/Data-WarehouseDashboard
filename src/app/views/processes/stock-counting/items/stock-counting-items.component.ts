@@ -13,6 +13,7 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
+import { timeout } from 'rxjs';
 import { CountStockItem, CountStockOrder } from '../Models/stock-counting.model';
 import { StockCountingService } from '../Services/stock-counting.service';
 
@@ -232,7 +233,7 @@ export class StockCountingItemsComponent implements OnInit {
       this.items = [];
       this.syncOrderViewState();
     });
-    this.stockService.getOrderById(this.countStockId).subscribe({
+    this.stockService.getOrderById(this.countStockId).pipe(timeout(10000)).subscribe({
       next: (res) => {
         this.runUiUpdate(() => {
           this.order = this.mapOrder(this.pickData<any>(res));
@@ -246,14 +247,17 @@ export class StockCountingItemsComponent implements OnInit {
           this.order = null;
           this.items = [];
           this.syncOrderViewState();
-          this.toastr.error(this.extractError(err, 'Failed to load order.'), 'Error');
+          const fallback = this.isTimeoutError(err)
+            ? 'Loading order timed out. Please try again.'
+            : 'Failed to load order.';
+          this.toastr.error(this.extractError(err, fallback), 'Error');
         });
       }
     });
   }
 
   private loadItems(): void {
-    this.stockService.getItemsByOrder(this.countStockId).subscribe({
+    this.stockService.getItemsByOrder(this.countStockId).pipe(timeout(10000)).subscribe({
       next: (res) => {
         this.runUiUpdate(() => {
           this.items = this.toArray<any>(res).map((item) => this.mapItem(item));
@@ -264,7 +268,10 @@ export class StockCountingItemsComponent implements OnInit {
         this.runUiUpdate(() => {
           this.items = [];
           this.loading = false;
-          this.toastr.error(this.extractError(err, 'Failed to load items.'), 'Error');
+          const fallback = this.isTimeoutError(err)
+            ? 'Loading items timed out. Please try again.'
+            : 'Failed to load items.';
+          this.toastr.error(this.extractError(err, fallback), 'Error');
         });
       }
     });
@@ -282,7 +289,9 @@ export class StockCountingItemsComponent implements OnInit {
     this.runUiUpdate(() => {
       this.loadingItemOptions = true;
     });
-    this.stockService.getWarehouseItemsForSelection(this.warehouseId, 1, 1000, '', '').subscribe({
+    this.stockService.getWarehouseItemsForSelection(this.warehouseId, 1, 1000, '', '')
+      .pipe(timeout(10000))
+      .subscribe({
       next: (res) => {
         this.runUiUpdate(() => {
           this.itemOptions = this.toArray<any>(res)
@@ -291,10 +300,13 @@ export class StockCountingItemsComponent implements OnInit {
           this.loadingItemOptions = false;
         });
       },
-      error: () => {
+      error: (err) => {
         this.runUiUpdate(() => {
           this.itemOptions = [];
           this.loadingItemOptions = false;
+          if (this.isTimeoutError(err)) {
+            this.toastr.warning('Loading items list timed out. You can retry.', 'Warning');
+          }
         });
       }
     });
@@ -439,6 +451,10 @@ export class StockCountingItemsComponent implements OnInit {
 
     const asNumber = Number(value);
     return Number.isNaN(asNumber) ? null : asNumber;
+  }
+
+  private isTimeoutError(err: any): boolean {
+    return String(err?.name || '').toLowerCase() === 'timeouterror';
   }
 
   private runUiUpdate(action: () => void): void {

@@ -1,10 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonDirective, CardBodyComponent, CardComponent, CardHeaderComponent, FormModule } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
+import { catchError, finalize, of, timeout } from 'rxjs';
 import { StockCountingService } from '../Services/stock-counting.service';
 
 @Component({
@@ -27,6 +28,7 @@ export class StockCountingOrderFormComponent implements OnInit {
   countStockId = 0;
   saving = false;
   loading = false;
+  private loadToken = 0;
 
   form = this.fb.group({
     postingDate: ['', Validators.required],
@@ -40,7 +42,8 @@ export class StockCountingOrderFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private toastr: ToastrService,
-    private stockService: StockCountingService
+    private stockService: StockCountingService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -124,28 +127,90 @@ export class StockCountingOrderFormComponent implements OnInit {
   }
 
   private loadOrder(): void {
-    this.loading = true;
-    this.stockService.getOrderById(this.countStockId).subscribe({
-      next: (res) => {
-        const order = this.pickData<any>(res);
-        this.form.patchValue({
-          postingDate: this.toDateInputValue(order?.postingDate),
-          comment: order?.comment || '',
-          mode: order?.mode || 'Counting',
-          isDraft: String(order?.status || '').toLowerCase() === 'draft'
-        });
+    if (!this.countStockId) {
+      this.runUiUpdate(() => {
         this.loading = false;
-      },
-      error: (err) => {
-        this.loading = false;
-        this.toastr.error(this.extractError(err, 'Failed to load order.'), 'Error');
-      }
+      });
+      return;
+    }
+
+    const currentLoadToken = ++this.loadToken;
+    this.runUiUpdate(() => {
+      this.loading = true;
     });
+
+    const failSafe = setTimeout(() => {
+      if (currentLoadToken !== this.loadToken || !this.loading) {
+        return;
+      }
+      this.runUiUpdate(() => {
+        if (currentLoadToken !== this.loadToken || !this.loading) {
+          return;
+        }
+        this.loading = false;
+        this.toastr.error('Loading order is taking too long. Please check API health.', 'Error');
+      });
+    }, 20000);
+
+    this.stockService.getOrderById(this.countStockId)
+      .pipe(
+        timeout(10000),
+        catchError((err) => of({ __loadError: err })),
+        finalize(() => {
+          clearTimeout(failSafe);
+          this.runUiUpdate(() => {
+            if (currentLoadToken !== this.loadToken) {
+              return;
+            }
+            this.loading = false;
+          });
+        })
+      )
+      .subscribe({
+        next: (res: any) => {
+          this.runUiUpdate(() => {
+            if (currentLoadToken !== this.loadToken) {
+              return;
+            }
+
+            if (res?.__loadError) {
+              const fallback = this.isTimeoutError(res.__loadError)
+                ? 'Loading order timed out. Please try again.'
+                : 'Failed to load order.';
+              this.toastr.error(this.extractError(res.__loadError, fallback), 'Error');
+              return;
+            }
+
+            const order = this.pickData<any>(res);
+            this.form.patchValue({
+              postingDate: this.toDateInputValue(order?.postingDate),
+              comment: order?.comment || '',
+              mode: order?.mode || 'Counting',
+              isDraft: String(order?.status || '').toLowerCase() === 'draft'
+            });
+          });
+        },
+        error: (err) => {
+          this.runUiUpdate(() => {
+            if (currentLoadToken !== this.loadToken) {
+              return;
+            }
+            const fallback = this.isTimeoutError(err)
+              ? 'Loading order timed out. Please try again.'
+              : 'Failed to load order.';
+            this.toastr.error(this.extractError(err, fallback), 'Error');
+          });
+        }
+      });
   }
 
   private pickData<T>(res: any): T {
+    if (res?.data?.data?.data) return res.data.data.data as T;
     if (res?.data?.data) return res.data.data as T;
     if (res?.data) return res.data as T;
+    if (res?.Data?.Data?.Data) return res.Data.Data.Data as T;
+    if (res?.Data?.Data) return res.Data.Data as T;
+    if (res?.Data) return res.Data as T;
     return res as T;
   }
 
@@ -167,6 +232,18 @@ export class StockCountingOrderFormComponent implements OnInit {
     if (typeof body === 'string' && body.trim()) return body;
     if (body?.message) return body.message;
     if (body?.detail) return body.detail;
+    if (err?.message) return err.message;
     return fallback;
+  }
+
+  private isTimeoutError(err: any): boolean {
+    return String(err?.name || '').toLowerCase() === 'timeouterror';
+  }
+
+  private runUiUpdate(action: () => void): void {
+    setTimeout(() => {
+      action();
+      this.cdr.detectChanges();
+    });
   }
 }

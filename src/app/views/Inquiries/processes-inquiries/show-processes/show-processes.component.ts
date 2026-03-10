@@ -55,7 +55,7 @@ export class ShowProcessesComponent implements OnInit {
       title: 'Receipt Order',
       description: 'Receipt Return',
       icon: 'cilInbox',
-      iconClass: 'icon-green',
+      iconClass: 'icon-mint',
       sections: ['purchasing']
     },
     {
@@ -111,6 +111,14 @@ export class ShowProcessesComponent implements OnInit {
       title: 'Quantity Adjustment',
       description: 'Quantity adjustment stock orders',
       icon: 'cilGrid',
+      iconClass: 'icon-mint',
+      sections: ['inventory']
+    },
+    {
+      type: 'stock-counting',
+      title: 'Stock Counting',
+      description: 'Count and reconcile stock',
+      icon: 'cilCalculator',
       iconClass: 'icon-mint',
       sections: ['inventory']
     },
@@ -196,6 +204,9 @@ export class ShowProcessesComponent implements OnInit {
             '/processes/quantity-adjustment-stock/quantity-adjustment-stock-orders',
             this.warehouseId
           ]);
+          break;
+        case 'stock-counting':
+          this.router.navigate(['/processes/stock-counting/orders', this.warehouseId]);
           break;
         case 'production':
           this.router.navigate(['/processes/production/menu', this.warehouseId]);

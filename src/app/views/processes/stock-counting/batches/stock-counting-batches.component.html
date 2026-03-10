@@ -1,61 +1,67 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
-  <c-card class="flex-grow-1 d-flex flex-column m-0">
-    <c-card-header class="d-flex justify-content-between align-items-center">
-      <h4 class="mb-0">Batches - Item #{{ countStockItemId }}</h4>
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <h4 class="mb-0 header-title">Batches - Item #{{ countStockItemId }}</h4>
       <div class="d-flex gap-2">
-        <button cButton color="secondary" (click)="onBackToItems()">
+        <button cButton color="secondary" class="header-button" (click)="onBackToItems()">
           <svg cIcon name="cil-arrow-left" class="me-2"></svg>
           Back
         </button>
-        <button cButton color="primary" (click)="onAddBatch()">
+        <button cButton color="primary" class="header-button" (click)="onAddBatch()">
           <svg cIcon name="cil-plus" class="me-2"></svg>
           Add Batch
         </button>
       </div>
     </c-card-header>
 
-    <c-card-body class="p-0">
-      <table cTable [striped]="true" [hover]="true" class="mb-0">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Batch Number</th>
-            <th>Expiry Date</th>
-            <th>Quantity</th>
-            <th>Comment</th>
-            <th class="text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @if (loading) {
+    <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
+      <div class="table-container">
+        <table cTable [striped]="true" [hover]="true" class="mb-0">
+          <thead class="table-header">
             <tr>
-              <td colspan="6" class="text-center py-4 text-body-secondary">Loading...</td>
+              <th scope="col" class="bg-body-tertiary">#</th>
+              <th scope="col" class="bg-body-tertiary">Batch Number</th>
+              <th scope="col" class="bg-body-tertiary">Expiry Date</th>
+              <th scope="col" class="bg-body-tertiary">Quantity</th>
+              <th scope="col" class="bg-body-tertiary">Comment</th>
+              <th scope="col" class="bg-body-tertiary text-center">Actions</th>
             </tr>
-          } @else if (batches.length === 0) {
-            <tr>
-              <td colspan="6" class="text-center py-4 text-body-secondary">No batches found.</td>
-            </tr>
-          } @else {
-            @for (batch of batches; track batch.countStockBatchId; let i = $index) {
+          </thead>
+          <tbody>
+            @if (loading) {
               <tr>
-                <td>{{ i + 1 }}</td>
-                <td>{{ batch.batchNumber || '-' }}</td>
-                <td>{{ batch.expiryDate ? (batch.expiryDate | date:'yyyy-MM-dd') : '-' }}</td>
-                <td>{{ batch.quantity }}</td>
-                <td>{{ batch.comment || '-' }}</td>
-                <td class="text-center d-flex gap-1 justify-content-center">
-                  <button cButton color="info" size="sm" (click)="onEditBatch(batch)">
-                    <svg cIcon name="cil-pencil"></svg>
-                  </button>
-                  <button cButton color="danger" size="sm" (click)="onDeleteBatch(batch)">
-                    <svg cIcon name="cil-trash"></svg>
-                  </button>
+                <td colspan="6" class="text-center py-4">
+                  <span class="text-body-secondary">Loading...</span>
                 </td>
               </tr>
+            } @else if (batches.length === 0) {
+              <tr>
+                <td colspan="6" class="text-center py-4">
+                  <span class="text-body-secondary">No batches found.</span>
+                </td>
+              </tr>
+            } @else {
+              @for (batch of batches; track batch.countStockBatchId; let i = $index) {
+                <tr>
+                  <td>{{ i + 1 }}</td>
+                  <td>{{ batch.batchNumber || '-' }}</td>
+                  <td>{{ batch.expiryDate ? (batch.expiryDate | date:'yyyy-MM-dd') : '-' }}</td>
+                  <td>{{ batch.quantity }}</td>
+                  <td>{{ batch.comment || '-' }}</td>
+                  <td class="text-center d-flex gap-1 justify-content-center">
+                    <button cButton color="info" size="sm" (click)="onEditBatch(batch)">
+                      <svg cIcon name="cil-pencil"></svg>
+                    </button>
+                    <button cButton color="danger" size="sm" (click)="onDeleteBatch(batch)">
+                      <svg cIcon name="cil-trash"></svg>
+                    </button>
+                  </td>
+                </tr>
+              }
             }
-          }
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
     </c-card-body>
   </c-card>
 </div>

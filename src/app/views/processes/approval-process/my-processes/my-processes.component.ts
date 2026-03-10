@@ -215,21 +215,46 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
     }
 
     const processItem = approval.processItemIsProgress;
-    const processType = (processItem?.processType || '').toLowerCase().replace(/\s+/g, '');
-    const referenceId = processItem?.referenceId;
+    const processType = this.normalizeProcessType(processItem?.processType);
+    const referenceId = Number(processItem?.referenceId || 0);
+    const warehouseId = Number(approval.warehouseId || 0);
 
-    if (!processType || referenceId == null) {
+    if (!processType || referenceId <= 0) {
       this.toastr.warning('Missing process type or reference ID for this approval.', 'Warning');
       return;
     }
 
     switch (processType) {
+      case 'purchase':
+      case 'purchases':
+      case 'purchaseorder':
+        this.router.navigate(['/processes/purchases/purchase-items', referenceId]);
+        break;
+
       case 'goodsreturn':
+      case 'goodsreturnorder':
         this.router.navigate(['/processes/purchases/goods-return-order', 0, 0, referenceId]);
         break;
 
       case 'deliverynote':
+      case 'deliverynoteorder':
         this.router.navigate(['/processes/sales/delivery-note-order', 0, referenceId]);
+        break;
+
+      case 'sales':
+      case 'salesorder':
+        this.router.navigate(['/processes/sales/sales-items', referenceId]);
+        break;
+
+      case 'salesreturn':
+      case 'salesreturnorder':
+        this.router.navigate(['/processes/sales/sales-return-order', 0, referenceId]);
+        break;
+
+      case 'receipt':
+      case 'receiptorder':
+      case 'receiptpurchaseorder':
+        this.router.navigate(['/processes/purchases/receipt-order', 0, referenceId]);
         break;
 
       case 'transferred':
@@ -251,6 +276,34 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
           '/processes/quantity-adjustment-stock/quantity-adjustment-stock',
           referenceId
         ]);
+        break;
+
+      case 'stockcounting':
+      case 'stockcount':
+      case 'countstock':
+      case 'stockcountingorder':
+        if (warehouseId > 0) {
+          this.router.navigate([
+            '/processes/stock-counting/order-items',
+            warehouseId,
+            referenceId
+          ]);
+        } else {
+          this.router.navigate(['/processes/stock-counting/menu']);
+        }
+        break;
+
+      case 'production':
+      case 'productionorder':
+        if (warehouseId > 0) {
+          this.router.navigate([
+            '/processes/production/order-items',
+            warehouseId,
+            referenceId
+          ]);
+        } else {
+          this.router.navigate(['/processes/production/menu']);
+        }
         break;
 
       default:
@@ -283,5 +336,11 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
 
   get tableColumnCount(): number {
     return this.canActionApprovals ? 8 : 7;
+  }
+
+  private normalizeProcessType(value: unknown): string {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
   }
 }

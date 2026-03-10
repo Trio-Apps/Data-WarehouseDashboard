@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ButtonDirective, CardBodyComponent, CardComponent, CardHeaderComponent, TableModule } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
@@ -40,7 +40,8 @@ export class StockCountingOrdersComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private toastr: ToastrService,
-    private stockService: StockCountingService
+    private stockService: StockCountingService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -283,6 +284,9 @@ export class StockCountingOrdersComponent implements OnInit {
   }
 
   private runUiUpdate(action: () => void): void {
-    setTimeout(() => action());
+    setTimeout(() => {
+      action();
+      this.cdr.detectChanges();
+    });
   }
 }

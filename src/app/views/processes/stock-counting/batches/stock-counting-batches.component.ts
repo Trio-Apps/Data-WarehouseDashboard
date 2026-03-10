@@ -1,5 +1,5 @@
 import { CommonModule, DatePipe } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -13,6 +13,7 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
+import { catchError, finalize, of, timeout } from 'rxjs';
 import { CountStockBatch } from '../Models/stock-counting.model';
 import { StockCountingService } from '../Services/stock-counting.service';
 
@@ -43,6 +44,7 @@ export class StockCountingBatchesComponent implements OnInit {
   showModal = false;
   editingBatchId = 0;
   batches: CountStockBatch[] = [];
+  private loadToken = 0;
 
   form = this.fb.group({
     quantity: [1, [Validators.required, Validators.min(0.000001)]],
@@ -55,16 +57,19 @@ export class StockCountingBatchesComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
+    private cdr: ChangeDetectorRef,
     private toastr: ToastrService,
     private stockService: StockCountingService
   ) {}
 
   ngOnInit(): void {
     this.route.params.subscribe((params) => {
-      this.warehouseId = Number(params['warehouseId'] || 0);
-      this.countStockId = Number(params['countStockId'] || 0);
-      this.countStockItemId = Number(params['countStockItemId'] || 0);
-      this.loadBatches();
+      this.runUiUpdate(() => {
+        this.warehouseId = Number(params['warehouseId'] || 0);
+        this.countStockId = Number(params['countStockId'] || 0);
+        this.countStockItemId = Number(params['countStockItemId'] || 0);
+        this.loadBatches();
+      });
     });
   }
 
@@ -171,23 +176,93 @@ export class StockCountingBatchesComponent implements OnInit {
   }
 
   private loadBatches(): void {
-    this.loading = true;
-    this.stockService.getBatchesByItem(this.countStockItemId).subscribe({
-      next: (res) => {
-        this.batches = this.toArray<CountStockBatch>(res);
-        this.loading = false;
-      },
-      error: (err) => {
+    if (!this.countStockItemId) {
+      this.runUiUpdate(() => {
         this.batches = [];
         this.loading = false;
-        this.toastr.error(this.extractError(err, 'Failed to load batches.'), 'Error');
-      }
+      });
+      return;
+    }
+
+    const currentLoadToken = ++this.loadToken;
+    this.runUiUpdate(() => {
+      this.loading = true;
     });
+
+    const failSafe = setTimeout(() => {
+      if (currentLoadToken !== this.loadToken || !this.loading) {
+        return;
+      }
+      this.runUiUpdate(() => {
+        if (currentLoadToken !== this.loadToken || !this.loading) {
+          return;
+        }
+        this.loading = false;
+        this.toastr.error('Loading batches is taking too long. Please check API health.', 'Error');
+      });
+    }, 20000);
+
+    this.stockService.getBatchesByItem(this.countStockItemId)
+      .pipe(
+        timeout(10000),
+        catchError((err) => of({ __loadError: err })),
+        finalize(() => {
+          clearTimeout(failSafe);
+          this.runUiUpdate(() => {
+            if (currentLoadToken !== this.loadToken) {
+              return;
+            }
+            this.loading = false;
+          });
+        })
+      )
+      .subscribe({
+        next: (res: any) => {
+          this.runUiUpdate(() => {
+            if (currentLoadToken !== this.loadToken) {
+              return;
+            }
+
+            if (res?.__loadError) {
+              this.batches = [];
+              const fallback = this.isTimeoutError(res.__loadError)
+                ? 'Loading batches timed out. Please try again.'
+                : 'Failed to load batches.';
+              this.toastr.error(this.extractError(res.__loadError, fallback), 'Error');
+              return;
+            }
+
+            this.batches = this.toArray<CountStockBatch>(res);
+          });
+        },
+        error: (err) => {
+          this.runUiUpdate(() => {
+            if (currentLoadToken !== this.loadToken) {
+              return;
+            }
+            this.batches = [];
+            const fallback = this.isTimeoutError(err)
+              ? 'Loading batches timed out. Please try again.'
+              : 'Failed to load batches.';
+            this.toastr.error(this.extractError(err, fallback), 'Error');
+          });
+        }
+      });
   }
 
   private toArray<T>(res: any): T[] {
+    if (Array.isArray(res?.data?.data?.data?.$values)) return res.data.data.data.$values as T[];
+    if (Array.isArray(res?.data?.data?.data)) return res.data.data.data as T[];
+    if (Array.isArray(res?.data?.data?.$values)) return res.data.data.$values as T[];
     if (Array.isArray(res?.data?.data)) return res.data.data as T[];
+    if (Array.isArray(res?.data?.$values)) return res.data.$values as T[];
     if (Array.isArray(res?.data)) return res.data as T[];
+    if (Array.isArray(res?.Data?.Data?.Data?.$values)) return res.Data.Data.Data.$values as T[];
+    if (Array.isArray(res?.Data?.Data?.Data)) return res.Data.Data.Data as T[];
+    if (Array.isArray(res?.Data?.Data?.$values)) return res.Data.Data.$values as T[];
+    if (Array.isArray(res?.Data?.Data)) return res.Data.Data as T[];
+    if (Array.isArray(res?.Data?.$values)) return res.Data.$values as T[];
+    if (Array.isArray(res?.Data)) return res.Data as T[];
     if (Array.isArray(res)) return res as T[];
     return [];
   }
@@ -204,6 +279,18 @@ export class StockCountingBatchesComponent implements OnInit {
     if (typeof body === 'string' && body.trim()) return body;
     if (body?.message) return body.message;
     if (body?.detail) return body.detail;
+    if (err?.message) return err.message;
     return fallback;
+  }
+
+  private isTimeoutError(err: any): boolean {
+    return String(err?.name || '').toLowerCase() === 'timeouterror';
+  }
+
+  private runUiUpdate(action: () => void): void {
+    setTimeout(() => {
+      action();
+      this.cdr.detectChanges();
+    });
   }
 }
