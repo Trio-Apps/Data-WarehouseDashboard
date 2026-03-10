@@ -50,7 +50,9 @@ export const navItems: NavItemWithPermissions[] = [
   },
   {
     name: 'Components',
-    title: true
+    title: true,
+     permissions: ['Roles.Get','Users.Get']
+
   },
  {
         name: 'Users Management',

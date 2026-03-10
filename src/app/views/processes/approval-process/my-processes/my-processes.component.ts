@@ -25,8 +25,8 @@ import { AuthService } from '../../../pages/Services/auth.service';
 export class MyProcessesComponent implements OnInit, OnDestroy {
   approvals: ProcessApproval[] = [];
   filteredApprovals: ProcessApproval[] = [];
-  approvingIds = new Set<number>();
 
+  // Pagination
   currentPage: number = 1;
   itemsPerPage: number = 10;
   totalPages: number = 0;
@@ -35,6 +35,7 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
   hasNext: boolean = false;
   hasPrevious: boolean = false;
 
+  // Expose Math to template
   Math = Math;
 
   canViewMyApprovals: boolean = false;
@@ -142,7 +143,6 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
     if (event) {
       event.preventDefault();
     }
-
     this.loading = true;
     this.cdr.detectChanges();
 
@@ -165,7 +165,6 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
     if (event) {
       event.preventDefault();
     }
-
     if (this.hasNext) {
       this.onPageChange(this.currentPage + 1, event);
     }
@@ -175,7 +174,6 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
     if (event) {
       event.preventDefault();
     }
-
     if (this.hasPrevious) {
       this.onPageChange(this.currentPage - 1, event);
     }
@@ -204,45 +202,41 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const processApprovalId = approval.processApprovalId;
-    if (!processApprovalId) {
-      this.toastr.warning('No approval ID found for this process.', 'Warning');
+    const processType = approval.processItemIsProgress?.processType || '';
+    const referenceId = approval.processItemIsProgress?.referenceId;
+
+    if (!referenceId) {
+      this.toastr.warning('No reference ID found for this process.', 'Warning');
       return;
     }
-
-    if (this.approvingIds.has(processApprovalId)) {
-      return;
-    }
-
-    const processItem = approval.processItemIsProgress;
-    const processType = (processItem?.processType || '').toLowerCase().replace(/\s+/g, '');
-    const referenceId = processItem?.referenceId;
-
-    if (!processType || referenceId == null) {
-      this.toastr.warning('Missing process type or reference ID for this approval.', 'Warning');
-      return;
-    }
-
-    switch (processType) {
-      case 'goodsreturn':
-        this.router.navigate(['/processes/purchases/goods-return-order', 0, 0, referenceId]);
+//       
+    switch (processType.toLowerCase()) {
+      case 'sales':
+        this.router.navigate(['/processes/sales/sales-items', referenceId]);
+        break;
+      case 'purchase':
+      case 'purchases':
+        this.router.navigate(['/processes/purchases/purchase-items', referenceId]);
+        break;
+     case 'receipt':
+            this.router.navigate(['/processes/purchases/receipt-order', 0,referenceId]);
         break;
 
+        case 'goodsreturn':
+            this.router.navigate(['/processes/purchases/goods-return-order', 0, 0, referenceId]);
+        break;
       case 'deliverynote':
         this.router.navigate(['/processes/sales/delivery-note-order', 0, referenceId]);
         break;
-
       case 'transferred':
       case 'transferredrequest':
       case 'transfer':
         this.router.navigate(['/processes/transferred-request/transferred-request-items', referenceId]);
         break;
-
       case 'transferredstock':
       case 'stocktransferred':
         this.router.navigate(['/processes/transferred-request/transferred-stock', 0, referenceId]);
         break;
-
       case 'quantityadjustmentstock':
       case 'quantityadjustment':
       case 'adjustmentstock':
@@ -252,33 +246,11 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
           referenceId
         ]);
         break;
-
-      default:
+    
+        default:
         this.toastr.info(`No navigation defined for ${processType}.`, 'Info');
         break;
     }
-
-    this.approvingIds.add(processApprovalId);
-
-    this.approvalService.changeApprovalStatus(true, processApprovalId, 'approved from approvals page').subscribe({
-      next: (res) => {
-        if (res?.success === false) {
-          this.toastr.error(res?.message || 'Approval failed.', 'Error');
-          return;
-        }
-
-        this.toastr.success('Approval completed successfully.', 'Success');
-        this.loadMyApprovals();
-      },
-      error: (err) => {
-        console.error('Error approving process:', err);
-        this.toastr.error(err?.error?.message || 'Failed to approve this process.', 'Error');
-        this.approvingIds.delete(processApprovalId);
-      },
-      complete: () => {
-        this.approvingIds.delete(processApprovalId);
-      }
-    });
   }
 
   get tableColumnCount(): number {

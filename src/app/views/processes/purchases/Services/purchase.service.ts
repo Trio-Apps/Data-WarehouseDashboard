@@ -83,9 +83,9 @@ getPurchasesWithFilterationByWarehouse(
   /**
    * Get purchase by ID with items
    */
-  getItemsbyPurchaseId(purchaseOrderId: number): Observable<any> {
-    return this.http.get<any>(`${this.baseUrl}PurchaseOrderItem/status/purchase-order/${purchaseOrderId}/1/1000`, this.headerOption);
-  }
+  // getItemsbyPurchaseId(purchaseOrderId: number): Observable<any> {
+  //   return this.http.get<any>(`${this.baseUrl}PurchaseOrderItem/status/purchase-order/${purchaseOrderId}/1/1000`, this.headerOption);
+  // }
 
   getAllItemsbyPurchaseId(purchaseOrderId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}PurchaseOrderItem/purchase-order/${purchaseOrderId}`, this.headerOption);

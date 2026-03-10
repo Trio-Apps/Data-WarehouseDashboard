@@ -379,7 +379,7 @@ export class SalesComponent implements OnInit, OnDestroy {
   }
 
   onBackToShowProcesses(): void {
-    this.router.navigate(['inquiries/show-processes', this.warehouseId]);
+    this.router.navigate(['inquiries/show-outbound-processes', this.warehouseId]);
   }
 
   onEditSale(Sale: Sales): void {

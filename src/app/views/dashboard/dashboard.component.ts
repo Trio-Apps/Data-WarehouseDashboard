@@ -27,7 +27,7 @@ interface ModuleTile {
   icon: string;
   iconClass: string;
   route?: string;
-  inquiryRoute?: 'show-items' | 'show-processes';
+  inquiryRoute?: 'show-items' | 'show-process-sections';
   processSection?: 'purchasing' | 'outbound' | 'production' | 'inventory';
   permissions?: string[];
   disabled?: boolean;
@@ -77,7 +77,7 @@ export class DashboardComponent implements OnInit {
       icon: 'cilBasket',
       iconClass: 'icon-green',
       route: '/inquiries/processes-inquiry',
-      inquiryRoute: 'show-processes',
+      inquiryRoute: 'show-process-sections',
       processSection: 'purchasing',
       permissions: ['Warehouses.Get']
     },
@@ -87,7 +87,7 @@ export class DashboardComponent implements OnInit {
       icon: 'cilShareBoxed',
       iconClass: 'icon-blue',
       route: '/inquiries/processes-inquiry',
-      inquiryRoute: 'show-processes',
+      inquiryRoute: 'show-process-sections',
       processSection: 'outbound',
       permissions: ['Warehouses.Get']
     },
@@ -97,7 +97,7 @@ export class DashboardComponent implements OnInit {
       icon: 'cilTask',
       iconClass: 'icon-orange',
       route: '/inquiries/processes-inquiry',
-      inquiryRoute: 'show-processes',
+      inquiryRoute: 'show-process-sections',
       processSection: 'production',
       permissions: ['Warehouses.Get']
     },
@@ -107,7 +107,7 @@ export class DashboardComponent implements OnInit {
       icon: 'cilGrid',
       iconClass: 'icon-mint',
       route: '/inquiries/processes-inquiry',
-      inquiryRoute: 'show-processes',
+      inquiryRoute: 'show-process-sections',
       processSection: 'inventory',
       permissions: ['Warehouses.Get']
     },
@@ -170,14 +170,15 @@ export class DashboardComponent implements OnInit {
       return;
     }
 
-    if (tile.inquiryRoute === 'show-processes') {
+    if (tile.inquiryRoute === 'show-process-sections') {
       if (warehouseId) {
-        this.router.navigate(['/inquiries/show-processes', warehouseId], {
-          queryParams: tile.processSection ? { section: tile.processSection } : {}
-        });
-      } else {
-        this.router.navigate(['/inquiries/processes-inquiry']);
+        const sectionRoute = this.getProcessSectionRoute(tile.processSection);
+        if (sectionRoute) {
+          this.router.navigate(['/inquiries', sectionRoute, warehouseId]);
+          return;
+        }
       }
+      this.router.navigate(['/inquiries/processes-inquiry']);
       return;
     }
 
@@ -278,5 +279,20 @@ export class DashboardComponent implements OnInit {
     }
 
     return parsedWarehouseId;
+  }
+
+  private getProcessSectionRoute(section?: ModuleTile['processSection']): string | null {
+    switch (section) {
+      case 'purchasing':
+        return 'show-purchasing-processes';
+      case 'outbound':
+        return 'show-outbound-processes';
+      case 'production':
+        return 'show-production-processes';
+      case 'inventory':
+        return 'show-inventory-processes';
+      default:
+        return null;
+    }
   }
 }

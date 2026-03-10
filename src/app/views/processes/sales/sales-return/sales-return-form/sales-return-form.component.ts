@@ -393,6 +393,6 @@ export class SalesReturnFormComponent implements OnInit {
       return;
     }
 
-    this.router.navigate(['/inquiries/show-processes', this.warehouseId || 0]);
+    this.router.navigate(['/inquiries/show-outbound-processes', this.warehouseId || 0]);
   }
 }

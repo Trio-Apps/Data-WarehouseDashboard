@@ -1,0 +1,65 @@
+:host {
+  --gradient-main: linear-gradient(135deg, #286a61 0%, #00ebb5 100%);
+  --bg: #f0f7f5;
+  --surface: #ffffff;
+  --text-heading: #1b3d38;
+  --card-radius: 24px;
+  --card-shadow: 0 12px 30px rgba(40, 106, 97, 0.08);
+  --card-border: 1px solid rgba(40, 106, 97, 0.05);
+  font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+}
+
+.container-fluid {
+  height: calc(100vh - 60px);
+  background: var(--bg);
+  padding: 0 !important;
+  position: relative;
+}
+
+c-card {
+  height: 100%;
+  background: var(--surface);
+  border-radius: var(--card-radius);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.custom-header {
+  background: var(--gradient-main);
+  padding: 1.25rem 1.5rem;
+  color: #fff;
+  border-top-left-radius: var(--card-radius);
+  border-top-right-radius: var(--card-radius);
+}
+
+.custom-header .header-button {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.18);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  padding: 0.6rem 0.95rem;
+  font-weight: 600;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.custom-header .header-button:hover {
+  background: rgba(255, 255, 255, 0.26);
+  border-color: rgba(255, 255, 255, 0.5);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 20px rgba(0, 0, 0, 0.18);
+  color: #fff;
+}
+
+.custom-header .header-button:active {
+  transform: translateY(0);
+  box-shadow: none;
+}
+
+.custom-header .header-button svg {
+  color: #fff;
+}
+
+.header-title {
+  color: #fff;
+  font-weight: 800;
+}

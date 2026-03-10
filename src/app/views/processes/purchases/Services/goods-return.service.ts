@@ -29,6 +29,7 @@ export class GoodsReturnService {
    * @param pageNumber Page number (1-based)
    * @param pageSize Number of items per page
    */
+
   getGoodsReturnOrdersWithFilterationByWarehouse(
     pageNumber: number,
     pageSize: number,
@@ -61,10 +62,10 @@ export class GoodsReturnService {
     });
   }
 
-
   /**
    * Get Return by Receipt order ID
    */
+
   getReturnByReceiptId(ReceiptOrderId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}GoodsReturnOrder/receipt-purchase-order/${ReceiptOrderId}`, this.headerOption);
   }
@@ -72,6 +73,7 @@ export class GoodsReturnService {
   getReturnById(id: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}GoodsReturnOrder/${id}`, this.headerOption);
   }
+  
 createReturn(returnData: AddReturn): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}GoodsReturnOrder`, returnData, this.headerOption);
   }

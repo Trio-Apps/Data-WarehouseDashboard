@@ -80,7 +80,7 @@ export class ProductionMenuComponent implements OnInit {
 
   onBackToProcesses(): void {
     if (this.selectedWarehouseId) {
-      this.router.navigate(['/inquiries/show-processes', this.selectedWarehouseId]);
+      this.router.navigate(['/inquiries/show-production-processes', this.selectedWarehouseId]);
       return;
     }
 

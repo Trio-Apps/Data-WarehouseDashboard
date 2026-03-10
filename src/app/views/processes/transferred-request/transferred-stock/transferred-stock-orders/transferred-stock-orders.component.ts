@@ -387,7 +387,7 @@ export class TransferredStockOrdersComponent implements OnInit, OnDestroy {
   }
 
   onBackToShowProcesses(): void {
-    this.router.navigate(['inquiries/show-processes', this.warehouseId]);
+    this.router.navigate(['inquiries/show-inventory-processes', this.warehouseId]);
   }
 
   getStatusBadgeClass(stock: TransferredStock): string {

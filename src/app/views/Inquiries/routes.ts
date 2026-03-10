@@ -37,9 +37,30 @@ export const routes: Routes = [
         },
     },
     {
-      path: 'show-processes/:warehouseId',
-      loadComponent: () => import('./processes-inquiries/show-processes/show-processes.component')
-        .then(m => m.ShowProcessesComponent), data: {
+      path: 'show-purchasing-processes/:warehouseId',
+      loadComponent: () => import('./processes-inquiries/process-sections/show-purchasing-processes.component')
+        .then(m => m.ShowPurchasingProcessesComponent), data: {
+          title: 'Processes-Inquiry'
+        },
+    },
+    {
+      path: 'show-outbound-processes/:warehouseId',
+      loadComponent: () => import('./processes-inquiries/process-sections/show-outbound-processes.component')
+        .then(m => m.ShowOutboundProcessesComponent), data: {
+          title: 'Processes-Inquiry'
+        },
+    },
+    {
+      path: 'show-production-processes/:warehouseId',
+      loadComponent: () => import('./processes-inquiries/process-sections/show-production-processes.component')
+        .then(m => m.ShowProductionProcessesComponent), data: {
+          title: 'Processes-Inquiry'
+        },
+    },
+    {
+      path: 'show-inventory-processes/:warehouseId',
+      loadComponent: () => import('./processes-inquiries/process-sections/show-inventory-processes.component')
+        .then(m => m.ShowInventoryProcessesComponent), data: {
           title: 'Processes-Inquiry'
         },
     }

@@ -396,7 +396,7 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
   }
 
   onBackToShowProcesses(): void {
-    this.router.navigate(['inquiries/show-processes', this.warehouseId]);
+    this.router.navigate(['inquiries/show-purchasing-processes', this.warehouseId]);
   }
 
   onDeleteReceipt(receipt: Receipt): void {

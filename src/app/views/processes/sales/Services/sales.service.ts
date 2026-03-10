@@ -61,9 +61,9 @@ getSalesWithFilterationByWarehouse(
 ): Observable<SalesResponse> {
   const baseUrl = `${this.baseUrl}SalesOrder/dashboard/warehouse/status/posting-date/due-date/${warehouseId}/${pageNumber}/${pageSize}`;
 
+  
   // إعداد الـ query parameters
   let params = new HttpParams();
-
 
   if (customerId) {
     params = params.set('customerId', customerId);

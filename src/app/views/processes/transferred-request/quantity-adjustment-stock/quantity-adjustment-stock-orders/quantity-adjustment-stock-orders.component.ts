@@ -320,7 +320,7 @@ export class QuantityAdjustmentStockOrdersComponent implements OnInit, OnDestroy
   }
 
   onBackToShowProcesses(): void {
-    this.router.navigate(['inquiries/show-processes', this.warehouseId]);
+    this.router.navigate(['inquiries/show-inventory-processes', this.warehouseId]);
   }
 
   hasErrorMessage(stock: QuantityAdjustmentStock): boolean {

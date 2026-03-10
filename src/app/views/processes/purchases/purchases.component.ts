@@ -424,7 +424,7 @@ export class PurchasesComponent implements OnInit, OnDestroy {
   }
 
   onBackToShowProcesses(): void {
-    this.router.navigate(['inquiries/show-processes', this.warehouseId]);
+    this.router.navigate(['inquiries/show-purchasing-processes', this.warehouseId]);
   }
 
   onEditPurchase(purchase: Purchase): void {

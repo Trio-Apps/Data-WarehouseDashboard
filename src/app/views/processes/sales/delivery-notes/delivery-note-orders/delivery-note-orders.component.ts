@@ -387,7 +387,7 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
   }
 
   onBackToShowProcesses(): void {
-    this.router.navigate(['inquiries/show-processes', this.warehouseId]);
+    this.router.navigate(['inquiries/show-outbound-processes', this.warehouseId]);
   }
 
   getStatusBadgeClass(returnOrder: DeliveryNoteOrderListItem): string {

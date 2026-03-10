@@ -411,7 +411,7 @@ export class GoodsReturnOrdersComponent implements OnInit, OnDestroy {
   }
 
   onBackToShowProcesses(): void {
-    this.router.navigate(['inquiries/show-processes', this.warehouseId]);
+    this.router.navigate(['inquiries/show-purchasing-processes', this.warehouseId]);
   }
 
   getStatusBadgeClass(returnOrder: GoodsReturnOrderListItem): string {

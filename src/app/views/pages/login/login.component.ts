@@ -89,6 +89,9 @@ export class LoginComponent implements OnInit {
     this.authService.login(loginData).subscribe({
       next: (res: any) => {
         console.log('Login response:', res);
+
+        // Clear old local storage data before saving fresh login data
+        localStorage.clear();
         
         // Store token if available
         if (res.token) {
@@ -130,8 +133,8 @@ export class LoginComponent implements OnInit {
         this.loading = false;
         this.cdr.detectChanges();
 
-        // Navigate to dashboard
-        this.router.navigate(['/dashboard']);
+        // Navigate to processes inquiry page
+        this.router.navigate(['/inquiries/processes-inquiry']);
       },
       error: (err) => {
         console.error('Login error:', err);

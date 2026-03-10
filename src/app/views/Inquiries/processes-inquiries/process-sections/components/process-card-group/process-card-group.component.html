@@ -1,0 +1,17 @@
+<section class="group-section">
+  <h5 class="group-title">{{ title }}</h5>
+
+  <c-row [gutter]="3" class="process-grid">
+    <c-col [xs]="12" [md]="3" *ngFor="let card of cards">
+      <c-card class="process-card h-100" (click)="onCardClick(card.type)">
+        <c-card-body class="text-center">
+          <div class="icon-wrap" [ngClass]="card.iconClass">
+            <svg cIcon [name]="card.icon" size="3xl" class="process-icon"></svg>
+          </div>
+          <h5 class="card-title">{{ card.title }}</h5>
+          <p class="card-text">{{ card.description }}</p>
+        </c-card-body>
+      </c-card>
+    </c-col>
+  </c-row>
+</section>
