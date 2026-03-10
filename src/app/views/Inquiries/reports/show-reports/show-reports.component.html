@@ -1,0 +1,23 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header">
+      <h4 class="mb-0 header-title">Warehouse Reports - Warehouse ID: {{ warehouseId }}</h4>
+    </c-card-header>
+
+    <c-card-body class="flex-grow-1 d-flex flex-column p-4">
+      <c-row [gutter]="3" class="report-grid">
+        <c-col [xs]="12" [md]="6" *ngFor="let card of cards">
+          <c-card class="report-card h-100" (click)="onCardClick(card.type)">
+            <c-card-body class="text-center">
+              <div class="icon-wrap" [ngClass]="card.iconClass">
+                <svg cIcon [name]="card.icon" size="3xl" class="report-icon"></svg>
+              </div>
+              <h5 class="card-title">{{ card.title }}</h5>
+              <p class="card-text">{{ card.description }}</p>
+            </c-card-body>
+          </c-card>
+        </c-col>
+      </c-row>
+    </c-card-body>
+  </c-card>
+</div>

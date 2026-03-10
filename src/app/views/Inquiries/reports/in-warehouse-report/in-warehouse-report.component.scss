@@ -1,0 +1,97 @@
+:host {
+  display: block;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  --gradient-main: linear-gradient(135deg, #286a61 0%, #00ebb5 100%);
+  --bg: #f0f7f5;
+  --surface: #ffffff;
+  --text-heading: #1b3d38;
+  --text-body: #3a524e;
+  --card-radius: 24px;
+  --card-shadow: 0 12px 30px rgba(40, 106, 97, 0.08);
+  --card-border: 1px solid rgba(40, 106, 97, 0.05);
+  font-family: 'Inter', 'Plus Jakarta Sans', sans-serif;
+}
+
+.container-fluid {
+  height: calc(100vh - 60px);
+  overflow: hidden;
+  padding: 0 !important;
+  background: var(--bg);
+}
+
+c-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface);
+  border-radius: var(--card-radius);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
+}
+
+.custom-header {
+  background: var(--gradient-main);
+  border: none;
+  padding: 1.25rem 1.5rem;
+  color: #fff;
+  border-top-left-radius: var(--card-radius);
+  border-top-right-radius: var(--card-radius);
+}
+
+.header-title {
+  color: #fff;
+  font-weight: 700;
+}
+
+.card-body-container {
+  overflow: hidden;
+}
+
+.form-section {
+  background: rgba(255, 255, 255, 0.75);
+  backdrop-filter: blur(6px);
+}
+
+.table-container {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: auto;
+  min-height: 0;
+  padding: 12px;
+}
+
+.table-container table {
+  width: 100%;
+  margin-bottom: 0;
+}
+
+.table-container thead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table-container thead th {
+  background: rgba(40, 106, 97, 0.08) !important;
+  color: var(--text-heading);
+  white-space: nowrap;
+}
+
+.table-container tbody td {
+  white-space: nowrap;
+  color: var(--text-body);
+}
+
+.pagination-container {
+  border-top: 1px solid rgba(40, 106, 97, 0.08) !important;
+}
+
+.pagination .page-link {
+  cursor: pointer;
+}
+
+.page-size-select {
+  width: 88px;
+}

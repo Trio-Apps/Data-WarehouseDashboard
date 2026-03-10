@@ -27,7 +27,7 @@ interface ModuleTile {
   icon: string;
   iconClass: string;
   route?: string;
-  inquiryRoute?: 'show-items' | 'show-processes';
+  inquiryRoute?: 'show-items' | 'show-processes' | 'show-reports';
   processSection?: 'purchasing' | 'outbound' | 'production' | 'inventory';
   permissions?: string[];
   disabled?: boolean;
@@ -124,7 +124,9 @@ export class DashboardComponent implements OnInit {
       description: 'KPIs and analytics',
       icon: 'cilSpreadsheet',
       iconClass: 'icon-red',
-      disabled: true
+      route: '/inquiries/processes-inquiry',
+      inquiryRoute: 'show-reports',
+      permissions: ['Reports.Get']
     },
     {
       title: 'Exporting',
@@ -175,6 +177,15 @@ export class DashboardComponent implements OnInit {
         this.router.navigate(['/inquiries/show-processes', warehouseId], {
           queryParams: tile.processSection ? { section: tile.processSection } : {}
         });
+      } else {
+        this.router.navigate(['/inquiries/processes-inquiry']);
+      }
+      return;
+    }
+
+    if (tile.inquiryRoute === 'show-reports') {
+      if (warehouseId) {
+        this.router.navigate(['/inquiries/show-reports', warehouseId]);
       } else {
         this.router.navigate(['/inquiries/processes-inquiry']);
       }

@@ -123,6 +123,14 @@ export class ShowProcessesComponent implements OnInit {
       sections: ['inventory']
     },
     {
+      type: 'reports',
+      title: 'Reports',
+      description: 'Transaction and in-warehouse reports',
+      icon: 'cilSpreadsheet',
+      iconClass: 'icon-red',
+      sections: ['inventory']
+    },
+    {
       type: 'production',
       title: 'Production',
       description: 'Manufacturing process',
@@ -207,6 +215,9 @@ export class ShowProcessesComponent implements OnInit {
           break;
         case 'stock-counting':
           this.router.navigate(['/processes/stock-counting/orders', this.warehouseId]);
+          break;
+        case 'reports':
+          this.router.navigate(['/inquiries/show-reports', this.warehouseId]);
           break;
         case 'production':
           this.router.navigate(['/processes/production/menu', this.warehouseId]);
