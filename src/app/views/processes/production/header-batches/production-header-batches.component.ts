@@ -13,6 +13,7 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
+import { catchError, finalize, of, timeout } from 'rxjs';
 import { ProductionHeaderBatch } from '../Models/production.model';
 import { ProductionService } from '../Services/production.service';
 
@@ -45,6 +46,7 @@ export class ProductionHeaderBatchesComponent implements OnInit {
   batches: ProductionHeaderBatch[] = [];
   loading = true;
   saving = false;
+  private loadToken = 0;
 
   showAddModal = false;
   showEditModal = false;
@@ -224,8 +226,6 @@ export class ProductionHeaderBatchesComponent implements OnInit {
   }
 
   private loadInitialDataAsync(): void {
-    // Defer first data mutation to the next macrotask to avoid NG0100 in dev mode
-    // when service observables emit synchronously (e.g., cached/intercepted responses).
     setTimeout(() => {
       this.loadOrderStatus();
       this.loadBatches();
@@ -237,36 +237,96 @@ export class ProductionHeaderBatchesComponent implements OnInit {
       return;
     }
 
-    this.productionService.getProductionOrderById(this.productionOrderId).subscribe({
-      next: (res: any) => {
-        const order = this.pickData<any>(res);
-        this.orderStatus = this.normalizeStatus(order?.status);
-      },
-      error: () => {
-        this.orderStatus = 'Unknown';
-      }
-    });
+    this.productionService.getProductionOrderById(this.productionOrderId)
+      .pipe(timeout(10000))
+      .subscribe({
+        next: (res: any) => {
+          const order = this.pickData<any>(res);
+          this.runUiUpdate(() => {
+            this.orderStatus = this.normalizeStatus(order?.status ?? order?.Status);
+          });
+        },
+        error: () => {
+          this.runUiUpdate(() => {
+            this.orderStatus = 'Unknown';
+          });
+        }
+      });
   }
 
   private loadBatches(): void {
     if (!this.productionOrderId) {
-      this.batches = [];
-      this.loading = false;
+      this.runUiUpdate(() => {
+        this.batches = [];
+        this.loading = false;
+      });
       return;
     }
 
-    this.loading = true;
-    this.productionService.getProductionHeaderBatches(this.productionOrderId, 1, 200).subscribe({
-      next: (res: any) => {
-        this.batches = this.toArray<ProductionHeaderBatch>(res);
-        this.loading = false;
-      },
-      error: (err) => {
-        this.batches = [];
-        this.loading = false;
-        this.toastr.error(this.extractError(err, 'Failed to load batches.'), 'Error');
-      }
+    const currentLoadToken = ++this.loadToken;
+    this.runUiUpdate(() => {
+      this.loading = true;
     });
+
+    const failSafe = setTimeout(() => {
+      if (currentLoadToken !== this.loadToken || !this.loading) {
+        return;
+      }
+      this.runUiUpdate(() => {
+        if (currentLoadToken !== this.loadToken || !this.loading) {
+          return;
+        }
+        this.loading = false;
+        this.toastr.error('Loading batches is taking too long. Please check API health.', 'Error');
+      });
+    }, 20000);
+
+    this.productionService.getProductionHeaderBatches(this.productionOrderId, 1, 200)
+      .pipe(
+        timeout(10000),
+        catchError((err) => of({ __loadError: err })),
+        finalize(() => {
+          clearTimeout(failSafe);
+          this.runUiUpdate(() => {
+            if (currentLoadToken !== this.loadToken) {
+              return;
+            }
+            this.loading = false;
+          });
+        })
+      )
+      .subscribe({
+        next: (res: any) => {
+          this.runUiUpdate(() => {
+            if (currentLoadToken !== this.loadToken) {
+              return;
+            }
+
+            if (res?.__loadError) {
+              this.batches = [];
+              const fallback = this.isTimeoutError(res.__loadError)
+                ? 'Loading batches timed out. Please try again.'
+                : 'Failed to load batches.';
+              this.toastr.error(this.extractError(res.__loadError, fallback), 'Error');
+              return;
+            }
+
+            this.batches = this.toArray<ProductionHeaderBatch>(res);
+          });
+        },
+        error: (err) => {
+          this.runUiUpdate(() => {
+            if (currentLoadToken !== this.loadToken) {
+              return;
+            }
+            this.batches = [];
+            const fallback = this.isTimeoutError(err)
+              ? 'Loading batches timed out. Please try again.'
+              : 'Failed to load batches.';
+            this.toastr.error(this.extractError(err, fallback), 'Error');
+          });
+        }
+      });
   }
 
   private normalizeStatus(status: any): string {
@@ -319,6 +379,12 @@ export class ProductionHeaderBatchesComponent implements OnInit {
   }
 
   private toArray<T>(res: any): T[] {
+    if (Array.isArray(res?.data?.data?.data?.$values)) {
+      return res.data.data.data.$values as T[];
+    }
+    if (Array.isArray(res?.data?.data?.data)) {
+      return res.data.data.data as T[];
+    }
     if (Array.isArray(res?.data?.data?.$values)) {
       return res.data.data.$values as T[];
     }
@@ -334,6 +400,24 @@ export class ProductionHeaderBatchesComponent implements OnInit {
     if (Array.isArray(res?.data)) {
       return res.data as T[];
     }
+    if (Array.isArray(res?.Data?.Data?.Data?.$values)) {
+      return res.Data.Data.Data.$values as T[];
+    }
+    if (Array.isArray(res?.Data?.Data?.Data)) {
+      return res.Data.Data.Data as T[];
+    }
+    if (Array.isArray(res?.Data?.Data?.$values)) {
+      return res.Data.Data.$values as T[];
+    }
+    if (Array.isArray(res?.Data?.Data)) {
+      return res.Data.Data as T[];
+    }
+    if (Array.isArray(res?.Data?.$values)) {
+      return res.Data.$values as T[];
+    }
+    if (Array.isArray(res?.Data)) {
+      return res.Data as T[];
+    }
     if (Array.isArray(res)) {
       return res as T[];
     }
@@ -342,11 +426,23 @@ export class ProductionHeaderBatchesComponent implements OnInit {
   }
 
   private pickData<T>(res: any): T {
+    if (res?.data?.data?.data) {
+      return res.data.data.data as T;
+    }
     if (res?.data?.data) {
       return res.data.data as T;
     }
     if (res?.data) {
       return res.data as T;
+    }
+    if (res?.Data?.Data?.Data) {
+      return res.Data.Data.Data as T;
+    }
+    if (res?.Data?.Data) {
+      return res.Data.Data as T;
+    }
+    if (res?.Data) {
+      return res.Data as T;
     }
     return res as T;
   }
@@ -372,8 +468,15 @@ export class ProductionHeaderBatchesComponent implements OnInit {
         return String(body.errors[firstKey][0]);
       }
     }
+    if (err?.message) {
+      return err.message;
+    }
 
     return fallback;
+  }
+
+  private isTimeoutError(err: any): boolean {
+    return String(err?.name || '').toLowerCase() === 'timeouterror';
   }
 
   private setSaving(value: boolean, defer = true): void {
@@ -398,6 +501,13 @@ export class ProductionHeaderBatchesComponent implements OnInit {
   private setEditModalVisible(visible: boolean): void {
     setTimeout(() => {
       this.showEditModal = visible;
+      this.cdr.detectChanges();
+    });
+  }
+
+  private runUiUpdate(action: () => void): void {
+    setTimeout(() => {
+      action();
       this.cdr.detectChanges();
     });
   }

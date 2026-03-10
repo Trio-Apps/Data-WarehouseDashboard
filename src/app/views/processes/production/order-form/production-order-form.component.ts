@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import {
@@ -15,7 +15,7 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
-import { firstValueFrom } from 'rxjs';
+import { catchError, finalize, firstValueFrom, of, timeout } from 'rxjs';
 import {
   FinishedGoodItem,
   ProductionHeaderBatch,
@@ -57,6 +57,7 @@ export class ProductionOrderFormComponent implements OnInit {
   isSaving = false;
   isSubmitting = false;
   status = 'Draft';
+  private loadToken = 0;
 
   finishedGoods: FinishedGoodItem[] = [];
   headerBatches: ProductionHeaderBatch[] = [];
@@ -68,7 +69,8 @@ export class ProductionOrderFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private toastr: ToastrService,
-    private productionService: ProductionService
+    private productionService: ProductionService,
+    private cdr: ChangeDetectorRef
   ) {}
 
   ngOnInit(): void {
@@ -108,16 +110,18 @@ export class ProductionOrderFormComponent implements OnInit {
       setTimeout(() => this.scrollToSection('header-batches-section'), 200);
     }
 
-    setTimeout(() => {
+    this.runUiUpdate(() => {
       if (this.isEditMode) {
         this.loadOrderDetails();
         return;
       }
 
       this.loadFinishedGoods(this.warehouseId, () => {
-        this.isLoading = false;
+        this.runUiUpdate(() => {
+          this.isLoading = false;
+        });
       });
-    }, 0);
+    });
   }
 
   get headerBatchTotal(): number {
@@ -316,36 +320,88 @@ export class ProductionOrderFormComponent implements OnInit {
   }
 
   private loadOrderDetails(): void {
-    this.isLoading = true;
+    if (!this.productionOrderId) {
+      this.runUiUpdate(() => {
+        this.isLoading = false;
+      });
+      return;
+    }
 
-    this.productionService.getProductionOrderById(this.productionOrderId).subscribe({
-      next: (res: any) => {
-        const order = this.pickData<any>(res);
-        this.warehouseId = Number(order?.warehouseId || this.warehouseId);
-        this.status = String(order?.status || 'Draft');
-
-        this.form.patchValue({
-          postingDate: this.toDateInputValue(order?.postingDate),
-          dueDate: this.toDateInputValue(order?.dueDate),
-          remarks: order?.remarks || '',
-          warehouseId: this.warehouseId
-        });
-
-        this.loadFinishedGoods(this.warehouseId);
-        this.loadOrderItems();
-        this.loadHeaderBatches();
-
-        setTimeout(() => {
-          this.isLoading = false;
-        });
-      },
-      error: (err) => {
-        setTimeout(() => {
-          this.isLoading = false;
-        });
-        this.toastr.error(this.extractError(err, 'Failed to load production order.'), 'Error');
-      }
+    const currentLoadToken = ++this.loadToken;
+    this.runUiUpdate(() => {
+      this.isLoading = true;
     });
+
+    const failSafe = setTimeout(() => {
+      if (currentLoadToken !== this.loadToken || !this.isLoading) {
+        return;
+      }
+      this.runUiUpdate(() => {
+        if (currentLoadToken !== this.loadToken || !this.isLoading) {
+          return;
+        }
+        this.isLoading = false;
+        this.toastr.error('Loading production order is taking too long. Please check API health.', 'Error');
+      });
+    }, 20000);
+
+    this.productionService.getProductionOrderById(this.productionOrderId)
+      .pipe(
+        timeout(10000),
+        catchError((err) => of({ __loadError: err })),
+        finalize(() => {
+          clearTimeout(failSafe);
+          this.runUiUpdate(() => {
+            if (currentLoadToken !== this.loadToken) {
+              return;
+            }
+            this.isLoading = false;
+          });
+        })
+      )
+      .subscribe({
+        next: (res: any) => {
+          this.runUiUpdate(() => {
+            if (currentLoadToken !== this.loadToken) {
+              return;
+            }
+
+            if (res?.__loadError) {
+              const fallback = this.isTimeoutError(res.__loadError)
+                ? 'Loading production order timed out. Please try again.'
+                : 'Failed to load production order.';
+              this.toastr.error(this.extractError(res.__loadError, fallback), 'Error');
+              return;
+            }
+
+            const order = this.pickData<any>(res);
+            this.warehouseId = Number(order?.warehouseId ?? order?.WarehouseId ?? this.warehouseId);
+            this.status = String(order?.status ?? order?.Status ?? 'Draft');
+
+            this.form.patchValue({
+              postingDate: this.toDateInputValue(order?.postingDate ?? order?.PostingDate),
+              dueDate: this.toDateInputValue(order?.dueDate ?? order?.DueDate),
+              remarks: order?.remarks ?? order?.Remarks ?? '',
+              warehouseId: this.warehouseId
+            });
+
+            this.loadFinishedGoods(this.warehouseId);
+            this.loadOrderItems();
+            this.loadHeaderBatches();
+          });
+        },
+        error: (err) => {
+          this.runUiUpdate(() => {
+            if (currentLoadToken !== this.loadToken) {
+              return;
+            }
+            const fallback = this.isTimeoutError(err)
+              ? 'Loading production order timed out. Please try again.'
+              : 'Failed to load production order.';
+            this.toastr.error(this.extractError(err, fallback), 'Error');
+          });
+        }
+      });
   }
 
   private loadOrderItems(): void {
@@ -353,67 +409,88 @@ export class ProductionOrderFormComponent implements OnInit {
       return;
     }
 
-    this.productionService.getProductionOrderItems(this.productionOrderId, 1, 50).subscribe({
-      next: (res: any) => {
-        const items = this.toArray<ProductionOrderItem>(res);
+    this.productionService.getProductionOrderItems(this.productionOrderId, 1, 50)
+      .pipe(timeout(10000))
+      .subscribe({
+        next: (res: any) => {
+          const items = this.toArray<ProductionOrderItem>(res);
 
-        if (items.length > 0) {
-          const item = items[0];
-          this.productionOrderItemId = Number(item.productionOrderItemId || 0);
-          this.form.patchValue({
-            finishedGoodItemId: item.itemId,
-            plannedQuantity: item.plannedQuantity
-          });
-        } else {
+          if (items.length > 0) {
+            const item = items[0];
+            this.productionOrderItemId = Number(item.productionOrderItemId || 0);
+            this.form.patchValue({
+              finishedGoodItemId: item.itemId,
+              plannedQuantity: item.plannedQuantity
+            });
+          } else {
+            this.productionOrderItemId = 0;
+          }
+        },
+        error: (err) => {
           this.productionOrderItemId = 0;
+          if (this.isTimeoutError(err)) {
+            this.toastr.warning('Loading production items timed out. You can retry.', 'Warning');
+          }
         }
-      },
-      error: () => {
-        this.productionOrderItemId = 0;
-      }
-    });
+      });
   }
 
   private loadHeaderBatches(): void {
     if (!this.productionOrderId) {
-      this.headerBatches = [];
+      this.runUiUpdate(() => {
+        this.headerBatches = [];
+      });
       return;
     }
 
-    this.productionService.getProductionHeaderBatches(this.productionOrderId, 1, 200).subscribe({
-      next: (res: any) => {
-        this.headerBatches = this.toArray<ProductionHeaderBatch>(res);
-      },
-      error: (err) => {
-        this.headerBatches = [];
-        this.toastr.error(this.extractError(err, 'Failed to load header batches.'), 'Error');
-      }
-    });
+    this.productionService.getProductionHeaderBatches(this.productionOrderId, 1, 200)
+      .pipe(timeout(10000))
+      .subscribe({
+        next: (res: any) => {
+          this.runUiUpdate(() => {
+            this.headerBatches = this.toArray<ProductionHeaderBatch>(res);
+          });
+        },
+        error: (err) => {
+          this.runUiUpdate(() => {
+            this.headerBatches = [];
+            const fallback = this.isTimeoutError(err)
+              ? 'Loading header batches timed out. Please try again.'
+              : 'Failed to load header batches.';
+            this.toastr.error(this.extractError(err, fallback), 'Error');
+          });
+        }
+      });
   }
 
   private loadFinishedGoods(warehouseId: number, onDone?: () => void): void {
     if (!warehouseId) {
-      this.finishedGoods = [];
-      if (onDone) {
-        onDone();
-      }
+      this.runUiUpdate(() => {
+        this.finishedGoods = [];
+      });
+      onDone?.();
       return;
     }
 
-    this.productionService.getFinishedGoodsByWarehouse(warehouseId, 1, 500).subscribe({
-      next: (res: any) => {
-        this.finishedGoods = this.toArray<FinishedGoodItem>(res);
-        if (onDone) {
-          onDone();
+    this.productionService.getFinishedGoodsByWarehouse(warehouseId, 1, 500)
+      .pipe(timeout(10000))
+      .subscribe({
+        next: (res: any) => {
+          this.runUiUpdate(() => {
+            this.finishedGoods = this.toArray<FinishedGoodItem>(res);
+          });
+          onDone?.();
+        },
+        error: (err) => {
+          this.runUiUpdate(() => {
+            this.finishedGoods = [];
+          });
+          if (this.isTimeoutError(err)) {
+            this.toastr.warning('Loading finished goods timed out. You can retry.', 'Warning');
+          }
+          onDone?.();
         }
-      },
-      error: () => {
-        this.finishedGoods = [];
-        if (onDone) {
-          onDone();
-        }
-      }
-    });
+      });
   }
 
   private upsertFinishedGoodItem(onSuccess: (syncMessage?: string) => void, onError: (message: string) => void): void {
@@ -560,6 +637,14 @@ export class ProductionOrderFormComponent implements OnInit {
   }
 
   private toArray<T>(res: any): T[] {
+    if (Array.isArray(res?.data?.data?.data?.$values)) {
+      return res.data.data.data.$values as T[];
+    }
+
+    if (Array.isArray(res?.data?.data?.data)) {
+      return res.data.data.data as T[];
+    }
+
     if (Array.isArray(res?.data?.data?.$values)) {
       return res.data.data.$values as T[];
     }
@@ -580,6 +665,30 @@ export class ProductionOrderFormComponent implements OnInit {
       return res.data as T[];
     }
 
+    if (Array.isArray(res?.Data?.Data?.Data?.$values)) {
+      return res.Data.Data.Data.$values as T[];
+    }
+
+    if (Array.isArray(res?.Data?.Data?.Data)) {
+      return res.Data.Data.Data as T[];
+    }
+
+    if (Array.isArray(res?.Data?.Data?.$values)) {
+      return res.Data.Data.$values as T[];
+    }
+
+    if (Array.isArray(res?.Data?.Data)) {
+      return res.Data.Data as T[];
+    }
+
+    if (Array.isArray(res?.Data?.$values)) {
+      return res.Data.$values as T[];
+    }
+
+    if (Array.isArray(res?.Data)) {
+      return res.Data as T[];
+    }
+
     if (Array.isArray(res)) {
       return res as T[];
     }
@@ -588,12 +697,28 @@ export class ProductionOrderFormComponent implements OnInit {
   }
 
   private pickData<T>(res: any): T {
+    if (res?.data?.data?.data) {
+      return res.data.data.data as T;
+    }
+
     if (res?.data?.data) {
       return res.data.data as T;
     }
 
     if (res?.data) {
       return res.data as T;
+    }
+
+    if (res?.Data?.Data?.Data) {
+      return res.Data.Data.Data as T;
+    }
+
+    if (res?.Data?.Data) {
+      return res.Data.Data as T;
+    }
+
+    if (res?.Data) {
+      return res.Data as T;
     }
 
     return res as T;
@@ -625,7 +750,15 @@ export class ProductionOrderFormComponent implements OnInit {
       }
     }
 
+    if (err?.message) {
+      return err.message;
+    }
+
     return fallback;
+  }
+
+  private isTimeoutError(err: any): boolean {
+    return String(err?.name || '').toLowerCase() === 'timeouterror';
   }
 
   private extractResponseMessage(res: any): string {
@@ -638,5 +771,12 @@ export class ProductionOrderFormComponent implements OnInit {
     }
 
     return '';
+  }
+
+  private runUiUpdate(action: () => void): void {
+    setTimeout(() => {
+      action();
+      this.cdr.detectChanges();
+    });
   }
 }

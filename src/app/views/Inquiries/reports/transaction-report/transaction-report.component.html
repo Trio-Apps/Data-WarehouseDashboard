@@ -1,0 +1,164 @@
+<div class="container-fluid h-100 d-flex flex-column p-0 emerald-theme">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card app-card">
+    <c-card-header class="custom-header">
+      <h4 class="mb-0 header-title">Transaction Report - Warehouse {{ warehouseId }}</h4>
+    </c-card-header>
+
+    <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
+      <div class="form-section p-3 border-bottom">
+        <form [formGroup]="form" (ngSubmit)="onSubmit()">
+          <c-row [gutter]="3">
+            <c-col [md]="2">
+              <label class="form-label">From Date</label>
+              <input cFormControl type="date" formControlName="fromDate" />
+            </c-col>
+
+            <c-col [md]="2">
+              <label class="form-label">To Date</label>
+              <input cFormControl type="date" formControlName="toDate" />
+            </c-col>
+
+            <c-col [md]="3">
+              <label class="form-label">Transaction Type</label>
+              <select cSelect formControlName="transactionType">
+                <option *ngFor="let type of transactionTypes" [value]="type.value">{{ type.label }}</option>
+              </select>
+            </c-col>
+
+            <c-col [md]="3">
+              <label class="form-label">Item Code / Name</label>
+              <input cFormControl type="text" formControlName="itemCodeOrName" placeholder="Search item..." />
+            </c-col>
+
+            <c-col [md]="2" class="d-flex align-items-end gap-2">
+              <button cButton color="primary" type="submit" class="w-100">Search</button>
+              <button cButton color="secondary" type="button" class="w-100" (click)="onReset()">Reset</button>
+            </c-col>
+          </c-row>
+        </form>
+      </div>
+
+      <div class="counts-section p-3 border-bottom">
+        @if (countsLoading) {
+          <span class="text-body-secondary">Loading source counts...</span>
+        } @else if (sourceCounts) {
+          <c-row [gutter]="2" class="g-2">
+            <c-col [sm]="6" [md]="3">
+              <div class="count-card">
+                <span>Total</span>
+                <strong>{{ sourceCounts.totalCount }}</strong>
+              </div>
+            </c-col>
+            <c-col [sm]="6" [md]="3">
+              <div class="count-card">
+                <span>Goods Receipt</span>
+                <strong>{{ sourceCounts.goodsReceiptCount }}</strong>
+              </div>
+            </c-col>
+            <c-col [sm]="6" [md]="3">
+              <div class="count-card">
+                <span>Goods Issue</span>
+                <strong>{{ sourceCounts.goodsIssueCount }}</strong>
+              </div>
+            </c-col>
+            <c-col [sm]="6" [md]="3">
+              <div class="count-card">
+                <span>Transfer Out/In</span>
+                <strong>{{ sourceCounts.transferOutCount + sourceCounts.transferInCount }}</strong>
+              </div>
+            </c-col>
+          </c-row>
+        }
+      </div>
+
+      <div class="table-container">
+        <table [hover]="true" [striped]="true" cTable class="mb-0 theme-table">
+          <thead class="table-header">
+            <tr>
+              <th>#</th>
+              <th>Document</th>
+              <th>Type</th>
+              <th>Direction</th>
+              <th>Base Ref.</th>
+              <th>Date</th>
+              <th>Item Code</th>
+              <th>Item Name</th>
+              <th>Qty</th>
+            </tr>
+          </thead>
+          <tbody>
+            @if (loading) {
+              <tr>
+                <td colspan="9" class="text-center py-4 text-body-secondary">Loading...</td>
+              </tr>
+            } @else if (errorMessage) {
+              <tr>
+                <td colspan="9" class="text-center py-4 text-danger">{{ errorMessage }}</td>
+              </tr>
+            } @else if (rows.length > 0) {
+              @for (row of rows; track row.baseReference || $index) {
+                <tr>
+                  <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
+                  <td>{{ row.document }}</td>
+                  <td>{{ row.transactionType }}</td>
+                  <td>{{ row.direction }}</td>
+                  <td>{{ row.baseReference || 'N/A' }}</td>
+                  <td>{{ row.transactionDate | date: 'yyyy-MM-dd HH:mm' }}</td>
+                  <td>{{ row.itemCode }}</td>
+                  <td>{{ row.itemName }}</td>
+                  <td>{{ row.quantity }}</td>
+                </tr>
+              }
+            } @else {
+              <tr>
+                <td colspan="9" class="text-center py-4 text-body-secondary">No transactions found</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (!loading && (rows.length > 0 || totalItems > 0)) {
+        <div class="pagination-container p-3 border-top">
+          <div class="d-flex justify-content-end mb-2">
+            <div class="d-flex align-items-center gap-2">
+              <label class="small text-body-secondary mb-0">Page Size</label>
+              <select cFormControl class="form-select form-select-sm page-size-select" (change)="onPageSizeChange($any($event.target).value)">
+                @for (size of pageSizeOptions; track size) {
+                  <option [value]="size" [selected]="size === itemsPerPage">{{ size }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <nav aria-label="Page navigation">
+            <ul class="pagination justify-content-center mb-2 theme-pagination">
+              <li class="page-item" [class.disabled]="!hasPrevious">
+                <a class="page-link" (click)="onPreviousPage($event)" href="#">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+
+              @for (page of getPageNumbers(); track page) {
+                <li class="page-item" [class.active]="page === currentPage">
+                  <a class="page-link" (click)="onPageChange(page, $event)" href="#">{{ page }}</a>
+                </li>
+              }
+
+              <li class="page-item" [class.disabled]="!hasNext">
+                <a class="page-link" (click)="onNextPage($event)" href="#">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+
+          <div class="text-body-secondary small text-center">
+            Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
+            {{ Math.min(currentPage * itemsPerPage, totalItems) }} of {{ totalItems }} transactions
+          </div>
+        </div>
+      }
+    </c-card-body>
+  </c-card>
+</div>

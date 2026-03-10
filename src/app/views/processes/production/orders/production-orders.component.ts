@@ -217,14 +217,28 @@ export class ProductionOrdersComponent implements OnInit {
         return 'badge bg-warning';
       case 'Processing':
         return 'badge bg-info';
+      case 'Approved':
       case 'Completed':
       case 'Final':
         return 'badge bg-success';
+      case 'Rejected':
       case 'PartiallyFailed':
         return 'badge bg-danger';
       default:
         return 'badge bg-secondary';
     }
+  }
+
+  getDisplayStatus(order: ProductionOrder): string {
+    const approvalStatus = String(order.approvalStatus || '').trim().toLowerCase();
+    if (approvalStatus === 'approved') {
+      return 'Approved';
+    }
+    if (approvalStatus === 'rejected') {
+      return 'Rejected';
+    }
+
+    return String(order.status || '').trim() || 'Unknown';
   }
 
   onSearch(): void {
@@ -342,7 +356,9 @@ export class ProductionOrdersComponent implements OnInit {
     const searchTerm = String(formValue.searchTerm || '').trim().toLowerCase();
 
     this.filteredOrders = this.orders.filter((order) => {
-      if (statusFilter && String(order.status || '') !== statusFilter) {
+      const displayStatus = this.getDisplayStatus(order);
+
+      if (statusFilter && displayStatus !== statusFilter) {
         return false;
       }
 
@@ -357,7 +373,7 @@ export class ProductionOrdersComponent implements OnInit {
       if (searchTerm) {
         const matchesSearch =
           String(order.productionOrderId).includes(searchTerm) ||
-          String(order.status || '').toLowerCase().includes(searchTerm) ||
+          displayStatus.toLowerCase().includes(searchTerm) ||
           String(order.remarks || '').toLowerCase().includes(searchTerm);
 
         if (!matchesSearch) {

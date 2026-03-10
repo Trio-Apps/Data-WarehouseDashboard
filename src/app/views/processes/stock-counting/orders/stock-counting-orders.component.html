@@ -1,69 +1,119 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
-  <c-card class="flex-grow-1 d-flex flex-column m-0">
-    <c-card-header class="d-flex justify-content-between align-items-center">
-      <h4 class="mb-0">Stock Counting Orders - Warehouse #{{ warehouseId }}</h4>
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <h4 class="mb-0 header-title">Stock Counting Orders - Warehouse #{{ warehouseId }}</h4>
       <div class="d-flex gap-2">
-        <button cButton color="secondary" (click)="onBack()">
+        <button cButton color="secondary" class="header-button" (click)="onBack()">
           <svg cIcon name="cil-arrow-left" class="me-2"></svg>
           Back
         </button>
-        <button cButton color="success" (click)="onAddOrder()">
+        <button cButton color="primary" class="header-button" (click)="onAddOrder()">
           <svg cIcon name="cil-plus" class="me-2"></svg>
           New Order
         </button>
       </div>
     </c-card-header>
 
-    <c-card-body class="p-0">
-      <table cTable [striped]="true" [hover]="true" class="mb-0">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th>Order ID</th>
-            <th>Posting Date</th>
-            <th>Status</th>
-            <th>Mode</th>
-            <th>Comment</th>
-            <th class="text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @if (loading) {
+    <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
+      <div class="table-container">
+        <table cTable [striped]="true" [hover]="true" class="mb-0">
+          <thead class="table-header">
             <tr>
-              <td colspan="7" class="text-center py-4 text-body-secondary">Loading...</td>
+              <th scope="col" class="bg-body-tertiary">#</th>
+              <th scope="col" class="bg-body-tertiary">Order ID</th>
+              <th scope="col" class="bg-body-tertiary">Posting Date</th>
+              <th scope="col" class="bg-body-tertiary">Status</th>
+              <th scope="col" class="bg-body-tertiary">Mode</th>
+              <th scope="col" class="bg-body-tertiary">Comment</th>
+              <th scope="col" class="bg-body-tertiary text-center">Actions</th>
             </tr>
-          } @else if (orders.length === 0) {
-            <tr>
-              <td colspan="7" class="text-center py-4 text-body-secondary">No orders found.</td>
-            </tr>
-          } @else {
-            @for (order of orders; track order.countStockId; let i = $index) {
+          </thead>
+          <tbody>
+            @if (loading) {
               <tr>
-                <td>{{ i + 1 }}</td>
-                <td>{{ order.countStockId }}</td>
-                <td>{{ order.postingDate | date:'yyyy-MM-dd' }}</td>
-                <td><span [class]="order.statusBadgeClass">{{ order.statusText }}</span></td>
-                <td>{{ order.modeText }}</td>
-                <td>{{ order.comment || '-' }}</td>
-                <td class="text-center d-flex gap-1 justify-content-center">
-                  <button cButton color="primary" size="sm" (click)="onOpenItems(order)" title="Items">
-                    <svg cIcon name="cil-list-rich"></svg>
-                  </button>
-                  <button cButton color="info" size="sm" (click)="onEditOrder(order)" title="Edit">
-                    <svg cIcon name="cil-pencil"></svg>
-                  </button>
-                  <button cButton color="danger" size="sm" (click)="onDeleteOrder(order)" title="Delete">
-                    <svg cIcon name="cil-trash"></svg>
-                  </button>
-                  <button cButton color="success" size="sm" [disabled]="!order.canSubmit" (click)="onSubmit(order)" title="Submit">
-                    <svg cIcon name="cil-check-circle"></svg>
-                  </button>
+                <td colspan="7" class="text-center py-4">
+                  <span class="text-body-secondary">Loading...</span>
                 </td>
               </tr>
+            } @else if (orders.length === 0) {
+              <tr>
+                <td colspan="7" class="text-center py-4">
+                  <span class="text-body-secondary">No orders found.</span>
+                </td>
+              </tr>
+              } @else {
+                @for (order of orders; track order.countStockId; let i = $index) {
+                <tr>
+                  <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
+                  <td>{{ order.countStockId }}</td>
+                  <td>{{ order.postingDate | date:'yyyy-MM-dd' }}</td>
+                  <td><span [class]="order.statusBadgeClass">{{ order.statusText }}</span></td>
+                  <td>{{ order.modeText }}</td>
+                  <td>{{ order.comment || '-' }}</td>
+                  <td class="text-center d-flex gap-1 justify-content-center">
+                    <button cButton color="primary" size="sm" (click)="onOpenItems(order)" title="Items">
+                      <svg cIcon name="cil-list-rich"></svg>
+                    </button>
+                    <button cButton color="info" size="sm" (click)="onEditOrder(order)" title="Edit">
+                      <svg cIcon name="cil-pencil"></svg>
+                    </button>
+                    <button cButton color="danger" size="sm" (click)="onDeleteOrder(order)" title="Delete">
+                      <svg cIcon name="cil-trash"></svg>
+                    </button>
+                    <button cButton color="success" size="sm" [disabled]="!order.canSubmit" (click)="onSubmit(order)" title="Submit">
+                      <svg cIcon name="cil-check-circle"></svg>
+                    </button>
+                  </td>
+                </tr>
+              }
             }
-          }
-        </tbody>
-      </table>
+          </tbody>
+        </table>
+      </div>
+
+      @if (totalPages > 0) {
+      <div class="pagination-container p-3 border-top">
+        <nav aria-label="Page navigation">
+          <ul class="pagination justify-content-center mb-2">
+            <li class="page-item" [class.disabled]="!hasPrevious">
+              <a
+                class="page-link"
+                (click)="onPreviousPage($event)"
+                [attr.aria-label]="'Previous'"
+                [attr.tabindex]="!hasPrevious ? -1 : null"
+                [class.disabled]="!hasPrevious"
+                href="#">
+                <span aria-hidden="true">&laquo;</span>
+              </a>
+            </li>
+
+            @for (page of getPageNumbers(); track page) {
+            <li class="page-item" [class.active]="page === currentPage">
+              <a class="page-link" (click)="onPageChange(page, $event)" href="#">{{ page }}</a>
+            </li>
+            }
+
+            <li class="page-item" [class.disabled]="!hasNext">
+              <a
+                class="page-link"
+                (click)="onNextPage($event)"
+                [attr.aria-label]="'Next'"
+                [attr.tabindex]="!hasNext ? -1 : null"
+                [class.disabled]="!hasNext"
+                href="#">
+                <span aria-hidden="true">&raquo;</span>
+              </a>
+            </li>
+          </ul>
+        </nav>
+
+        <div class="text-body-secondary small text-center">
+          Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
+          {{ Math.min(currentPage * itemsPerPage, totalItems) }}
+          of {{ totalItems }} stock counting orders
+        </div>
+      </div>
+      }
     </c-card-body>
   </c-card>
 </div>

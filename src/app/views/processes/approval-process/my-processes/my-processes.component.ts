@@ -25,8 +25,8 @@ import { AuthService } from '../../../pages/Services/auth.service';
 export class MyProcessesComponent implements OnInit, OnDestroy {
   approvals: ProcessApproval[] = [];
   filteredApprovals: ProcessApproval[] = [];
+  approvingIds = new Set<number>();
 
-  // Pagination
   currentPage: number = 1;
   itemsPerPage: number = 10;
   totalPages: number = 0;
@@ -35,7 +35,6 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
   hasNext: boolean = false;
   hasPrevious: boolean = false;
 
-  // Expose Math to template
   Math = Math;
 
   canViewMyApprovals: boolean = false;
@@ -143,6 +142,7 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
     if (event) {
       event.preventDefault();
     }
+
     this.loading = true;
     this.cdr.detectChanges();
 
@@ -165,6 +165,7 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
     if (event) {
       event.preventDefault();
     }
+
     if (this.hasNext) {
       this.onPageChange(this.currentPage + 1, event);
     }
@@ -174,6 +175,7 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
     if (event) {
       event.preventDefault();
     }
+
     if (this.hasPrevious) {
       this.onPageChange(this.currentPage - 1, event);
     }
@@ -202,41 +204,70 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const processType = approval.processItemIsProgress?.processType || '';
-    const referenceId = approval.processItemIsProgress?.referenceId;
-
-    if (!referenceId) {
-      this.toastr.warning('No reference ID found for this process.', 'Warning');
+    const processApprovalId = approval.processApprovalId;
+    if (!processApprovalId) {
+      this.toastr.warning('No approval ID found for this process.', 'Warning');
       return;
     }
-//       
-    switch (processType.toLowerCase()) {
-      case 'sales':
-        this.router.navigate(['/processes/sales/sales-items', referenceId]);
-        break;
+
+    if (this.approvingIds.has(processApprovalId)) {
+      return;
+    }
+
+    const processItem = approval.processItemIsProgress;
+    const processType = this.normalizeProcessType(processItem?.processType);
+    const referenceId = Number(processItem?.referenceId || 0);
+    const warehouseId = Number(approval.warehouseId || 0);
+
+    if (!processType || referenceId <= 0) {
+      this.toastr.warning('Missing process type or reference ID for this approval.', 'Warning');
+      return;
+    }
+
+    switch (processType) {
       case 'purchase':
       case 'purchases':
+      case 'purchaseorder':
         this.router.navigate(['/processes/purchases/purchase-items', referenceId]);
         break;
-     case 'receipt':
-            this.router.navigate(['/processes/purchases/receipt-order', 0,referenceId]);
+
+      case 'goodsreturn':
+      case 'goodsreturnorder':
+        this.router.navigate(['/processes/purchases/goods-return-order', 0, 0, referenceId]);
         break;
 
-        case 'goodsreturn':
-            this.router.navigate(['/processes/purchases/goods-return-order', 0, 0, referenceId]);
-        break;
       case 'deliverynote':
+      case 'deliverynoteorder':
         this.router.navigate(['/processes/sales/delivery-note-order', 0, referenceId]);
         break;
+
+      case 'sales':
+      case 'salesorder':
+        this.router.navigate(['/processes/sales/sales-items', referenceId]);
+        break;
+
+      case 'salesreturn':
+      case 'salesreturnorder':
+        this.router.navigate(['/processes/sales/sales-return-order', 0, referenceId]);
+        break;
+
+      case 'receipt':
+      case 'receiptorder':
+      case 'receiptpurchaseorder':
+        this.router.navigate(['/processes/purchases/receipt-order', 0, referenceId]);
+        break;
+
       case 'transferred':
       case 'transferredrequest':
       case 'transfer':
         this.router.navigate(['/processes/transferred-request/transferred-request-items', referenceId]);
         break;
+
       case 'transferredstock':
       case 'stocktransferred':
         this.router.navigate(['/processes/transferred-request/transferred-stock', 0, referenceId]);
         break;
+
       case 'quantityadjustmentstock':
       case 'quantityadjustment':
       case 'adjustmentstock':
@@ -246,14 +277,70 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
           referenceId
         ]);
         break;
-    
-        default:
+
+      case 'stockcounting':
+      case 'stockcount':
+      case 'countstock':
+      case 'stockcountingorder':
+        if (warehouseId > 0) {
+          this.router.navigate([
+            '/processes/stock-counting/order-items',
+            warehouseId,
+            referenceId
+          ]);
+        } else {
+          this.router.navigate(['/processes/stock-counting/menu']);
+        }
+        break;
+
+      case 'production':
+      case 'productionorder':
+        if (warehouseId > 0) {
+          this.router.navigate([
+            '/processes/production/order-items',
+            warehouseId,
+            referenceId
+          ]);
+        } else {
+          this.router.navigate(['/processes/production/menu']);
+        }
+        break;
+
+      default:
         this.toastr.info(`No navigation defined for ${processType}.`, 'Info');
         break;
     }
+
+    this.approvingIds.add(processApprovalId);
+
+    this.approvalService.changeApprovalStatus(true, processApprovalId, 'approved from approvals page').subscribe({
+      next: (res) => {
+        if (res?.success === false) {
+          this.toastr.error(res?.message || 'Approval failed.', 'Error');
+          return;
+        }
+
+        this.toastr.success('Approval completed successfully.', 'Success');
+        this.loadMyApprovals();
+      },
+      error: (err) => {
+        console.error('Error approving process:', err);
+        this.toastr.error(err?.error?.message || 'Failed to approve this process.', 'Error');
+        this.approvingIds.delete(processApprovalId);
+      },
+      complete: () => {
+        this.approvingIds.delete(processApprovalId);
+      }
+    });
   }
 
   get tableColumnCount(): number {
     return this.canActionApprovals ? 8 : 7;
+  }
+
+  private normalizeProcessType(value: unknown): string {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
   }
 }

@@ -7,10 +7,7 @@ import {
   CardBodyComponent,
   CardComponent,
   CardHeaderComponent,
-  ColComponent,
-  FormModule,
-  GutterDirective,
-  RowComponent
+  FormModule
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
@@ -25,9 +22,6 @@ import { ProductionService } from '../Services/production.service';
     CardComponent,
     CardHeaderComponent,
     CardBodyComponent,
-    RowComponent,
-    ColComponent,
-    GutterDirective,
     ButtonDirective,
     FormModule,
     IconDirective
@@ -58,15 +52,6 @@ export class ProductionMenuComponent implements OnInit {
 
   get selectedWarehouseId(): number {
     return Number(this.form.get('warehouseId')?.value || 0);
-  }
-
-  onCreateProduction(): void {
-    if (!this.selectedWarehouseId) {
-      this.toastr.error('Please select warehouse first.', 'Validation');
-      return;
-    }
-
-    this.router.navigate(['/processes/production/order-form', this.selectedWarehouseId]);
   }
 
   onViewOrders(): void {

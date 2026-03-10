@@ -1,9 +1,18 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { Item } from '../Models/item.model';
 import { AuthService } from '../../pages/Services/auth.service';
+import {
+  ApiResponse,
+  InWarehouseReportFilter,
+  InWarehouseReportItem,
+  PagedResult,
+  TransactionReportFilter,
+  TransactionReportItem,
+  TransactionReportSourcesCount
+} from '../Models/report.model';
 
 @Injectable({
   providedIn: 'root'
@@ -56,5 +65,80 @@ export class InquiryService {
     `?itemCode=${encodeURIComponent(itemCode)}&itemName=${encodeURIComponent(itemName)}`, this.headerOption
   );
 }
+
+  getTransactionReport(
+    filter: TransactionReportFilter
+  ): Observable<ApiResponse<PagedResult<TransactionReportItem>>> {
+    let params = new HttpParams()
+      .set('warehouseId', filter.warehouseId)
+      .set('pageNumber', filter.pageNumber)
+      .set('pageSize', filter.pageSize);
+
+    if (filter.fromDate) {
+      params = params.set('fromDate', filter.fromDate);
+    }
+
+    if (filter.toDate) {
+      params = params.set('toDate', filter.toDate);
+    }
+
+    if (filter.transactionType) {
+      params = params.set('transactionType', filter.transactionType);
+    }
+
+    if (filter.itemCodeOrName) {
+      params = params.set('itemCodeOrName', filter.itemCodeOrName);
+    }
+
+    return this.http.get<ApiResponse<PagedResult<TransactionReportItem>>>(
+      `${this.baseUrl}client/Warehouse/reports/transactions`,
+      {
+        ...this.headerOption,
+        params
+      }
+    );
+  }
+
+  getTransactionReportSourcesCounts(
+    warehouseId: number
+  ): Observable<ApiResponse<TransactionReportSourcesCount>> {
+    const params = new HttpParams().set('warehouseId', warehouseId);
+
+    return this.http.get<ApiResponse<TransactionReportSourcesCount>>(
+      `${this.baseUrl}client/Warehouse/reports/transactions/sources-counts`,
+      {
+        ...this.headerOption,
+        params
+      }
+    );
+  }
+
+  getInWarehouseReport(
+    filter: InWarehouseReportFilter
+  ): Observable<ApiResponse<PagedResult<InWarehouseReportItem>>> {
+    let params = new HttpParams()
+      .set('warehouseId', filter.warehouseId)
+      .set('pageNumber', filter.pageNumber)
+      .set('pageSize', filter.pageSize);
+
+    if (filter.itemCodeOrName) {
+      params = params.set('itemCodeOrName', filter.itemCodeOrName);
+    }
+
+    if (typeof filter.showItemsWithNoQuantityInStock === 'boolean') {
+      params = params.set(
+        'showItemsWithNoQuantityInStock',
+        filter.showItemsWithNoQuantityInStock
+      );
+    }
+
+    return this.http.get<ApiResponse<PagedResult<InWarehouseReportItem>>>(
+      `${this.baseUrl}client/Warehouse/reports/in-warehouse`,
+      {
+        ...this.headerOption,
+        params
+      }
+    );
+  }
 
 }

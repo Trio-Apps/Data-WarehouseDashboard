@@ -63,6 +63,27 @@ export const routes: Routes = [
         .then(m => m.ShowInventoryProcessesComponent), data: {
           title: 'Processes-Inquiry'
         },
+    },
+    {
+      path: 'show-reports/:warehouseId',
+      loadComponent: () => import('./reports/show-reports/show-reports.component')
+        .then(m => m.ShowReportsComponent), data: {
+          title: 'Reports'
+        },
+    },
+    {
+      path: 'show-transaction-report/:warehouseId',
+      loadComponent: () => import('./reports/transaction-report/transaction-report.component')
+        .then(m => m.TransactionReportComponent), data: {
+          title: 'Transaction Report'
+        },
+    },
+    {
+      path: 'show-in-warehouse-report/:warehouseId',
+      loadComponent: () => import('./reports/in-warehouse-report/in-warehouse-report.component')
+        .then(m => m.InWarehouseReportComponent), data: {
+          title: 'In-Warehouse Report'
+        },
     }
   ]
 }
@@ -70,6 +91,5 @@ export const routes: Routes = [
 
 
 ];
-
 
 

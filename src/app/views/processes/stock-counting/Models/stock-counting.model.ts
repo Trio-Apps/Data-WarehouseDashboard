@@ -34,6 +34,7 @@ export interface CountStockItem {
   comment?: string | null;
   countStockId: number;
   itemId: number;
+  isBatchManaged?: boolean;
 }
 
 export interface CountStockBatch {
