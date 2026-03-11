@@ -152,6 +152,11 @@ export class ReceiptOrderComponent implements OnInit {
   }
 
   onEditReceipt(): void {
+    if (this.isCompletedStatus(this.receipt)) {
+      this.toastr.warning('Cannot edit receipt when status is Completed', 'Warning');
+      return;
+    }
+
       console.log("outside")
     if (this.receipt?.receiptPurchaseOrderId) {
       console.log("inside")
@@ -193,6 +198,11 @@ export class ReceiptOrderComponent implements OnInit {
   }
 
   onAddItem(): void {
+    if (this.isCompletedStatus(this.receipt)) {
+      this.toastr.warning('Cannot add items when receipt status is Completed', 'Warning');
+      return;
+    }
+
     if (this.receipt?.receiptPurchaseOrderId) {
       this.router.navigate(
         ['/processes/purchases/add-receipt-item', this.purchaseOrderId, this.receipt.receiptPurchaseOrderId],
@@ -204,6 +214,11 @@ export class ReceiptOrderComponent implements OnInit {
   }
 
   onEditItem(item: ReceiptItem): void {
+    if (this.isCompletedStatus(this.receipt)) {
+      this.toastr.warning('Cannot edit items when receipt status is Completed', 'Warning');
+      return;
+    }
+
     this.selectedItem = { ...item };
     this.showEditItemModal = true;
   }
@@ -223,6 +238,11 @@ export class ReceiptOrderComponent implements OnInit {
   }
 
   onRemoveItem(item: ReceiptItem): void {
+    if (this.isCompletedStatus(this.receipt)) {
+      this.toastr.warning('Cannot remove items when receipt status is Completed', 'Warning');
+      return;
+    }
+
     if (confirm(`Are you sure you want to remove "${item.itemName || 'this item'}" from the receipt?`)) {
       if (item.receiptPurchaseOrderItemId) {
         this.receiptService.deleteReceiptItem(item.receiptPurchaseOrderItemId).subscribe({
@@ -273,6 +293,11 @@ export class ReceiptOrderComponent implements OnInit {
   }
   getStatusText(receipt: Receipt | null): string {
     return receipt?.status || 'Unknown';
+  }
+
+  isCompletedStatus(receipt: Receipt | null): boolean {
+    const status = (receipt?.status || '').trim().toLowerCase();
+    return status === 'completed' || status === 'final';
   }
 
   private mapApprovalStatusText(value: string): string {

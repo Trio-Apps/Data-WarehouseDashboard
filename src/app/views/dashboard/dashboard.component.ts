@@ -21,6 +21,7 @@ import { SapAuthService } from '../settings/Auth/Services/sap-auth.service';
 import { DashboardService } from './Services/dashboard.service';
 import { DashboardHomeInfo, DashboardSyncResponse } from './Models/dashboard.model';
 
+
 interface ModuleTile {
   title: string;
   description: string;
@@ -174,9 +175,12 @@ export class DashboardComponent implements OnInit {
 
     if (tile.inquiryRoute === 'show-processes') {
       if (warehouseId) {
-        this.router.navigate(['/inquiries/show-processes', warehouseId], {
-          queryParams: tile.processSection ? { section: tile.processSection } : {}
-        });
+        const processSectionRoute = this.getProcessSectionRoute(tile.processSection, warehouseId);
+        if (processSectionRoute) {
+          this.router.navigate(processSectionRoute);
+          return;
+        }
+        this.router.navigate(['/inquiries/processes-inquiry']);
       } else {
         this.router.navigate(['/inquiries/processes-inquiry']);
       }
@@ -289,5 +293,23 @@ export class DashboardComponent implements OnInit {
     }
 
     return parsedWarehouseId;
+  }
+
+  private getProcessSectionRoute(
+    section: ModuleTile['processSection'],
+    warehouseId: number
+  ): string[] | null {
+    switch (section) {
+      case 'purchasing':
+        return ['/inquiries/show-purchasing-processes', `${warehouseId}`];
+      case 'outbound':
+        return ['/inquiries/show-outbound-processes', `${warehouseId}`];
+      case 'production':
+        return ['/inquiries/show-production-processes', `${warehouseId}`];
+      case 'inventory':
+        return ['/inquiries/show-inventory-processes', `${warehouseId}`];
+      default:
+        return null;
+    }
   }
 }

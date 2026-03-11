@@ -41,10 +41,10 @@ export function navigateToProcessByCard(
       router.navigate(['/processes/quantity-adjustment-stock/quantity-adjustment-stock-orders', warehouseId]);
       break;
     case 'stock-counting':
-      router.navigate(['/processes/stock-counting/menu', warehouseId]);
+      router.navigate(['/processes/stock-counting/orders', warehouseId]);
       break;
     case 'production':
-      router.navigate(['/processes/production/menu', warehouseId]);
+      router.navigate(['/processes/production/orders', warehouseId]);
       break;
     default:
       console.log('Card clicked:', cardType);

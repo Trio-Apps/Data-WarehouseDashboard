@@ -181,6 +181,11 @@ export class SalesReturnComponent implements OnInit {
   }
 
   onAddItem(): void {
+    if (this.isCompletedStatus(this.return)) {
+      this.toastr.warning('Cannot add items when return status is Completed', 'Warning');
+      return;
+    }
+
     if (this.return?.salesReturnOrderId) {
       this.router.navigate([
         '/processes/sales/add-sales-return-item',
@@ -194,6 +199,11 @@ export class SalesReturnComponent implements OnInit {
   }
 
   onEditItem(item: ReturnItem): void {
+    if (this.isCompletedStatus(this.return)) {
+      this.toastr.warning('Cannot edit items when return status is Completed', 'Warning');
+      return;
+    }
+
     this.selectedItem = { ...item };
     this.showEditItemModal = true;
   }
@@ -203,6 +213,11 @@ export class SalesReturnComponent implements OnInit {
   }
 
   onEditReturn(): void {
+    if (this.isCompletedStatus(this.return)) {
+      this.toastr.warning('Cannot edit return when status is Completed', 'Warning');
+      return;
+    }
+
     if (!this.return?.salesReturnOrderId) {
       return;
     }
@@ -251,6 +266,11 @@ export class SalesReturnComponent implements OnInit {
   }
 
   onRemoveItem(item: ReturnItem): void {
+    if (this.isCompletedStatus(this.return)) {
+      this.toastr.warning('Cannot remove items when return status is Completed', 'Warning');
+      return;
+    }
+
     if (confirm(`Are you sure you want to remove "${item.itemName || 'this item'}" from the return?`)) {
       if (item.salesReturnOrderItemId) {
         this.returnService.deleteReturnItem(item.salesReturnOrderItemId || 0).subscribe({
@@ -322,6 +342,11 @@ export class SalesReturnComponent implements OnInit {
 
   getStatusText(returnDto: Return | null): string {
     return returnDto?.status || '';
+  }
+
+  isCompletedStatus(returnDto: Return | null): boolean {
+    const status = (returnDto?.status || '').trim().toLowerCase();
+    return status === 'completed' || status === 'final';
   }
 
   private mapApprovalStatusText(value: string): string {

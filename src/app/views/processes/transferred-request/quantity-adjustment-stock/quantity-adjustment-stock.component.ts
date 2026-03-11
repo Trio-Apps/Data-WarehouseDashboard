@@ -200,6 +200,11 @@ export class QuantityAdjustmentStockComponent implements OnInit {
   }
 
   onAddItem(): void {
+    if (this.isCompletedStatus(this.quantityAdjustmentStock)) {
+      this.toastr.warning('Cannot add items when quantity adjustment status is Completed', 'Warning');
+      return;
+    }
+
     if (!this.quantityAdjustmentStockId) {
       this.toastr.warning('Please create quantity adjustment stock first.', 'Warning');
       return;
@@ -214,6 +219,11 @@ export class QuantityAdjustmentStockComponent implements OnInit {
   }
 
   onEditItem(item: QuantityAdjustmentStockItem): void {
+    if (this.isCompletedStatus(this.quantityAdjustmentStock)) {
+      this.toastr.warning('Cannot edit items when quantity adjustment status is Completed', 'Warning');
+      return;
+    }
+
     this.selectedItem = { ...item };
     this.showEditItemModal = true;
   }
@@ -223,6 +233,11 @@ export class QuantityAdjustmentStockComponent implements OnInit {
   }
 
   onRemoveItem(item: QuantityAdjustmentStockItem): void {
+    if (this.isCompletedStatus(this.quantityAdjustmentStock)) {
+      this.toastr.warning('Cannot remove items when quantity adjustment status is Completed', 'Warning');
+      return;
+    }
+
     if (!item.quantityAdjustmentStockItemId) {
       return;
     }
@@ -292,6 +307,11 @@ export class QuantityAdjustmentStockComponent implements OnInit {
 
   getStatusText(stock: QuantityAdjustmentStock | null): string {
     return stock?.status || 'Unknown';
+  }
+
+  isCompletedStatus(stock: QuantityAdjustmentStock | null): boolean {
+    const status = (stock?.status || '').trim().toLowerCase();
+    return status === 'completed' || status === 'final';
   }
 
   private mapApprovalStatusText(value: string): string {
@@ -412,6 +432,11 @@ export class QuantityAdjustmentStockComponent implements OnInit {
   }
 
   onEditQuantityAdjustmentStock(): void {
+    if (this.isCompletedStatus(this.quantityAdjustmentStock)) {
+      this.toastr.warning('Cannot edit quantity adjustment stock when status is Completed', 'Warning');
+      return;
+    }
+
     const stockId = Number(
       this.quantityAdjustmentStock?.quantityAdjustmentStockId || this.quantityAdjustmentStockId || 0
     );

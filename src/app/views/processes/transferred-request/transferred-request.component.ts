@@ -366,6 +366,11 @@ export class TransferredRequestComponent implements OnInit, OnDestroy {
   }
 
   onDeleteTransferredRequest(request: TransferredRequest): void {
+    if (this.isCompletedStatus(request)) {
+      this.toastr.warning('Cannot delete transferred request when status is Completed', 'Warning');
+      return;
+    }
+
     if (confirm(`Are you sure you want to delete transferred request #${request.transferredRequestId}?`)) {
       if (!request.transferredRequestId) {
         return;
@@ -473,6 +478,11 @@ export class TransferredRequestComponent implements OnInit, OnDestroy {
 
   getStatusText(request: TransferredRequest): string {
     return request.status;
+  }
+
+  isCompletedStatus(request: TransferredRequest): boolean {
+    const status = (request.status || '').trim().toLowerCase();
+    return status === 'completed' || status === 'final';
   }
 
   private mapApprovalStatusText(value: string): string {

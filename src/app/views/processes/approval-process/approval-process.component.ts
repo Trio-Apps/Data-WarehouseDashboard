@@ -15,6 +15,7 @@ import { ApprovalService } from './Services/approval.service';
 import {
   AddApprovalStepDto,
   ApprovalStepDto,
+  ProcessSettingApprovalDto,
   UpdateApprovalStepDto
 } from './Models/approval-model';
 import { ApprovalFormComponent } from './approval-form/approval-form.component';
@@ -39,6 +40,8 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   form!: FormGroup;
   approvalSteps: ApprovalStepDto[] = [];
   filteredApprovalSteps: ApprovalStepDto[] = [];
+  selectedProcessSetting: ProcessSettingApprovalDto | null = null;
+  processSettingId: number | null = null;
   roles: Role[] = [];
 
   // Pagination
@@ -49,6 +52,7 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   loading: boolean = true;
   hasNext: boolean = false;
   hasPrevious: boolean = false;
+  togglingIgnoreSteps: boolean = false;
 
   // Modal state
   showStepModal: boolean = false;
@@ -78,6 +82,7 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
 
   // Subscriptions
   private queryParamsSubscription?: Subscription;
+  private routeParamsSubscription?: Subscription;
 
   constructor(
     private route: ActivatedRoute,
@@ -128,16 +133,35 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
 
       this.currentPage = page >= 1 ? page : 1;
       this.itemsPerPage = pageSize >= 1 ? pageSize : 10;
+      this.refreshPagination();
+      this.cdr.detectChanges();
+    });
+
+    this.routeParamsSubscription = this.route.paramMap.subscribe(params => {
+      const id = Number(params.get('id') || 0);
+      this.processSettingId = id > 0 ? id : null;
+
+      if (!this.processSettingId) {
+        this.loading = false;
+        this.selectedProcessSetting = null;
+        this.approvalSteps = [];
+        this.filteredApprovalSteps = [];
+        this.refreshPagination();
+        this.toastr.error('Invalid process setting id.', 'Error');
+        this.cdr.detectChanges();
+        return;
+      }
 
       this.loadApprovalSteps();
     });
- 
- 
   }
 
   ngOnDestroy(): void {
     if (this.queryParamsSubscription) {
       this.queryParamsSubscription.unsubscribe();
+    }
+    if (this.routeParamsSubscription) {
+      this.routeParamsSubscription.unsubscribe();
     }
   }
 
@@ -184,9 +208,7 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
           this.roles = res.data.data;
         }
 
-      // ❗ استبعاد super-admin
-      this.roles = this.roles.filter(
-        role => role.roleName !== 'super-admin');
+        this.roles = this.roles.filter(role => role.roleName !== 'super-admin');
         this.loadingRoles = false;
         this.cdr.detectChanges();
       },
@@ -200,14 +222,12 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   }
 
   loadApprovalSteps(): void {
-    if (!this.canViewApprovalSteps) {
+    if (!this.canViewApprovalSteps || !this.processSettingId) {
       this.loading = false;
+      this.selectedProcessSetting = null;
       this.approvalSteps = [];
       this.filteredApprovalSteps = [];
-      this.totalItems = 0;
-      this.totalPages = 0;
-      this.hasNext = false;
-      this.hasPrevious = false;
+      this.refreshPagination();
       this.cdr.detectChanges();
       return;
     }
@@ -215,60 +235,112 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
     this.loading = true;
     this.cdr.detectChanges();
 
-    this.approvalService.getApprovalSteps(
-      this.currentPage,
-      this.itemsPerPage,
-      // this.searchCompanyId,
-      // this.searchStepName,
-      // this.searchRoleId,
-      // this.searchIsActive
-    ).subscribe({
-      next: (res: any) => {
-        if (res.data) {
-          console.log('Approval Steps Response:', res);
-          this.approvalSteps = res.data.data || [];
-          this.filteredApprovalSteps = this.approvalSteps;
+    this.approvalService.getProcessSettingById(this.processSettingId).subscribe({
+      next: (res) => {
+        const setting = this.extractProcessSetting(res);
 
-          this.currentPage = res.data.pageNumber || this.currentPage;
-          this.itemsPerPage = res.data.pageSize || this.itemsPerPage;
-          this.totalPages = res.data.totalPages || 0;
-          this.totalItems = res.data.totalRecords || 0;
-          this.hasNext = res.data.hasNext || false;
-          this.hasPrevious = res.data.hasPrevious || false;
-
-          if (this.approvalSteps.length > 0) {
-            this.toastr.success(`Loaded ${this.approvalSteps.length} approval step(s) successfully`, 'Success');
-          }
+        if (!setting) {
+          this.selectedProcessSetting = null;
+          this.approvalSteps = [];
+          this.filteredApprovalSteps = [];
+          this.refreshPagination();
+          this.loading = false;
+          this.toastr.error('Process setting not found.', 'Error');
+          this.cdr.detectChanges();
+          return;
         }
 
+        this.selectedProcessSetting = setting;
+        this.approvalSteps = [...(setting.approvalSteps || [])].sort((a, b) => a.stepOrder - b.stepOrder);
+        this.applyFilters();
         this.loading = false;
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error loading approval steps:', err);
+        console.error('Error loading process setting details:', err);
         this.loading = false;
+        this.selectedProcessSetting = null;
         this.approvalSteps = [];
         this.filteredApprovalSteps = [];
-        this.totalItems = 0;
-        this.totalPages = 0;
-        this.hasNext = false;
-        this.hasPrevious = false;
-        this.toastr.error('Failed to load approval steps. Please try again.', 'Error');
+        this.refreshPagination();
+        this.toastr.error('Failed to load process setting details. Please try again.', 'Error');
         this.cdr.detectChanges();
       }
     });
   }
 
+  private extractProcessSetting(
+    response: ProcessSettingApprovalDto | { data: ProcessSettingApprovalDto } | any
+  ): ProcessSettingApprovalDto | null {
+    const payload = response?.data?.data ?? response?.data ?? response;
+    if (!payload || typeof payload !== 'object') {
+      return null;
+    }
+
+    if (typeof payload.processSettingApprovalId !== 'number') {
+      return null;
+    }
+
+    return payload as ProcessSettingApprovalDto;
+  }
+
+  private applyFilters(): void {
+    const stepNameQuery = this.searchStepName.trim().toLowerCase();
+    const roleQuery = this.searchRoleId.trim();
+    const isActiveFilter = this.searchIsActive;
+
+    this.filteredApprovalSteps = this.approvalSteps.filter(step => {
+      const matchesStepName = !stepNameQuery || step.stepName.toLowerCase().includes(stepNameQuery);
+      const matchesRole =
+        !roleQuery || step.roleId === roleQuery || (step.roleName || '').toLowerCase().includes(roleQuery.toLowerCase());
+      const matchesStatus = isActiveFilter === null || step.isActive === isActiveFilter;
+
+      return matchesStepName && matchesRole && matchesStatus;
+    });
+
+    this.refreshPagination();
+  }
+
+  private refreshPagination(): void {
+    this.totalItems = this.filteredApprovalSteps.length;
+    this.totalPages = this.totalItems > 0 ? Math.ceil(this.totalItems / this.itemsPerPage) : 0;
+
+    if (this.totalPages === 0) {
+      this.currentPage = 1;
+      this.hasNext = false;
+      this.hasPrevious = false;
+      return;
+    }
+
+    if (this.currentPage < 1) {
+      this.currentPage = 1;
+    }
+    if (this.currentPage > this.totalPages) {
+      this.currentPage = this.totalPages;
+    }
+
+    this.hasNext = this.currentPage < this.totalPages;
+    this.hasPrevious = this.currentPage > 1;
+  }
+
   get paginatedSteps(): ApprovalStepDto[] {
-    return this.filteredApprovalSteps;
+    if (this.filteredApprovalSteps.length === 0) {
+      return [];
+    }
+
+    const startIndex = (this.currentPage - 1) * this.itemsPerPage;
+    const endIndex = startIndex + this.itemsPerPage;
+    return this.filteredApprovalSteps.slice(startIndex, endIndex);
   }
 
   onPageChange(page: number, event?: Event): void {
     if (event) {
       event.preventDefault();
     }
-    this.loading = true;
-    this.cdr.detectChanges();
+
+    if (this.totalPages === 0) {
+      return;
+    }
 
     if (page < 1) page = 1;
     if (page > this.totalPages) page = this.totalPages;
@@ -326,9 +398,6 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.loading = true;
-    this.cdr.detectChanges();
-
     const formValue = this.form.value;
     this.searchCompanyId = formValue.searchCompanyId || null;
     this.searchStepName = formValue.searchStepName || '';
@@ -338,12 +407,42 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
         ? formValue.searchIsActive
         : null;
 
-    if (this.searchCompanyId || this.searchStepName || this.searchRoleId || this.searchIsActive !== null) {
-      this.toastr.info('Searching approval steps...', 'Info');
+    this.currentPage = 1;
+    this.applyFilters();
+    this.cdr.detectChanges();
+  }
+
+  onToggleIgnoreSteps(): void {
+    if (!this.selectedProcessSetting || !this.processSettingId) {
+      return;
     }
 
-    this.currentPage = 1;
-    this.loadApprovalSteps();
+    this.togglingIgnoreSteps = true;
+    this.cdr.detectChanges();
+
+    this.approvalService.toggleIgnoreSteps(this.processSettingId).subscribe({
+      next: () => {
+        if (this.selectedProcessSetting) {
+          this.selectedProcessSetting = {
+            ...this.selectedProcessSetting,
+            ignoreSteps: !this.selectedProcessSetting.ignoreSteps
+          };
+        }
+        this.togglingIgnoreSteps = false;
+        this.toastr.success('Ignore steps updated successfully.', 'Success');
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error toggling ignore steps:', err);
+        this.togglingIgnoreSteps = false;
+        this.toastr.error('Failed to update ignore steps.', 'Error');
+        this.cdr.detectChanges();
+      }
+    });
+  }
+
+  goToProcessSettings(): void {
+    this.router.navigate(['/processes/approval-process/approval-steps']);
   }
 
   onAddStepClick(): void {
@@ -369,6 +468,7 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   }
 
   onSaveStep(stepData: AddApprovalStepDto | UpdateApprovalStepDto): void {
+   
     if (this.isEditMode && !this.canEditApprovalSteps) {
       this.toastr.error('You do not have permission to edit approval steps.', 'Access Denied');
       return;
@@ -395,6 +495,8 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   }
 
   onAddStep(stepData: AddApprovalStepDto): void {
+       console.log("step",stepData);
+
     if (!this.canCreateApprovalSteps) {
       this.toastr.error('You do not have permission to create approval steps.', 'Access Denied');
       return;

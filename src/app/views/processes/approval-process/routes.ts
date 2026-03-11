@@ -1,4 +1,7 @@
 import { Routes } from '@angular/router';
+import { ApprovalProcessComponent } from './approval-process.component';
+import { MyProcessesComponent } from './my-processes/my-processes.component';
+import { ProcessSettingComponent } from './process-setting/process-setting.component';
 
 export const routes: Routes = [
   {
@@ -9,14 +12,21 @@ export const routes: Routes = [
     children: [
       {
         path: 'approval-steps',
-        loadComponent: () => import('./approval-process.component').then(m => m.ApprovalProcessComponent),
+        component: ProcessSettingComponent,
+        data: {
+          title: 'Approval Process Settings'
+        }
+      },
+      {
+        path: 'approval-steps/:id',
+        component: ApprovalProcessComponent,
         data: {
           title: 'Approval Steps'
         }
       },
       {
         path: 'my-processes',
-        loadComponent: () => import('./my-processes/my-processes.component').then(m => m.MyProcessesComponent),
+        component: MyProcessesComponent,
         data: {
           title: 'My Approvals'
         }

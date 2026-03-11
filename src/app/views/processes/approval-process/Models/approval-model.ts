@@ -2,6 +2,7 @@ export interface AddApprovalStepDto {
   stepName: string;
   stepOrder: number;
   roleId: string;
+  processSettingApprovalId: number;
 }
 
 export interface UpdateApprovalStepDto {
@@ -35,6 +36,14 @@ export interface ApprovalStepResponse {
     totalRecords: number;
   };
   errors: any;
+}
+
+export interface ProcessSettingApprovalDto {
+  processSettingApprovalId: number;
+  processType: string;
+  ignoreSteps: boolean;
+  companyId: number;
+  approvalSteps?: ApprovalStepDto[];
 }
 
 export interface ProcessItemIsProgress {

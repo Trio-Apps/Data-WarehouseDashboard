@@ -36,6 +36,7 @@ export class ApprovalFormComponent implements OnInit, OnChanges {
   @Input() visible: boolean = false;
   @Input() step: ApprovalStepDto | null = null;
   @Input() isEditMode: boolean = false;
+  @Input() processSettingApprovalId: number | null = null;
   @Input() roles: Role[] = [];
   @Output() visibleChange = new EventEmitter<boolean>();
   @Output() save = new EventEmitter<AddApprovalStepDto | UpdateApprovalStepDto>();
@@ -100,10 +101,15 @@ export class ApprovalFormComponent implements OnInit, OnChanges {
         };
         this.save.emit(updateData);
       } else {
+        if (!this.processSettingApprovalId || this.processSettingApprovalId <= 0) {
+          return;
+        }
+
         const addData: AddApprovalStepDto = {
           stepName: formValue.stepName,
           stepOrder: formValue.stepOrder,
-          roleId: formValue.roleId
+          roleId: formValue.roleId,
+          processSettingApprovalId: this.processSettingApprovalId
         };
         this.save.emit(addData);
       }

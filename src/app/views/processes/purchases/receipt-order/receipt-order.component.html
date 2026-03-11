@@ -41,11 +41,13 @@
                   <p class="text-muted mb-0 small">Purchase Order ID: {{ receipt.purchaseOrderId }}</p>
                 </div>
                 <div>
-               @if (!isApproved(receipt)) { 
+               @if (!isCompletedStatus(receipt)) {
                   <button cButton class="me-2" color="warning" size="sm" (click)="onEditReceipt()">
                   <!-- <svg cIcon name="cil-pencil" class="me-2"></svg> -->
                   Edit
                  </button>
+               }
+               @if (!isApproved(receipt)) { 
                  <button cButton class="me-2" color="danger" size="sm" (click)="onDeleteReceipt()">
                    Delete
                  </button>
@@ -146,7 +148,7 @@
       <div class="flex-grow-1 d-flex flex-column p-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0">Receipt Items</h5>
-          @if (receipt && !isApproved(receipt)) {
+          @if (receipt && !isCompletedStatus(receipt)) {
             <button cButton color="primary" size="sm" (click)="onAddItem()">
               <svg cIcon name="cilPlus" class="me-2"></svg>
               Add Item
@@ -167,10 +169,10 @@
                 <th scope="col" class="bg-body-tertiary">Unit Price</th>
                 <th scope="col" class="bg-body-tertiary">Unit</th>
                 <th scope="col" class="bg-body-tertiary text-center">Batches</th>
-                @if (receipt && !isApproved(receipt)) {
+                @if (receipt && !isCompletedStatus(receipt)) {
                   <th scope="col" class="bg-body-tertiary text-center">Actions</th>
                 }
-                @else if (isApproved(receipt)) {
+                @else if (isCompletedStatus(receipt)) {
                  <th scope="col" class="bg-body-tertiary text-center">Return Item</th>
                 }
 
@@ -180,7 +182,7 @@
             <tbody>
               @if (loading) {
                 <tr>
-                  <td [attr.colspan]="receipt && (!isApproved(receipt) || receipt.isReturn) ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="receipt ? 8 : 7" class="text-center py-4">
                     <span class="text-body-secondary">Loading...</span>
                   </td>
                 </tr>
@@ -206,7 +208,7 @@
                         <svg cIcon name="cil-layers"></svg>
                       </button>
                     </td>
-                    @if (!isApproved(receipt)) {
+                    @if (!isCompletedStatus(receipt)) {
                       <td class="text-center">
                       <button cButton color="info" size="sm" class="me-2" (click)="onEditItem(item)" title="Edit">
                         <svg cIcon name="cil-pencil"></svg>
@@ -215,7 +217,7 @@
                         <svg cIcon name="cil-trash"></svg>
                       </button>
                     </td> }  
-                    @else if (isApproved(receipt)) {
+                    @else if (isCompletedStatus(receipt)) {
                      <td class="text-center">
                       <button cButton color="danger" size="sm" (click)="onAddReturnItem(item)" title="Return Item">
                         <svg cIcon name="cil-item"></svg>
@@ -227,7 +229,7 @@
                 }
               } @else {
                 <tr>
-                  <td [attr.colspan]="receipt && (!isApproved(receipt) || receipt.isReturn) ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="receipt ? 8 : 7" class="text-center py-4">
                     <span class="text-body-secondary">No items in this receipt</span>
                   </td>
                 </tr>

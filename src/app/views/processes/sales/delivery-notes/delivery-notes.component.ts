@@ -163,6 +163,11 @@ export class DeliveryNotesComponent implements OnInit {
   }
 
   onAddItem(): void {
+    if (this.isCompletedStatus(this.delivery)) {
+      this.toastr.warning('Cannot add items when delivery status is Completed', 'Warning');
+      return;
+    }
+
     if (this.delivery?.deliveryNoteOrderId) {
       this.router.navigate([
         '/processes/sales/add-delivery-note-item',
@@ -176,6 +181,11 @@ export class DeliveryNotesComponent implements OnInit {
   }
 
   onEditItem(item: DeliveryNoteItem): void {
+    if (this.isCompletedStatus(this.delivery)) {
+      this.toastr.warning('Cannot edit items when delivery status is Completed', 'Warning');
+      return;
+    }
+
     this.selectedItem = { ...item };
     this.showEditItemModal = true;
   }
@@ -185,6 +195,11 @@ export class DeliveryNotesComponent implements OnInit {
   }
 
   onEditDeliveryNote(): void {
+    if (this.isCompletedStatus(this.delivery)) {
+      this.toastr.warning('Cannot edit delivery note when status is Completed', 'Warning');
+      return;
+    }
+
     if (!this.delivery?.deliveryNoteOrderId) {
       return;
     }
@@ -233,6 +248,11 @@ export class DeliveryNotesComponent implements OnInit {
   }
 
   onRemoveItem(item: DeliveryNoteItem): void {
+    if (this.isCompletedStatus(this.delivery)) {
+      this.toastr.warning('Cannot remove items when delivery status is Completed', 'Warning');
+      return;
+    }
+
     if (confirm(`Are you sure you want to remove "${item.itemName || 'this item'}" from the delivery?`)) {
       if (item.deliveryNoteItemId) {
         this.deliveryService.deleteDeliveryNoteItem(item.deliveryNoteItemId || 0).subscribe({
@@ -292,6 +312,11 @@ export class DeliveryNotesComponent implements OnInit {
 
   getStatusText(deliveryDto: DeliveryNote | null): string {
     return deliveryDto?.status || '';
+  }
+
+  isCompletedStatus(deliveryDto: DeliveryNote | null): boolean {
+    const status = (deliveryDto?.status || '').trim().toLowerCase();
+    return status === 'completed' || status === 'final';
   }
 
   private mapApprovalStatusText(value: string): string {
@@ -402,4 +427,3 @@ export class DeliveryNotesComponent implements OnInit {
       });
   }
 }
-

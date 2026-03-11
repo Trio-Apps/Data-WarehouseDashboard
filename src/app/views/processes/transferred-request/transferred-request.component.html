@@ -78,7 +78,7 @@
                   <svg cIcon name="cil-list"></svg>
                 </button>
 
-                @if (!isApproved(request)) {
+                @if (!isApproved(request) && !isCompletedStatus(request)) {
                 <button
                   cButton
                   color="danger"
@@ -109,7 +109,7 @@
                 }
               </td>
               <td class="text-center">
-                @if (isApproved(request) && request.status == "Completed") {
+                @if (isApproved(request) && isCompletedStatus(request)) {
                 <button
                   cButton
                   color="success"

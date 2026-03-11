@@ -27,6 +27,7 @@ export class DeliveryNoteService {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${this.auth.getToken()}`
       })
+      
     };
   }
 
@@ -88,6 +89,7 @@ export class DeliveryNoteService {
   updateDeliveryNote(deliveryNoteId: number, deliveryNoteData: UpdateDeliveryNote): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}DeliveryNoteOrder/${deliveryNoteId}`, deliveryNoteData, this.headerOption);
   }
+
 
   deleteDeliveryNoteOrder(deliveryNoteId: number): Observable<any> {
     return this.http.delete<any>(`${this.baseUrl}DeliveryNoteOrder/${deliveryNoteId}`, this.headerOption);

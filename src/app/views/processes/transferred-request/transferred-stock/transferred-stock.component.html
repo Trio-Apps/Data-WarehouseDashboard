@@ -46,10 +46,12 @@
                   </p>
                 </div>
                 <div>
-                  @if (!isApproved(transferredStock)) {
+                  @if (!isCompletedStatus(transferredStock)) {
                     <button cButton class="me-2" color="info" size="sm" (click)="onEditTransferredStock()">
                       Edit
                     </button>
+                  }
+                  @if (!isApproved(transferredStock)) {
                     <button cButton class="me-2" color="danger" size="sm" (click)="onDeleteTransferredStock()">
                       Delete
                     </button>
@@ -133,7 +135,7 @@
       <div class="flex-grow-1 d-flex flex-column p-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0">Transferred Stock Items</h5>
-          @if (transferredStock && !isApproved(transferredStock)) {
+          @if (transferredStock && !isCompletedStatus(transferredStock)) {
             <button cButton color="primary" size="sm" (click)="onAddItem()">
               <svg cIcon name="cilPlus" class="me-2"></svg>
               Add Item
@@ -153,7 +155,7 @@
                 <th scope="col" class="bg-body-tertiary">Price</th>
                 <th scope="col" class="bg-body-tertiary">Unit</th>
                 <th scope="col" class="bg-body-tertiary text-center">Batches</th>
-                @if (transferredStock && !isApproved(transferredStock)) {
+                @if (transferredStock && !isCompletedStatus(transferredStock)) {
                   <th scope="col" class="bg-body-tertiary text-center">Actions</th>
                 }
               </tr>
@@ -162,7 +164,7 @@
             <tbody>
               @if (loading) {
                 <tr>
-                  <td [attr.colspan]="transferredStock && !isApproved(transferredStock) ? 9 : 8" class="text-center py-4">
+                  <td [attr.colspan]="transferredStock && !isCompletedStatus(transferredStock) ? 9 : 8" class="text-center py-4">
                     <span class="text-body-secondary">Loading...</span>
                   </td>
                 </tr>
@@ -187,7 +189,7 @@
                         <svg cIcon name="cil-layers"></svg>
                       </button>
                     </td>
-                    @if (transferredStock && !isApproved(transferredStock)) {
+                    @if (transferredStock && !isCompletedStatus(transferredStock)) {
                       <td class="text-center">
                         <button cButton color="info" size="sm" class="me-2" (click)="onEditItem(item)" title="Edit">
                           <svg cIcon name="cil-pencil"></svg>
@@ -201,7 +203,7 @@
                 }
               } @else {
                 <tr>
-                  <td [attr.colspan]="transferredStock && !isApproved(transferredStock) ? 9 : 8" class="text-center py-4">
+                  <td [attr.colspan]="transferredStock && !isCompletedStatus(transferredStock) ? 9 : 8" class="text-center py-4">
                     <span class="text-body-secondary">No items in this transferred stock</span>
                   </td>
                 </tr>

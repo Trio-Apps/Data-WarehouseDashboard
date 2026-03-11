@@ -259,6 +259,11 @@ export class TransferredStockComponent implements OnInit {
   }
 
   onAddItem(): void {
+    if (this.isCompletedStatus(this.transferredStock)) {
+      this.toastr.warning('Cannot add items when transferred stock status is Completed', 'Warning');
+      return;
+    }
+
     if (!this.transferredStockId) {
       this.toastr.warning('Please create transferred stock first.', 'Warning');
       return;
@@ -277,6 +282,11 @@ export class TransferredStockComponent implements OnInit {
   }
 
   onEditItem(item: TransferredItem): void {
+    if (this.isCompletedStatus(this.transferredStock)) {
+      this.toastr.warning('Cannot edit items when transferred stock status is Completed', 'Warning');
+      return;
+    }
+
     this.selectedItem = { ...item };
     this.showEditItemModal = true;
   }
@@ -300,6 +310,11 @@ export class TransferredStockComponent implements OnInit {
   }
 
   onRemoveItem(item: TransferredItem): void {
+    if (this.isCompletedStatus(this.transferredStock)) {
+      this.toastr.warning('Cannot remove items when transferred stock status is Completed', 'Warning');
+      return;
+    }
+
     if (!item.transferredItemId) {
       return;
     }
@@ -368,6 +383,11 @@ export class TransferredStockComponent implements OnInit {
 
   getStatusText(stock: TransferredStock | null): string {
     return stock?.status || 'Unknown';
+  }
+
+  isCompletedStatus(stock: TransferredStock | null): boolean {
+    const status = (stock?.status || '').trim().toLowerCase();
+    return status === 'completed' || status === 'final';
   }
 
   private mapApprovalStatusText(value: string): string {
@@ -484,6 +504,11 @@ export class TransferredStockComponent implements OnInit {
   }
 
   onEditTransferredStock(): void {
+    if (this.isCompletedStatus(this.transferredStock)) {
+      this.toastr.warning('Cannot edit transferred stock when status is Completed', 'Warning');
+      return;
+    }
+
     const stockId = Number(this.transferredStock?.transferredStockId || this.transferredStockId || 0);
     const warehouseId = Number(this.transferredStock?.warehouseId || this.warehouseId || 0);
     if (!stockId || !warehouseId) {

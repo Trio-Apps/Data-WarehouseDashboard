@@ -1,13 +1,31 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">Approval Steps</h4>
-      @if (canCreateApprovalSteps) {
-        <button cButton color="primary" class="header-button" (click)="onAddStepClick()">
-          <svg cIcon name="cil-plus" class="me-2"></svg>
-          Add Step
+      <h4 class="mb-0 header-title">{{ selectedProcessSetting?.processType || 'Approval Steps' }}</h4>
+      <div class="d-flex align-items-center gap-2">
+        <button cButton color="light" class="header-button" (click)="goToProcessSettings()">
+          <svg cIcon name="cil-arrow-left" class="me-2"></svg>
+          Back
         </button>
-      }
+        @if (selectedProcessSetting) {
+          <button
+            cButton
+            [color]="selectedProcessSetting.ignoreSteps ? 'warning' : 'success'"
+            class="header-button"
+            [disabled]="togglingIgnoreSteps"
+            (click)="onToggleIgnoreSteps()"
+          >
+            <svg cIcon name="cil-loop-circular" class="me-2"></svg>
+            {{ selectedProcessSetting.ignoreSteps ? 'Ignore Steps: ON' : 'Ignore Steps: OFF' }}
+          </button>
+        }
+        @if (canCreateApprovalSteps) {
+          <button cButton color="primary" class="header-button" (click)="onAddStepClick()">
+            <svg cIcon name="cil-plus" class="me-2"></svg>
+            Add Step
+          </button>
+        }
+      </div>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
@@ -15,7 +33,24 @@
         <div class="p-4 text-center text-body-secondary">
           You do not have permission to view approval steps.
         </div>
+      } @else if (!selectedProcessSetting && !loading) {
+        <div class="p-4 text-center text-body-secondary">
+          Process setting details were not found.
+        </div>
       } @else {
+        @if (selectedProcessSetting) {
+          <div class="setting-info px-3 pt-3">
+            <div class="small text-body-secondary mb-2">
+              Process Type: <strong>{{ selectedProcessSetting.processType }}</strong>
+            </div>
+            <div class="small text-body-secondary">
+              Ignore Steps:
+              <span class="badge" [class.bg-warning]="selectedProcessSetting.ignoreSteps" [class.bg-success]="!selectedProcessSetting.ignoreSteps">
+                {{ selectedProcessSetting.ignoreSteps ? 'Enabled' : 'Disabled' }}
+              </span>
+            </div>
+          </div>
+        }
         <!-- Table Container with Scroll -->
         <div class="table-container">
           <table [hover]="true" [striped]="true" cTable class="mb-0">
@@ -203,6 +238,7 @@
     [visible]="showStepModal"
     [step]="selectedStep"
     [isEditMode]="isEditMode"
+    [processSettingApprovalId]="processSettingId"
     [roles]="roles"
     (visibleChange)="showStepModal = $event"
     (save)="onSaveStep($event)"

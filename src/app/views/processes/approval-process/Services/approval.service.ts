@@ -6,6 +6,7 @@ import {
   AddApprovalStepDto,
   ApprovalStepDto,
   ApprovalStepResponse,
+  ProcessSettingApprovalDto,
   ProcessApprovalResponse,
   UpdateApprovalStepDto
 } from '../Models/approval-model';
@@ -96,6 +97,28 @@ export class ApprovalService {
   deleteApprovalStep(approvalStepId: number): Observable<any> {
     return this.http.delete<any>(
       `${this.baseUrl}ApprovalStep/${approvalStepId}`,
+      this.headerOption
+    );
+  }
+
+  getProcessSettings(): Observable<ProcessSettingApprovalDto[] | { data: ProcessSettingApprovalDto[] }> {
+    return this.http.get<ProcessSettingApprovalDto[] | { data: ProcessSettingApprovalDto[] }>(
+      `${this.baseUrl}ProcessSettingApproval`,
+      this.headerOption
+    );
+  }
+
+  getProcessSettingById(id: number): Observable<ProcessSettingApprovalDto | { data: ProcessSettingApprovalDto }> {
+    return this.http.get<ProcessSettingApprovalDto | { data: ProcessSettingApprovalDto }>(
+      `${this.baseUrl}ProcessSettingApproval/${id}`,
+      this.headerOption
+    );
+  }
+
+  toggleIgnoreSteps(id: number): Observable<any> {
+    return this.http.patch<any>(
+      `${this.baseUrl}ProcessSettingApproval/${id}/toggle-ignore`,
+      {},
       this.headerOption
     );
   }

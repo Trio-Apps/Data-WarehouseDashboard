@@ -2,10 +2,9 @@ import {NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectorRef, Component, computed, inject, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { IconDirective } from '@coreui/icons-angular';
+import { catchError, finalize, map, of } from 'rxjs';
 
 import {
-  AvatarComponent,
-  BadgeComponent,
   BreadcrumbRouterComponent,
   ColorModeService,
   ContainerComponent,
@@ -30,11 +29,12 @@ import { Sap } from 'src/app/views/settings/Auth/Models/sap';
 @Component({
   selector: 'app-default-header',
   templateUrl: './default-header.component.html',
+  styleUrl: './default-header.component.scss',
   standalone: true,
   imports: [ContainerComponent, HeaderTogglerDirective, SidebarToggleDirective, IconDirective, HeaderNavComponent,
      NavItemComponent, NavLinkDirective, RouterLink, RouterLinkActive,
      NgTemplateOutlet, BreadcrumbRouterComponent, DropdownComponent, DropdownToggleDirective,
-      AvatarComponent, DropdownMenuDirective, DropdownHeaderDirective, DropdownItemDirective, BadgeComponent, DropdownDividerDirective]
+      DropdownMenuDirective, DropdownHeaderDirective, DropdownItemDirective, DropdownDividerDirective]
 })
 export class DefaultHeaderComponent extends HeaderComponent {
 
@@ -145,46 +145,52 @@ export class DefaultHeaderComponent extends HeaderComponent {
     logout(): void {
     this.authService.logOut();
   }
-
   // with SAP Auth Service
   getAllSapsObserve(): void {
-    // // إذا كانت البيانات محملة مسبقاً، لا نحملها مرة أخرى
-    // if (this.sapsLoaded) {
-    //   return;
-    // }
+    if (this.loadingSaps) {
+      return;
+    }
 
     this.loadingSaps = true;
     this.cdr.detectChanges();
-    this.sapAuthService.getAllSap().subscribe({
-      next: (response: any) => {
-        console.log('SAP Auth Settings Response:', response);
-        
-        // معالجة الـ response - قد يكون array أو object
-        if (Array.isArray(response)) {
-          this.SapsList = response;
-        } else if (response.data && Array.isArray(response.data)) {
-          this.SapsList = response.data;
-        } else if (response.data && !Array.isArray(response.data)) {
-          // إذا كان object واحد
-          this.SapsList = [response.data];
-        } else {
-          // إذا كان الـ response نفسه object
-          this.SapsList = [response];
-        }
-        
-        this.loadingSaps = false;
+
+    this.sapAuthService
+      .getAllSap()
+      .pipe(
+        map((response: any) => this.normalizeSapsResponse(response)),
+        catchError((error) => {
+          console.error('Error fetching SAP Auth Settings:', error);
+          return of([] as Sap[]);
+        }),
+        finalize(() => {
+          this.loadingSaps = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe((saps: Sap[]) => {
+        this.SapsList = saps;
+        this.sapsLoaded = true;
         this.cdr.detectChanges();
-        
-      },
-      error: (error) => {
-        console.error('Error fetching SAP Auth Settings:', error);
-        this.loadingSaps = false;
-        
-        this.SapsList = [];
-      }
-    });
+      });
   }
-selectSapObserve (sapId: number): void {
+
+  private normalizeSapsResponse(response: any): Sap[] {
+    if (Array.isArray(response)) {
+      return response as Sap[];
+    }
+
+    const data = response?.data;
+    if (Array.isArray(data)) {
+      return data as Sap[];
+    }
+    if (data && typeof data === 'object') {
+      return [data as Sap];
+    }
+
+    return [];
+  }
+
+  selectSapObserve (sapId: number): void {
    
     this.sapAuthService.selectSapWithAdmin(sapId).subscribe({
       next: (response: any) => {
@@ -208,3 +214,4 @@ selectSapObserve (sapId: number): void {
 
 
 }
+

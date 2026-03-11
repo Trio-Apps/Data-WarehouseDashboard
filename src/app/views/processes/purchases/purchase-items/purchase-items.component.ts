@@ -125,7 +125,7 @@ export class PurchaseItemsComponent implements OnInit {
 
 
   onAddItem(): void {
-    if (!this.isApproved(this.purchase)) {
+    if (!this.isCompletedStatus(this.purchase)) {
       if (!this.warehouseId && this.purchase?.warehouseId) {
         this.warehouseId = this.purchase.warehouseId;
       }
@@ -136,7 +136,7 @@ export class PurchaseItemsComponent implements OnInit {
         this.toastr.error('Warehouse ID is not available. Please refresh the page.', 'Error');
       }
     } else {
-      this.toastr.warning('Cannot add items to approved purchases', 'Warning');
+      this.toastr.warning('Cannot add items when purchase status is Completed', 'Warning');
    }
   }
 
@@ -148,6 +148,11 @@ export class PurchaseItemsComponent implements OnInit {
   }
 
   onEditPurchase(): void {
+    if (this.isCompletedStatus(this.purchase)) {
+      this.toastr.warning('Cannot edit purchase when status is Completed', 'Warning');
+      return;
+    }
+
     if (this.purchase?.purchaseOrderId) {
       this.router.navigate([
         '/processes/purchases/purchase-form',
@@ -163,7 +168,7 @@ export class PurchaseItemsComponent implements OnInit {
   }
 
   onRemoveItem(item: PurchaseItem): void {
-    if (!this.isDraft || this.isApproved(this.purchase)) {
+    if (!this.isDraft || this.isCompletedStatus(this.purchase)) {
       this.toastr.warning('Cannot remove items from finalized purchases', 'Warning');
       return;
     }
@@ -244,6 +249,11 @@ export class PurchaseItemsComponent implements OnInit {
 
   getStatusText(purchase: Purchase | null): string {
     return purchase?.status || 'Unknown';
+  }
+
+  isCompletedStatus(purchase: Purchase | null): boolean {
+    const status = (purchase?.status || '').trim().toLowerCase();
+    return status === 'completed';
   }
 
   private mapApprovalStatusText(value: string): string {

@@ -1,0 +1,125 @@
+.sap-nav-slot {
+  margin-inline-end: 0.25rem;
+}
+
+.sap-nav-divider {
+  color: var(--cui-body-color);
+  opacity: 0.3;
+}
+
+.sap-dropdown-toggle {
+  border: 1px solid var(--cui-border-color);
+  border-radius: 999px;
+  background: var(--cui-body-bg);
+  color: var(--cui-body-color);
+  padding: 0.3rem 0.65rem;
+  line-height: 1;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.sap-dropdown-toggle:hover,
+.sap-dropdown-toggle:focus-visible {
+  background: var(--cui-tertiary-bg);
+  border-color: var(--cui-primary);
+  box-shadow: 0 0 0 0.12rem rgba(13, 110, 253, 0.18);
+}
+
+.sap-trigger-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 2rem;
+  height: 1.5rem;
+  border-radius: 999px;
+  background: #286A61;
+  color: #fff;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0 0.45rem;
+}
+
+.sap-trigger-label {
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.sap-dropdown-menu {
+  min-width: 16.5rem;
+  max-height: 24rem;
+  overflow-y: auto;
+  border: 1px solid var(--cui-border-color);
+  border-radius: 0.75rem;
+  box-shadow: 0 0.8rem 1.8rem rgba(0, 0, 0, 0.14);
+}
+
+.sap-dropdown-header {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: var(--cui-tertiary-bg);
+  color: var(--cui-body-color);
+  letter-spacing: 0.01em;
+}
+
+.sap-dropdown-loading,
+.sap-dropdown-empty {
+  min-height: 2.75rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sap-dropdown-item {
+  cursor: pointer;
+  padding: 0.62rem 0.9rem;
+  border-top: 1px solid var(--cui-border-color-translucent);
+}
+
+.sap-dropdown-item:hover {
+  background: var(--cui-tertiary-bg);
+}
+
+.sap-item-name {
+  line-height: 1.2;
+}
+
+.sap-item-user {
+  font-size: 0.72rem;
+  margin-top: 0.15rem;
+}
+
+.user-menu-toggle {
+  border: 1px solid var(--cui-border-color);
+  border-radius: 999px;
+  background: var(--cui-body-bg);
+  color: var(--cui-body-color);
+  width: 2.3rem;
+  height: 2.3rem;
+  justify-content: center;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.user-menu-toggle:hover,
+.user-menu-toggle:focus-visible {
+  background: var(--cui-tertiary-bg);
+  border-color: var(--cui-primary);
+  box-shadow: 0 0 0 0.12rem rgba(13, 110, 253, 0.18);
+}
+
+.user-menu-dropdown-menu {
+  min-width: 12rem;
+  border: 1px solid var(--cui-border-color);
+  border-radius: 0.75rem;
+  box-shadow: 0 0.8rem 1.8rem rgba(0, 0, 0, 0.14);
+}
+
+.user-menu-header {
+  background: var(--cui-tertiary-bg);
+  color: var(--cui-body-color);
+}
+
+.user-menu-item {
+  padding: 0.62rem 0.9rem;
+  cursor: pointer;
+}

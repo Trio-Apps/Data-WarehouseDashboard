@@ -132,27 +132,30 @@ export class SapFormModalComponent implements OnInit, OnChanges {
   }
 
   resetForm(): void {
-    const resetValue: any = {
-      name: 'Sap',
-      companyDB: 'DOKHON_DEV',
-      userName: 'manager',
-      password: 'Tyconz@123',
-      sapUrl: 'https://hb167-02.beon-it.com:50000/b1s/v1/'
-    };
-    
+   
     // const resetValue: any = {
     //   name: 'Sap',
-    //   companyDB: 'SBODEMOGB_NEW',
+    //   companyDB: 'DOKHON_DEV',
     //   userName: 'manager',
-    //   password: 'manager',
-    //   sapUrl: 'https://hb152.beon-it.com:50000/b1s/v1/'
+    //   password: 'Tyconz@123',
+    //   sapUrl: 'https://hb167-02.beon-it.com:50000/b1s/v1/'
     // };
+    
+
+    const resetValue: any = {
+      name: 'Sap',
+      companyDB: 'SBODEMOGB_NEW',
+      userName: 'manager',
+      password: 'manager',
+      sapUrl: 'https://hb152.beon-it.com:50000/b1s/v1/'
+    };
+
 
     // Add companyId only for super-admin
     if (this.isSuperAdmin) {
       resetValue.companyId = null;
     }
-
+    
     this.sapForm.reset(resetValue);
   }
 
