@@ -401,7 +401,7 @@ export class StockCountingItemsComponent implements OnInit {
       createdAt: this.toNullableString(this.readProp(raw, 'createdAt', 'CreatedAt')) || undefined,
       postingDate: String(this.readProp(raw, 'postingDate', 'PostingDate') ?? ''),
       dueDate: this.toNullableString(this.readProp(raw, 'dueDate', 'DueDate')),
-      mode: this.toNullableString(this.readProp(raw, 'mode', 'Mode')),
+      mode: this.toNullableString(this.readProp(raw, 'mode', 'Mode', 'docType', 'DocType')),
       warehouseId: Number(this.readProp(raw, 'warehouseId', 'WarehouseId') || this.warehouseId || 0)
     };
   }

@@ -126,3 +126,22 @@ c-sidebar-brand img.logo-circle {
   border: 2px solid #fff;
   box-shadow: 0 2px 5px rgba(0,0,0,0.1);
 }
+
+.sidebar-logout-footer {
+  padding: 0;
+}
+
+.sidebar-logout-btn {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: #fff;
+  padding: 0.75rem 1rem;
+  text-align: center;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.sidebar-logout-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}

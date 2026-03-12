@@ -20,8 +20,15 @@
 
 
   @if (!sidebar1.narrow) {
-    <c-sidebar-footer cSidebarToggle="sidebar1" class="border-top d-none d-lg-flex" toggle="unfoldable" style="cursor: pointer;">
-      <button cSidebarToggler aria-label="Toggle sidebar fold"></button>
+    <c-sidebar-footer class="border-top d-none d-lg-flex sidebar-logout-footer">
+      <button
+        type="button"
+        class="sidebar-logout-btn"
+        aria-label="Logout"
+        (click)="logout()"
+      >
+        Logout
+      </button>
     </c-sidebar-footer>
   }
 </c-sidebar>

@@ -53,6 +53,20 @@
             } @else if (availablePermissions.length === 0) {
               <div class="text-body-secondary">No permissions available</div>
             } @else {
+              <div class="form-check mb-3">
+                <input
+                  cFormCheckInput
+                  type="checkbox"
+                  id="select-all-permissions"
+                  [checked]="areAllPermissionsSelected()"
+                  [indeterminate]="arePermissionsPartiallySelected()"
+                  (change)="toggleAllPermissions($event)"
+                />
+                <label cFormCheckLabel for="select-all-permissions">
+                  Select all permissions
+                </label>
+              </div>
+
               <c-row [gutter]="2">
                 @for (permission of availablePermissions; track permission.permissionId) {
                   <c-col [md]="6" [sm]="12">
@@ -104,4 +118,3 @@
     </button>
   </c-modal-footer>
 </c-modal>
-

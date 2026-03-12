@@ -82,7 +82,7 @@ export class StockCountingOrderFormComponent implements OnInit {
         countStockId: this.countStockId,
         postingDate: this.formatDateToISOString(this.form.value.postingDate as string),
         comment: String(this.form.value.comment || ''),
-        mode: (this.form.value.mode as 'Counting' | 'Posting') || 'Counting'
+        mode: this.normalizeMode(this.form.value.mode)
       };
 
       this.stockService.updateOrder(this.countStockId, payload).subscribe({
@@ -103,7 +103,7 @@ export class StockCountingOrderFormComponent implements OnInit {
       isDraft: Boolean(this.form.value.isDraft),
       postingDate: this.formatDateToISOString(this.form.value.postingDate as string),
       comment: String(this.form.value.comment || ''),
-      mode: (this.form.value.mode as 'Counting' | 'Posting') || 'Counting',
+      mode: this.normalizeMode(this.form.value.mode),
       warehouseId: this.warehouseId
     };
 
@@ -182,10 +182,11 @@ export class StockCountingOrderFormComponent implements OnInit {
             }
 
             const order = this.pickData<any>(res);
+            const rawMode = order?.mode ?? order?.Mode ?? order?.docType ?? order?.DocType;
             this.form.patchValue({
               postingDate: this.toDateInputValue(order?.postingDate),
               comment: order?.comment || '',
-              mode: order?.mode || 'Counting',
+              mode: this.normalizeMode(rawMode),
               isDraft: String(order?.status || '').toLowerCase() === 'draft'
             });
           });
@@ -225,6 +226,10 @@ export class StockCountingOrderFormComponent implements OnInit {
 
   private formatDateToISOString(date: string): string {
     return `${date}T00:00:00`;
+  }
+
+  private normalizeMode(mode: any): 'Counting' | 'Posting' {
+    return String(mode ?? '').trim().toLowerCase() === 'posting' ? 'Posting' : 'Counting';
   }
 
   private extractError(err: any, fallback: string): string {

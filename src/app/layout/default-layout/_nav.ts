@@ -127,17 +127,4 @@ export const navItems: NavItemWithPermissions[] = [
 //
 
 
-//
- 
-  {
-    title: true,
-    name: 'Links',
-    class: 'mt-auto'
-  },
-  {
-    name: 'Docs',
-    url: 'https://coreui.io/angular/docs/',
-    //iconComponent: { name: 'cil-description' },
-    attributes: { target: '_blank' }
-  }
 ];
