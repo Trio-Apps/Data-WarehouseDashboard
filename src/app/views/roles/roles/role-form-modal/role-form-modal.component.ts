@@ -10,7 +10,6 @@ import {
   ButtonModule,
   FormModule,
   GridModule,
-  FormCheckComponent,
   FormCheckInputDirective,
   FormCheckLabelDirective
 } from '@coreui/angular';
@@ -31,7 +30,6 @@ import { RolesService } from '../../Services/roles.service';
     ButtonModule,
     FormModule,
     GridModule,
-    FormCheckComponent,
     FormCheckInputDirective,
     FormCheckLabelDirective
   ],
@@ -141,7 +139,7 @@ private fb: FormBuilder, private rolesService: RolesService) {
   }
 
   togglePermission(permissionId: number): void {
-    const permissionIds = this.roleForm.get('permissionIds')?.value || [];
+    const permissionIds = [...(this.roleForm.get('permissionIds')?.value || [])];
     const index = permissionIds.indexOf(permissionId);
     
     if (index > -1) {
@@ -156,6 +154,29 @@ private fb: FormBuilder, private rolesService: RolesService) {
   isPermissionSelected(permissionId: number): boolean {
     const permissionIds = this.roleForm.get('permissionIds')?.value || [];
     return permissionIds.includes(permissionId);
+  }
+
+  toggleAllPermissions(event: Event): void {
+    const checked = (event.target as HTMLInputElement).checked;
+    const permissionIds = checked
+      ? this.availablePermissions.map(permission => permission.permissionId)
+      : [];
+
+    this.roleForm.patchValue({ permissionIds });
+  }
+
+  areAllPermissionsSelected(): boolean {
+    if (this.availablePermissions.length === 0) {
+      return false;
+    }
+
+    const selectedIds = this.roleForm.get('permissionIds')?.value || [];
+    return selectedIds.length === this.availablePermissions.length;
+  }
+
+  arePermissionsPartiallySelected(): boolean {
+    const selectedIds = this.roleForm.get('permissionIds')?.value || [];
+    return selectedIds.length > 0 && selectedIds.length < this.availablePermissions.length;
   }
 
   getFieldError(fieldName: string): string {

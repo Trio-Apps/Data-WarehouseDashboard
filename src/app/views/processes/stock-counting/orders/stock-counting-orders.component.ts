@@ -392,6 +392,7 @@ export class StockCountingOrdersComponent implements OnInit {
   private mapOrder(raw: any): CountStockOrderView {
     const statusText = this.normalizeStatus(this.readProp(raw, 'status', 'Status'));
     const statusBadgeClass = this.getStatusBadgeClassFromNormalized(statusText);
+    const modeValue = this.toNullableString(this.readProp(raw, 'mode', 'Mode', 'docType', 'DocType'));
     return {
       countStockId: Number(this.readProp(raw, 'countStockId', 'CountStockId') || 0),
       status: statusText,
@@ -401,13 +402,17 @@ export class StockCountingOrdersComponent implements OnInit {
       createdAt: this.toNullableString(this.readProp(raw, 'createdAt', 'CreatedAt')) || undefined,
       postingDate: String(this.readProp(raw, 'postingDate', 'PostingDate') ?? ''),
       dueDate: this.toNullableString(this.readProp(raw, 'dueDate', 'DueDate')),
-      mode: this.toNullableString(this.readProp(raw, 'mode', 'Mode')),
+      mode: modeValue,
       warehouseId: Number(this.readProp(raw, 'warehouseId', 'WarehouseId') || this.warehouseId || 0),
       statusText,
       statusBadgeClass,
       canSubmit: statusText === 'Draft',
-      modeText: this.toNullableString(this.readProp(raw, 'mode', 'Mode')) || 'Counting'
+      modeText: this.normalizeModeText(modeValue)
     };
+  }
+
+  private normalizeModeText(mode: string | null): string {
+    return String(mode || '').trim().toLowerCase() === 'posting' ? 'Posting' : 'Counting';
   }
 
   private readProp(obj: any, ...keys: string[]): any {

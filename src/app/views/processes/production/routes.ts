@@ -29,6 +29,13 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'bulk/:warehouseId',
+        loadComponent: () => import('./bulk-orders/bulk-orders.component').then((m) => m.BulkOrdersComponent),
+        data: {
+          title: 'Bulk Production Orders'
+        }
+      },
+      {
         path: 'order-form/:warehouseId',
         loadComponent: () => import('./order-form/production-order-form.component').then((m) => m.ProductionOrderFormComponent),
         data: {

@@ -12,8 +12,6 @@ import {
   SidebarFooterComponent,
   SidebarHeaderComponent,
   SidebarNavComponent,
-  SidebarToggleDirective,
-  SidebarTogglerDirective,
   INavData
 } from '@coreui/angular';
 
@@ -38,8 +36,6 @@ function isOverflown(element: HTMLElement) {
     SidebarBrandComponent,
     SidebarNavComponent,
     SidebarFooterComponent,
-    SidebarToggleDirective,
-    SidebarTogglerDirective,
     ContainerComponent,
     DefaultFooterComponent,
     DefaultHeaderComponent,
@@ -95,5 +91,9 @@ export class DefaultLayoutComponent implements OnInit {
       return true;
     }
     return this.authService.hasAnyPermission(permissions);
+  }
+
+  logout(): void {
+    this.authService.logOut();
   }
 }

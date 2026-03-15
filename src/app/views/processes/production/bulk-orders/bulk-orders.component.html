@@ -1,0 +1,132 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <div>
+        <h4 class="mb-0 header-title">Bulk Production Orders - Warehouse #{{ warehouseId }}</h4>
+      </div>
+      <div class="d-flex align-items-center gap-2">
+        <button cButton color="light" class="header-button" type="button" (click)="onAddRow()">
+          <svg cIcon name="cil-plus" class="me-2"></svg>
+          Add Row
+        </button>
+        <button cButton color="primary" class="header-button" type="button" [disabled]="saving" (click)="onSaveAll()">
+          <svg cIcon name="cil-save" class="me-2"></svg>
+          {{ saving ? 'Saving...' : 'Save All' }}
+        </button>
+        <button cButton color="secondary" class="header-button" type="button" (click)="onBack()">
+          <svg cIcon name="cil-arrow-left" class="me-2"></svg>
+          Back
+        </button>
+      </div>
+    </c-card-header>
+
+    <c-card-body class="p-3 body-scroll">
+      <div class="breadcrumb-bar mb-3">
+        <span class="crumb">Dashboard</span>
+        <span class="crumb-sep">></span>
+        <span class="crumb">Production</span>
+        <span class="crumb-sep">></span>
+        <span class="crumb">Orders</span>
+        <span class="crumb-sep">></span>
+        <span class="crumb current">Bulk Production</span>
+      </div>
+
+      <form [formGroup]="bulkForm">
+        <div class="section-card p-3 mb-3">
+          <c-row [gutter]="3">
+            <c-col [md]="6">
+              <label class="form-label">Warehouse <span class="text-danger">*</span></label>
+              <select cFormControl formControlName="warehouseId" class="form-select" (change)="onWarehouseChange()">
+                @if (loadingWarehouses) {
+                  <option [ngValue]="null">Loading warehouses...</option>
+                } @else {
+                  <option [ngValue]="null">-- Select warehouse --</option>
+                  @for (warehouse of allowedWarehouses; track warehouse.warehouseId) {
+                    <option [ngValue]="warehouse.warehouseId">
+                      {{ warehouse.warehouseName || ('Warehouse #' + warehouse.warehouseId) }}
+                    </option>
+                  }
+                }
+              </select>
+            </c-col>
+          </c-row>
+        </div>
+
+        <div class="section-card p-3">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="mb-0">Orders Rows</h5>
+            <button cButton color="light" type="button" (click)="onAddRow()">
+              <svg cIcon name="cil-plus" class="me-2"></svg>
+              Add Row
+            </button>
+          </div>
+
+          <div formArrayName="orders">
+            @for (row of ordersArray.controls; track $index) {
+              <div class="order-row p-3 mb-3" [formGroupName]="$index">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                  <strong>Order {{ $index + 1 }}</strong>
+                  <button cButton color="danger" size="sm" type="button" (click)="onRemoveRow($index)">
+                    <svg cIcon name="cil-trash"></svg>
+                  </button>
+                </div>
+
+                <c-row [gutter]="2">
+                  <c-col [md]="3">
+                    <label class="form-label">Posting Date <span class="text-danger">*</span></label>
+                    <input cFormControl type="date" formControlName="postingDate" class="form-control" />
+                  </c-col>
+
+                  <c-col [md]="3">
+                    <label class="form-label">Due Date <span class="text-danger">*</span></label>
+                    <input cFormControl type="date" formControlName="dueDate" class="form-control" />
+                  </c-col>
+
+                  <c-col [md]="6">
+                    <label class="form-label">Remarks</label>
+                    <input cFormControl type="text" formControlName="remarks" class="form-control" placeholder="Optional remarks" />
+                  </c-col>
+
+                  <c-col [md]="4">
+                    <label class="form-label">Finished Good Item <span class="text-danger">*</span></label>
+                    <select cFormControl formControlName="finishedGoodItemId" class="form-select">
+                      @if (loadingItems) {
+                        <option [ngValue]="null">Loading items...</option>
+                      } @else {
+                        <option [ngValue]="null">-- Select item --</option>
+                        @for (item of finishedGoods; track item.itemId) {
+                          <option [ngValue]="item.itemId">{{ item.itemCode }} - {{ item.itemName }}</option>
+                        }
+                      }
+                    </select>
+                  </c-col>
+
+                  <c-col [md]="2">
+                    <label class="form-label">Quantity <span class="text-danger">*</span></label>
+                    <input cFormControl type="number" step="0.000001" min="0.000001" formControlName="plannedQuantity" class="form-control" />
+                  </c-col>
+
+                  <c-col [md]="3">
+                    <label class="form-label">Batch Number</label>
+                    <input cFormControl type="text" formControlName="batchNumber" class="form-control" placeholder="Optional batch" />
+                  </c-col>
+
+                  <c-col [md]="2">
+                    <label class="form-label">Batch Qty</label>
+                    <input cFormControl type="number" step="0.000001" min="0.000001" formControlName="batchQuantity" class="form-control" />
+                  </c-col>
+
+                  <c-col [md]="1">
+                    <label class="form-label">Expiry</label>
+                    <input cFormControl type="date" formControlName="expiryDate" class="form-control" />
+                  </c-col>
+                </c-row>
+              </div>
+            }
+          </div>
+        </div>
+      </form>
+    </c-card-body>
+  </c-card>
+</div>
+
