@@ -19,6 +19,7 @@ import {
   QuantityAdjustmentStockItem
 } from '../Models/quantity-adjustment-stock.model';
 import { EditQuantityAdjustmentStockItemModalComponent } from './edit-quantity-adjustment-stock-item-modal/edit-quantity-adjustment-stock-item-modal.component';
+import { AttachmentsComponent } from '../../attachments/attachments.component';
 
 @Component({
   selector: 'app-quantity-adjustment-stock',
@@ -33,7 +34,8 @@ import { EditQuantityAdjustmentStockItemModalComponent } from './edit-quantity-a
     ModalModule,
     IconDirective,
     DatePipe,
-    EditQuantityAdjustmentStockItemModalComponent
+    EditQuantityAdjustmentStockItemModalComponent,
+    AttachmentsComponent
   ],
   templateUrl: './quantity-adjustment-stock.component.html',
   styleUrl: './quantity-adjustment-stock.component.scss'
@@ -283,26 +285,25 @@ export class QuantityAdjustmentStockComponent implements OnInit {
     return this.items.reduce((total, item) => total + Number(item.quantity || 0), 0);
   }
 
+  getQuantityAdjustmentStockDocumentId(): number | null {
+    const id = this.quantityAdjustmentStock?.quantityAdjustmentStockId || this.quantityAdjustmentStockId;
+    return id && id > 0 ? id : null;
+  }
   getStatusBadgeClass(stock: QuantityAdjustmentStock | null): string {
-    if (!stock?.status) {
-      return 'badge bg-secondary';
-    }
+    if (!stock || !stock.status) return 'badge bg-secondary';
 
     const status = stock.status.toLowerCase();
     if (status === 'draft' || status.includes('draft')) {
       return 'badge bg-warning';
-    }
-    if (status === 'completed' || status.includes('completed')) {
+    } else if (status === 'completed' || status.includes('completed')) {
       return 'badge bg-success';
-    }
-    if (status === 'processing' || status.includes('processing')) {
+    } else if (status === 'processing' || status.includes('processing')) {
       return 'badge bg-info';
-    }
-    if (status === 'partiallyfailed' || status.includes('partiallyfailed')) {
+    } else if (status === 'partiallyfailed' || status.includes('partiallyfailed')) {
       return 'badge bg-danger';
+    } else {
+      return 'badge bg-secondary';
     }
-
-    return 'badge bg-secondary';
   }
 
   getStatusText(stock: QuantityAdjustmentStock | null): string {

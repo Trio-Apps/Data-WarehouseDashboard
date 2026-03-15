@@ -16,6 +16,7 @@ import { ApprovalService } from '../../approval-process/Services/approval.servic
 import { EditItemModalComponent } from '../edit-item-modal/edit-item-modal.component';
 import { TransferredRequestService } from '../Services/transferred-request.service';
 import { TransferredRequest, TransferredRequestItem } from '../Models/transferred-request.model';
+import { AttachmentsComponent } from '../../attachments/attachments.component';
 
 @Component({
   selector: 'app-transferred-request-items',
@@ -30,7 +31,8 @@ import { TransferredRequest, TransferredRequestItem } from '../Models/transferre
     ModalModule,
     IconDirective,
     DatePipe,
-    EditItemModalComponent
+    EditItemModalComponent,
+    AttachmentsComponent
   ],
   templateUrl: './transferred-request-items.component.html',
   styleUrl: './transferred-request-items.component.scss'
@@ -115,7 +117,7 @@ export class TransferredRequestItemsComponent implements OnInit {
   }
 
   onAddItem(): void {
-    if (!this.isApproved(this.transferredRequest)) {
+    if (!this.isCompletedStatus(this.transferredRequest)) {
       if (!this.warehouseId && this.transferredRequest?.warehouseId) {
         this.warehouseId = this.transferredRequest.warehouseId;
       }
@@ -130,7 +132,7 @@ export class TransferredRequestItemsComponent implements OnInit {
         this.toastr.error('Warehouse ID is not available. Please refresh the page.', 'Error');
       }
     } else {
-      this.toastr.warning('Cannot add items to approved transferred requests', 'Warning');
+      this.toastr.warning('Cannot add items when transferred request status is Completed', 'Warning');
     }
   }
 
@@ -155,8 +157,8 @@ export class TransferredRequestItemsComponent implements OnInit {
   }
 
   onRemoveItem(item: TransferredRequestItem): void {
-    if (this.isApproved(this.transferredRequest)) {
-      this.toastr.warning('Cannot remove items from approved transferred requests', 'Warning');
+    if (this.isCompletedStatus(this.transferredRequest)) {
+      this.toastr.warning('Cannot remove items when transferred request status is Completed', 'Warning');
       return;
     }
 
@@ -193,6 +195,11 @@ export class TransferredRequestItemsComponent implements OnInit {
     return this.items.reduce((total, item) => total + item.quantity, 0);
   }
 
+  getTransferredRequestDocumentId(): number | null {
+    const id = this.transferredRequest?.transferredRequestId || this.transferredRequestId;
+    return id && id > 0 ? id : null;
+  }
+
   getStatusBadgeClass(request: TransferredRequest | null): string {
     if (!request || !request.status) return 'badge bg-secondary';
 
@@ -215,6 +222,11 @@ export class TransferredRequestItemsComponent implements OnInit {
 
   getStatusText(request: TransferredRequest | null): string {
     return request?.status || 'Unknown';
+  }
+
+  isCompletedStatus(request: TransferredRequest | null): boolean {
+    const status = (request?.status || '').trim().toLowerCase();
+    return status === 'completed';
   }
 
   private mapApprovalStatusText(value: string): string {
@@ -330,3 +342,9 @@ export class TransferredRequestItemsComponent implements OnInit {
       });
   }
 }
+
+
+
+
+
+

@@ -23,7 +23,7 @@
                 <h6 class="card-title">Transferred Request Number {{ transferredRequest?.transferredRequestId }}</h6>
               </div>
               <div>
-                @if (!isApproved(transferredRequest)) {
+                @if (!isCompletedStatus(transferredRequest)) {
                 <button cButton class="me-2" color="warning" size="sm" (click)="onEditTransferredRequest()">
                   Edit
                 </button>
@@ -106,7 +106,7 @@
       <div class="flex-grow-1 d-flex flex-column p-3">
         <div class="d-flex justify-content-between align-items-center mb-3">
           <h5 class="mb-0">Transferred Request Items</h5>
-          @if (transferredRequest && !isApproved(transferredRequest)) {
+          @if (transferredRequest && !isCompletedStatus(transferredRequest)) {
           <button cButton color="primary" size="sm" (click)="onAddItem()">
             <svg cIcon name="cil-plus" class="me-2"></svg>
             Add Item
@@ -125,7 +125,7 @@
                 <th scope="col" class="bg-body-tertiary">Quantity</th>
                 <th scope="col" class="bg-body-tertiary">Price</th>
                 <th scope="col" class="bg-body-tertiary">Unit</th>
-                @if (transferredRequest && !isApproved(transferredRequest)) {
+                @if (transferredRequest && !isCompletedStatus(transferredRequest)) {
                 <th scope="col" class="bg-body-tertiary text-center">Actions</th>
                 }
               </tr>
@@ -134,7 +134,7 @@
             <tbody>
               @if (loading) {
               <tr>
-                <td [attr.colspan]="transferredRequest && !isApproved(transferredRequest) ? 8 : 7" class="text-center py-4">
+                <td [attr.colspan]="transferredRequest && !isCompletedStatus(transferredRequest) ? 8 : 7" class="text-center py-4">
                   <span class="text-body-secondary">Loading...</span>
                 </td>
               </tr>
@@ -148,7 +148,7 @@
                 <td>{{ item.quantity }}</td>
                 <td>{{ item.unitPrice || 0 }}</td>
                 <td>{{ item.unitName || 'N/A' }}</td>
-                @if (transferredRequest && !isApproved(transferredRequest)) {
+                @if (transferredRequest && !isCompletedStatus(transferredRequest)) {
                 <td class="text-center">
                   <button cButton color="info" size="sm" class="me-2" (click)="onEditItem(item)">
                     <svg cIcon name="cil-pencil"></svg>
@@ -162,7 +162,7 @@
               }
               } @else {
               <tr>
-                <td [attr.colspan]="transferredRequest && !isApproved(transferredRequest) ? 8 : 7" class="text-center py-4">
+                <td [attr.colspan]="transferredRequest && !isCompletedStatus(transferredRequest) ? 8 : 7" class="text-center py-4">
                   <span class="text-body-secondary">No items in this transferred request</span>
                 </td>
               </tr>
@@ -181,6 +181,14 @@
           </div>
         </div>
         }
+
+        <div class="mt-4">
+          <app-attachments
+            [title]="'Attachments'"
+            [documentType]="'TransferredRequest'"
+            [documentId]="getTransferredRequestDocumentId()">
+          </app-attachments>
+        </div>
       </div>
     </c-card-body>
   </c-card>
@@ -235,3 +243,5 @@
     </button>
   </c-modal-footer>
 </c-modal>
+
+

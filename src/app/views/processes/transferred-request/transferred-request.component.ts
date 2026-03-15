@@ -461,18 +461,20 @@ export class TransferredRequestComponent implements OnInit, OnDestroy {
     });
   }
 
-  getStatusBadgeClass(request: TransferredRequest): string {
-    switch (request.status) {
-      case 'Draft':
-        return 'badge bg-warning';
-      case 'Processing':
-        return 'badge bg-info';
-      case 'Completed':
-        return 'badge bg-success';
-      case 'PartiallyFailed':
-        return 'badge bg-danger';
-      default:
-        return 'badge bg-secondary';
+  getStatusBadgeClass(request: TransferredRequest | null): string {
+    if (!request || !request.status) return 'badge bg-secondary';
+
+    const status = request.status.toLowerCase();
+    if (status === 'draft' || status.includes('draft')) {
+      return 'badge bg-warning';
+    } else if (status === 'completed' || status.includes('completed')) {
+      return 'badge bg-success';
+    } else if (status === 'processing' || status.includes('processing')) {
+      return 'badge bg-info';
+    } else if (status === 'partiallyfailed' || status.includes('partiallyfailed')) {
+      return 'badge bg-danger';
+    } else {
+      return 'badge bg-secondary';
     }
   }
 
