@@ -45,6 +45,108 @@
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-4">
+      <div class="due-today-section mb-4">
+        <div class="d-flex flex-column flex-sm-row justify-content-between align-items-start gap-2 mb-3">
+          <div>
+            <h5 class="mb-1">Today's Tasks</h5>
+            <p class="mb-0 text-muted">Daily operational tasks due today</p>
+          </div>
+          <div *ngIf="loadingDueToday" class="d-flex align-items-center">
+            <div class="spinner-border text-success" role="status">
+              <span class="visually-hidden">Loading...</span>
+            </div>
+          </div>
+        </div>
+
+        <ul class="nav nav-pills mb-3 due-today-tabs">
+          <li class="nav-item">
+            <button
+              type="button"
+              class="nav-link due-tab-button"
+              [class.active]="selectedDueTodayTab === 'all'"
+              (click)="selectedDueTodayTab = 'all'"
+            >
+              All
+            </button>
+          </li>
+          <li class="nav-item">
+            <button
+              type="button"
+              class="nav-link due-tab-button"
+              [class.active]="selectedDueTodayTab === 'transfers'"
+              (click)="selectedDueTodayTab = 'transfers'"
+            >
+              Transfer Requests
+            </button>
+          </li>
+          <li class="nav-item">
+            <button
+              type="button"
+              class="nav-link due-tab-button"
+              [class.active]="selectedDueTodayTab === 'production'"
+              (click)="selectedDueTodayTab = 'production'"
+            >
+              Production Orders
+            </button>
+          </li>
+          <li class="nav-item">
+            <button
+              type="button"
+              class="nav-link due-tab-button"
+              [class.active]="selectedDueTodayTab === 'inventory'"
+              (click)="selectedDueTodayTab = 'inventory'"
+            >
+              Inventory Counting
+            </button>
+          </li>
+        </ul>
+
+        <div *ngIf="!loadingDueToday && (!dueTodaySummary || dueTodayTasks.length === 0)" class="text-muted p-3 bg-white rounded border">
+          No tasks due today.
+        </div>
+
+        <div class="due-today-cards row g-3" *ngIf="dueTodaySummary && dueTodayTasks.length > 0">
+          <div class="col-12 col-md-6 col-xl-4" *ngFor="let task of dueTodayTasks">
+            <c-card class="due-today-card h-100">
+              <c-card-body>
+                <div class="d-flex justify-content-between align-items-start mb-3">
+                  <div>
+                    <span class="badge bg-light text-success mb-2">{{ task.badge }}</span>
+                    <h5 class="mb-1">{{ task.title }}</h5>
+                    <p class="mb-3 text-muted small">{{ task.subtitle }}</p>
+                  </div>
+                </div>
+
+                <div class="due-today-meta">
+                  <div class="meta-block">
+                    <span class="meta-label">{{ task.metaLeftLabel }}</span>
+                    <span class="meta-value">{{ task.metaLeftValue }}</span>
+                  </div>
+                  <div class="meta-block">
+                    <span class="meta-label">{{ task.metaMiddleLabel }}</span>
+                    <span class="meta-value">{{ task.metaMiddleValue }}</span>
+                  </div>
+                  <div class="meta-block">
+                    <span class="meta-label">{{ task.metaRightLabel }}</span>
+                    <span class="meta-value">{{ task.metaRightValue }}</span>
+                  </div>
+                </div>
+
+                <button
+                  cButton
+                  color="success"
+                  class="w-100 due-action-button"
+                  (click)="openDueTodayTask(task)"
+                  [disabled]="!task.routeCommands"
+                >
+                  {{ task.buttonText }}
+                </button>
+              </c-card-body>
+            </c-card>
+          </div>
+        </div>
+      </div>
+
       <c-row [gutter]="3" class="process-grid">
         <c-col [xs]="12" [md]="3" *ngFor="let module of visibleModuleTiles">
           <c-card

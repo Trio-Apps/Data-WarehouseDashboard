@@ -89,7 +89,7 @@
 
                   <c-col [md]="4">
                     <label class="form-label">Finished Good Item <span class="text-danger">*</span></label>
-                    <select cFormControl formControlName="finishedGoodItemId" class="form-select">
+                    <select cFormControl formControlName="finishedGoodItemId" class="form-select" (change)="onFinishedGoodChange($index)">
                       @if (loadingItems) {
                         <option [ngValue]="null">Loading items...</option>
                       } @else {
