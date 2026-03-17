@@ -328,30 +328,7 @@ export class BulkOrdersComponent implements OnInit {
       .pipe(timeout(10000))
       .subscribe({
         next: (res: any) => {
-          this.finishedGoods = this.toArray<any>(res).map((item) => ({
-            itemId: Number(this.readProp(item, 'itemId', 'ItemId') || 0),
-            itemCode: String(this.readProp(item, 'itemCode', 'ItemCode') || ''),
-            itemName: String(this.readProp(item, 'itemName', 'ItemName') || ''),
-            warehouseId: Number(this.readProp(item, 'warehouseId', 'WarehouseId') || 0),
-            warehouseCode: String(this.readProp(item, 'warehouseCode', 'WarehouseCode') || ''),
-            inStock: Number(this.readProp(item, 'inStock', 'InStock') || 0),
-            minStock: Number(this.readProp(item, 'minStock', 'MinStock') || 0),
-            isBatchManaged: this.toNullableBoolean(
-              this.readProp(
-                item,
-                'isBatchManaged',
-                'IsBatchManaged',
-                'batchManaged',
-                'BatchManaged',
-                'isBatches',
-                'IsBatches',
-                'batchNumbers',
-                'BatchNumbers',
-                'manBtchNum',
-                'ManBtchNum'
-              )
-            ) ?? undefined
-          }));
+          this.finishedGoods = this.toArray<any>(res).map((item) => this.mapFinishedGoodItem(item));
           this.loadingItems = false;
 
           const validItemIds = new Set(this.finishedGoods.map((x) => Number(x.itemId)));
@@ -360,6 +337,7 @@ export class BulkOrdersComponent implements OnInit {
             if (currentItemId > 0 && !validItemIds.has(currentItemId)) {
               row.patchValue({ finishedGoodItemId: null }, { emitEvent: false });
             }
+            this.syncBatchFieldsState(row as FormGroup);
           });
         },
         error: () => {
@@ -370,7 +348,7 @@ export class BulkOrdersComponent implements OnInit {
   }
 
   private createOrderRow(today: string): FormGroup {
-    return this.fb.group({
+    const row = this.fb.group({
       postingDate: [today, Validators.required],
       dueDate: [today, Validators.required],
       remarks: [''],
@@ -380,6 +358,22 @@ export class BulkOrdersComponent implements OnInit {
       batchQuantity: [null],
       expiryDate: [null]
     });
+
+    row.get('finishedGoodItemId')?.valueChanges.subscribe(() => {
+      this.syncBatchFieldsState(row);
+    });
+
+    this.syncBatchFieldsState(row);
+    return row;
+  }
+
+  onFinishedGoodChange(index: number): void {
+    const row = this.ordersArray.at(index) as FormGroup | null;
+    if (!row) {
+      return;
+    }
+
+    this.syncBatchFieldsState(row);
   }
 
   private isWarehouseAllowed(warehouseId: number): boolean {
@@ -487,5 +481,60 @@ export class BulkOrdersComponent implements OnInit {
     }
 
     return fallback;
+  }
+
+  private mapFinishedGoodItem(item: any): FinishedGoodItem {
+    return {
+      itemId: Number(this.readProp(item, 'itemId', 'ItemId') || 0),
+      itemCode: String(this.readProp(item, 'itemCode', 'ItemCode') || ''),
+      itemName: String(this.readProp(item, 'itemName', 'ItemName') || ''),
+      warehouseId: Number(this.readProp(item, 'warehouseId', 'WarehouseId') || 0),
+      warehouseCode: String(this.readProp(item, 'warehouseCode', 'WarehouseCode') || ''),
+      inStock: Number(this.readProp(item, 'inStock', 'InStock') || 0),
+      minStock: Number(this.readProp(item, 'minStock', 'MinStock') || 0),
+      isBatchManaged: this.toNullableBoolean(
+        this.readProp(
+          item,
+          'isBatchManaged',
+          'IsBatchManaged',
+          'batchManaged',
+          'BatchManaged',
+          'isBatches',
+          'IsBatches',
+          'batchNumbers',
+          'BatchNumbers',
+          'manBtchNum',
+          'ManBtchNum'
+        )
+      ) ?? undefined
+    };
+  }
+
+  private syncBatchFieldsState(row: FormGroup): void {
+    const itemId = Number(row.get('finishedGoodItemId')?.value || 0);
+    const isBatchManaged = this.finishedGoods.find((item) => Number(item.itemId) === itemId)?.isBatchManaged;
+
+    const batchNumberControl = row.get('batchNumber');
+    const batchQuantityControl = row.get('batchQuantity');
+    const expiryDateControl = row.get('expiryDate');
+
+    if (!batchNumberControl || !batchQuantityControl || !expiryDateControl) {
+      return;
+    }
+
+    if (isBatchManaged === false) {
+      batchNumberControl.patchValue('', { emitEvent: false });
+      batchQuantityControl.patchValue(null, { emitEvent: false });
+      expiryDateControl.patchValue(null, { emitEvent: false });
+
+      batchNumberControl.disable({ emitEvent: false });
+      batchQuantityControl.disable({ emitEvent: false });
+      expiryDateControl.disable({ emitEvent: false });
+      return;
+    }
+
+    batchNumberControl.enable({ emitEvent: false });
+    batchQuantityControl.enable({ emitEvent: false });
+    expiryDateControl.enable({ emitEvent: false });
   }
 }

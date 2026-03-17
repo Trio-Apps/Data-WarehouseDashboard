@@ -1,6 +1,7 @@
 import { CommonModule } from '@angular/common';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subscription } from 'rxjs';
 import {
   CardBodyComponent,
   CardComponent,
@@ -19,7 +20,14 @@ import { IconDirective } from '@coreui/icons-angular';
 import { AuthService } from '../pages/Services/auth.service';
 import { SapAuthService } from '../settings/Auth/Services/sap-auth.service';
 import { DashboardService } from './Services/dashboard.service';
-import { DashboardHomeInfo, DashboardSyncResponse } from './Models/dashboard.model';
+import {
+  DashboardHomeInfo,
+  DashboardSyncResponse,
+  DueTodayInventoryTask,
+  DueTodayProductionOrder,
+  DueTodaySummary,
+  DueTodayTransferRequest
+} from './Models/dashboard.model';
 
 
 interface ModuleTile {
@@ -33,6 +41,22 @@ interface ModuleTile {
   permissions?: string[];
   disabled?: boolean;
   isAuthorized?: boolean;
+}
+
+interface DueTodayTaskCard {
+  id: string;
+  title: string;
+  subtitle: string;
+  badge: string;
+  metaLeftLabel: string;
+  metaLeftValue: string;
+  metaMiddleLabel: string;
+  metaMiddleValue: string;
+  metaRightLabel: string;
+  metaRightValue: string;
+  buttonText: string;
+  routeCommands: string[] | null;
+  category: 'all' | 'transfers' | 'production' | 'inventory';
 }
 
 @Component({
@@ -55,12 +79,17 @@ interface ModuleTile {
     IconDirective
   ]
 })
-export class DashboardComponent implements OnInit {
+export class DashboardComponent implements OnInit, OnDestroy {
   userDisplayName = 'User';
   connectedDatabase = '';
   lastSyncAt: string | null = null;
   syncing = false;
   loadingHome = false;
+  warehouseId: number | null = null;
+  dueTodaySummary: DueTodaySummary | null = null;
+  loadingDueToday = false;
+  selectedDueTodayTab: 'all' | 'transfers' | 'production' | 'inventory' = 'all';
+  private queryParamsSubscription: any;
 
   moduleTiles: ModuleTile[] = [
     {
@@ -159,6 +188,17 @@ export class DashboardComponent implements OnInit {
     this.loadHomeInfo();
     this.loadSelectedDatabase();
     this.applyAuthorization();
+
+    // Watch for warehouse selection from other pages (via query params)
+    this.queryParamsSubscription = this.route.queryParams.subscribe((params) => {
+      const warehouseId = params['warehouseId'] ? Number(params['warehouseId']) : null;
+      this.warehouseId = warehouseId && Number.isFinite(warehouseId) && warehouseId > 0 ? warehouseId : null;
+      this.loadDueTodaySummary();
+    });
+
+    // Load due today summary immediately for the current route
+    this.warehouseId = this.getWarehouseIdFromUrl();
+    this.loadDueTodaySummary();
   }
 
   get visibleModuleTiles(): ModuleTile[] {
@@ -227,6 +267,10 @@ export class DashboardComponent implements OnInit {
     this.authService.logOut();
   }
 
+  ngOnDestroy(): void {
+    this.queryParamsSubscription?.unsubscribe();
+  }
+
   private setUserDisplayName(): void {
     this.userDisplayName =
       this.authService.getUserName() ||
@@ -277,6 +321,121 @@ export class DashboardComponent implements OnInit {
       ...tile,
       isAuthorized: this.isModuleAuthorized(tile, currentPermissions)
     }));
+  }
+
+  private loadDueTodaySummary(): void {
+    this.loadingDueToday = true;
+    this.dueTodaySummary = null;
+
+    this.dashboardService.getDueTodaySummary(this.warehouseId ?? undefined).subscribe({
+      next: (summary: DueTodaySummary) => {
+        this.dueTodaySummary = summary;
+        this.loadingDueToday = false;
+      },
+      error: () => {
+        this.loadingDueToday = false;
+      }
+    });
+  }
+
+  get dueTodayTasks(): DueTodayTaskCard[] {
+    if (!this.dueTodaySummary) {
+      return [];
+    }
+
+    const transferTasks = (this.dueTodaySummary.TransferRequests ?? []).map((task) =>
+      this.mapTransferRequestTask(task)
+    );
+    const productionTasks = (this.dueTodaySummary.ProductionOrders ?? []).map((task) =>
+      this.mapProductionOrderTask(task)
+    );
+    const inventoryTasks = (this.dueTodaySummary.InventoryTasks ?? []).map((task) =>
+      this.mapInventoryTask(task)
+    );
+    const tasks = [...transferTasks, ...productionTasks, ...inventoryTasks];
+
+    if (this.selectedDueTodayTab === 'all') {
+      return tasks;
+    }
+
+    return tasks.filter((task) => task.category === this.selectedDueTodayTab);
+  }
+
+  private formatDateToQueryParam(date: Date): string {
+    const yyyy = date.getFullYear();
+    const mm = String(date.getMonth() + 1).padStart(2, '0');
+    const dd = String(date.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  }
+
+  openDueTodayTask(task: { routeCommands: string[] | null }): void {
+    if (!task.routeCommands) {
+      return;
+    }
+
+    this.router.navigate(task.routeCommands);
+  }
+
+  private mapTransferRequestTask(task: DueTodayTransferRequest): DueTodayTaskCard {
+    return {
+      id: `transfer-${task.TransferredRequestId}`,
+      title: task.ReferenceNumber,
+      subtitle: `${task.SourceWarehouseName || 'Unknown warehouse'} -> ${task.DestinationWarehouseName || 'Unknown warehouse'}`,
+      badge: 'Transfer Request',
+      metaLeftLabel: 'Submitted By',
+      metaLeftValue: task.SubmittedBy || 'Unknown user',
+      metaMiddleLabel: 'Submitted Date',
+      metaMiddleValue: this.formatCardDate(task.SubmittedDate),
+      metaRightLabel: 'Due Date',
+      metaRightValue: this.formatCardDate(task.DueDate),
+      buttonText: 'Open Request',
+      routeCommands: ['/processes/transferred-request/transferred-request-items', `${task.TransferredRequestId}`],
+      category: 'transfers'
+    };
+  }
+
+  private mapProductionOrderTask(task: DueTodayProductionOrder): DueTodayTaskCard {
+    return {
+      id: `production-${task.ProductionOrderId}`,
+      title: task.ReferenceNumber,
+      subtitle: task.ItemName || 'Production order due today',
+      badge: 'Production Order',
+      metaLeftLabel: 'Qty',
+      metaLeftValue: `${task.PlannedQuantity}`,
+      metaMiddleLabel: 'Warehouse',
+      metaMiddleValue: task.WarehouseName || `${task.WarehouseId}`,
+      metaRightLabel: 'Due Date',
+      metaRightValue: this.formatCardDate(task.DueDate),
+      buttonText: 'Run Production',
+      routeCommands: ['/processes/production/order-items', `${task.WarehouseId}`, `${task.ProductionOrderId}`],
+      category: 'production'
+    };
+  }
+
+  private mapInventoryTask(task: DueTodayInventoryTask): DueTodayTaskCard {
+    return {
+      id: `inventory-${task.QuantityAdjustmentStockId}`,
+      title: task.ReferenceNumber,
+      subtitle: task.ItemName || 'Inventory adjustment due today',
+      badge: 'Inventory Counting Session',
+      metaLeftLabel: 'Items',
+      metaLeftValue: `${task.ItemCount}`,
+      metaMiddleLabel: 'Warehouse',
+      metaMiddleValue: task.WarehouseName || `${task.WarehouseId}`,
+      metaRightLabel: 'Due Date',
+      metaRightValue: this.formatCardDate(task.DueDate),
+      buttonText: 'Open Session',
+      routeCommands: ['/processes/quantity-adjustment-stock/quantity-adjustment-stock', `${task.QuantityAdjustmentStockId}`],
+      category: 'inventory'
+    };
+  }
+
+  private formatCardDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) {
+      return value;
+    }
+    return date.toLocaleDateString('en-GB');
   }
 
   private isModuleAuthorized(tile: ModuleTile, currentPermissions: string[]): boolean {
