@@ -90,7 +90,8 @@ export const navItems: NavItemWithPermissions[] = [
  
    {
     title: true,
-    name: 'Setting'
+    name: 'Setting',
+    permissions: ['Saps.Get']
   },
    {
         name: 'SAP Auth Settings',
@@ -108,7 +109,7 @@ export const navItems: NavItemWithPermissions[] = [
     name: 'Barcode Settings',
         url: '/barcodes/barcodes',
         icon: 'nav-icon-bullet',
-    permissions: ['Items.Get']
+    permissions: ['Saps.Get']
   },
     // },
   // {

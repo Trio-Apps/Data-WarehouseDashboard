@@ -153,8 +153,10 @@ export class DeliveryNoteService {
   updateDeliveryNoteBatch(batchId: number, batchData: UpdateDeliveryNoteBatchRequest): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}DeliveryNoteBatch/${batchId}`, batchData, this.headerOption);
   }
+  
 
   deleteDeliveryNoteBatch(batchId: number): Observable<any> {
     return this.http.delete<any>(`${this.baseUrl}DeliveryNoteBatch/${batchId}`, this.headerOption);
   }
+  
 }

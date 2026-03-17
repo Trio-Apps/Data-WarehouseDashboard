@@ -2,10 +2,12 @@
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0 header-title">Barcode Settings Management</h4>
+      @if (canCreateBarcodeSettings) {
       <button cButton color="primary" class="header-button" (click)="onAddBarcode()">
         <svg cIcon name="cil-plus" class="me-2"></svg>
         Add Barcode Setting
       </button>
+      }
     </c-card-header>
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
       <!-- Search Section -->
@@ -49,14 +51,22 @@
               <th scope="col" class="bg-body-tertiary">Quantity Length</th>
               <th scope="col" class="bg-body-tertiary">Ignore Last Digit</th>
               <th scope="col" class="bg-body-tertiary">Default UOM</th>
-           
+
+              @if (canManageBarcodeRows) {
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+              }
             </tr>
           </thead>
           <tbody>
-            @if (loading) {
+            @if (!canViewBarcodeSettings) {
               <tr>
-                <td colspan="11" class="text-center py-4">
+                <td [attr.colspan]="tableColumnCount" class="text-center py-4">
+                  <span class="text-danger">You do not have permission to view barcode settings.</span>
+                </td>
+              </tr>
+            } @else if (loading) {
+              <tr>
+                <td [attr.colspan]="tableColumnCount" class="text-center py-4">
                   <span class="text-body-secondary">Loading...</span>
                 </td>
               </tr>
@@ -79,19 +89,25 @@
                   </td>
                   <td>{{ barcode?.defaultUom || 'N/A' }}</td>
 
+                  @if (canManageBarcodeRows) {
                   <td class="text-center">
+                    @if (canEditBarcodeSettings) {
                     <button cButton color="info" size="sm" class="me-2" (click)="onEditBarcode(barcode)">
                       <svg cIcon name="cil-pencil"></svg>
                     </button>
+                    }
+                    @if (canDeleteBarcodeSettings) {
                     <button cButton color="danger" size="sm" (click)="onDeleteBarcode(barcode)">
                       <svg cIcon name="cil-trash"></svg>
                     </button>
+                    }
                   </td>
+                  }
                 </tr>
               }
             } @else {
               <tr>
-                <td colspan="11" class="text-center py-4">
+                <td [attr.colspan]="tableColumnCount" class="text-center py-4">
                   <span class="text-body-secondary">No barcode settings found</span>
                 </td>
               </tr>

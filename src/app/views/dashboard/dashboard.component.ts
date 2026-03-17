@@ -130,6 +130,14 @@ export class DashboardComponent implements OnInit {
       permissions: ['Reports.Get']
     },
     {
+      title: 'Search & Scan',
+      description: 'Search across all documents',
+      icon: 'cilSearch',
+      iconClass: 'icon-blue',
+      route: '/processes/search-scan',
+      permissions: ['Warehouses.Get']
+    },
+    {
       title: 'Exporting',
       description: 'Share and export data',
       icon: 'cilCloudDownload',

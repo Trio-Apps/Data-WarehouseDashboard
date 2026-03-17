@@ -82,6 +82,10 @@ export class SapAuthSettingsComponent implements OnInit, OnDestroy {
   companies: Company[] = [];
   loadingCompanies: boolean = false;
   isSuperAdmin: boolean = false;
+  canViewSaps: boolean = false;
+  canCreateSaps: boolean = false;
+  canEditSaps: boolean = false;
+  canDeleteSaps: boolean = false;
 
   // Expose Math to template
   Math = Math;
@@ -100,6 +104,7 @@ export class SapAuthSettingsComponent implements OnInit, OnDestroy {
     private toastr: ToastrService
   ) {
     this.checkUserRole();
+    this.checkPermissions();
     this.form = this.fb.group({
       sapId : ['', [Validators.required]],
       sapName: ['', [Validators.required]],
@@ -117,7 +122,29 @@ export class SapAuthSettingsComponent implements OnInit, OnDestroy {
     this.isSuperAdmin = this.authService.hasRole('super-admin');
   }
 
+  checkPermissions(): void {
+    this.canViewSaps = this.authService.hasPermission('Saps.Get');
+    this.canCreateSaps = this.authService.hasPermission('Saps.Create');
+    this.canEditSaps = this.authService.hasPermission('Saps.Edit');
+    this.canDeleteSaps = this.authService.hasPermission('Saps.Delete');
+  }
+
+  get canManageRows(): boolean {
+    return this.canEditSaps || this.canDeleteSaps;
+  }
+
+  get tableColumnCount(): number {
+    return this.canManageRows ? 7 : 6;
+  }
+
   ngOnInit(): void {
+    if (!this.canViewSaps) {
+      this.loadingSaps = false;
+      this.loading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     // Load companies for super-admin
     if (this.isSuperAdmin) {
       this.loadCompanies();
@@ -262,12 +289,27 @@ export class SapAuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   onAddSap(): void {
+    if (!this.canCreateSaps) {
+      this.toastr.error('You do not have permission to add SAP connections.', 'Access Denied');
+      return;
+    }
+
     this.selectedSap = null;
     this.isEditMode = false;
     this.showSapModal = true;
   }
 
   onSaveSap(sapData: SapAuthSettings): void {
+    if (this.isEditMode && !this.canEditSaps) {
+      this.toastr.error('You do not have permission to edit SAP connections.', 'Access Denied');
+      return;
+    }
+
+    if (!this.isEditMode && !this.canCreateSaps) {
+      this.toastr.error('You do not have permission to add SAP connections.', 'Access Denied');
+      return;
+    }
+
     this.modalLoading = true;
     this.cdr.detectChanges();
 
@@ -473,6 +515,11 @@ export class SapAuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   onEditSap(sap: Sap): void {
+    if (!this.canEditSaps) {
+      this.toastr.error('You do not have permission to edit SAP connections.', 'Access Denied');
+      return;
+    }
+
     this.selectedSap = {
       sapId: sap.sapId,
       name: sap.name,
@@ -488,6 +535,11 @@ export class SapAuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   onDeleteSap(sap: Sap): void {
+    if (!this.canDeleteSaps) {
+      this.toastr.error('You do not have permission to delete SAP connections.', 'Access Denied');
+      return;
+    }
+
     if (confirm(`Are you sure you want to delete SAP: ${sap.name}?`)) {
       this.sapAuthService.deleteSap(sap.sapId).subscribe({
         next: () => {
@@ -505,6 +557,11 @@ export class SapAuthSettingsComponent implements OnInit, OnDestroy {
   }
 
   onAction(sap: Sap): void {
+    if (!this.canEditSaps) {
+      this.toastr.error('You do not have permission to update SAP selection.', 'Access Denied');
+      return;
+    }
+
     if (sap.sapId) {
       // Call selectSap endpoint
       this.sapAuthService.selectSap(sap.sapId).subscribe({

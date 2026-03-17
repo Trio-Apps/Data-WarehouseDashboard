@@ -14,6 +14,7 @@ import { IconDirective } from '@coreui/icons-angular';
 import { BarCodeSettingService } from '../Services/barcode-setting.service';
 import { BarCodeSetting } from '../Models/barcode-setting.model';
 import { BarCodeFormModalComponent } from './barcode-form-modal/barcode-form-modal.component';
+import { AuthService } from '../../pages/Services/auth.service';
 
 @Component({
   selector: 'app-barcodes',
@@ -54,6 +55,10 @@ export class BarcodesComponent implements OnInit, OnDestroy {
 
   // Expose Math to template
   Math = Math;
+  canViewBarcodeSettings: boolean = false;
+  canCreateBarcodeSettings: boolean = false;
+  canEditBarcodeSettings: boolean = false;
+  canDeleteBarcodeSettings: boolean = false;
 
   // Subscriptions
   private queryParamsSubscription?: Subscription;
@@ -63,14 +68,37 @@ export class BarcodesComponent implements OnInit, OnDestroy {
     private router: Router,
     private fb: FormBuilder,
     private barcodeService: BarCodeSettingService,
+    private authService: AuthService,
     private cdr: ChangeDetectorRef
   ) {
+    this.checkPermissions();
     this.form = this.fb.group({
       search: ['']
     });
   }
 
+  private checkPermissions(): void {
+    this.canViewBarcodeSettings = this.authService.hasPermission('Saps.Get');
+    this.canCreateBarcodeSettings = this.authService.hasPermission('Saps.Create');
+    this.canEditBarcodeSettings = this.authService.hasPermission('Saps.Edit');
+    this.canDeleteBarcodeSettings = this.authService.hasPermission('Saps.Delete');
+  }
+
+  get canManageBarcodeRows(): boolean {
+    return this.canEditBarcodeSettings || this.canDeleteBarcodeSettings;
+  }
+
+  get tableColumnCount(): number {
+    return this.canManageBarcodeRows ? 10 : 9;
+  }
+
   ngOnInit(): void {
+    if (!this.canViewBarcodeSettings) {
+      this.loading = false;
+      this.cdr.detectChanges();
+      return;
+    }
+
     // Read pagination from URL query params
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
       const page = params['page'] ? +params['page'] : 1;
@@ -215,18 +243,36 @@ export class BarcodesComponent implements OnInit, OnDestroy {
   }
 
   onAddBarcode(): void {
+    if (!this.canCreateBarcodeSettings) {
+      alert('You do not have permission to add barcode settings.');
+      return;
+    }
     this.selectedBarcode = null;
     this.isEditMode = false;
     this.showBarcodeModal = true;
   }
 
   onEditBarcode(barcode: BarCodeSetting): void {
+    if (!this.canEditBarcodeSettings) {
+      alert('You do not have permission to edit barcode settings.');
+      return;
+    }
     this.selectedBarcode = { ...barcode };
     this.isEditMode = true;
     this.showBarcodeModal = true;
   }
 
   onSaveBarcode(barcodeData: BarCodeSetting): void {
+    if (this.isEditMode && !this.canEditBarcodeSettings) {
+      alert('You do not have permission to edit barcode settings.');
+      return;
+    }
+
+    if (!this.isEditMode && !this.canCreateBarcodeSettings) {
+      alert('You do not have permission to add barcode settings.');
+      return;
+    }
+
     this.modalLoading = true;
     this.cdr.detectChanges();
 
@@ -280,6 +326,11 @@ export class BarcodesComponent implements OnInit, OnDestroy {
   }
 
   onDeleteBarcode(barcode: BarCodeSetting): void {
+    if (!this.canDeleteBarcodeSettings) {
+      alert('You do not have permission to delete barcode settings.');
+      return;
+    }
+
     if (confirm(`Are you sure you want to delete barcode setting: ${barcode.barCodeSettingId}?`)) {
       if (barcode.barCodeSettingId) {
         this.barcodeService.deleteBarCodeSetting(barcode.barCodeSettingId).subscribe({
