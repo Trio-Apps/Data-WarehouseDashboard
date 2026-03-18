@@ -1,11 +1,11 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">{{ selectedProcessSetting?.processType || 'Approval Steps' }}</h4>
+      <h4 class="mb-0 header-title">{{ selectedProcessSetting?.processType || ('approvalProcess.page.title' | translate) }}</h4>
       <div class="d-flex align-items-center gap-2">
         <button cButton color="light" class="header-button" (click)="goToProcessSettings()">
           <svg cIcon name="cil-arrow-left" class="me-2"></svg>
-          Back
+          {{ 'Back' | translate }}
         </button>
         @if (selectedProcessSetting) {
           <button
@@ -16,13 +16,13 @@
             (click)="onToggleIgnoreSteps()"
           >
             <svg cIcon name="cil-loop-circular" class="me-2"></svg>
-            {{ selectedProcessSetting.ignoreSteps ? 'Ignore Steps: ON' : 'Ignore Steps: OFF' }}
+            {{ selectedProcessSetting.ignoreSteps ? ('approvalProcess.actions.ignoreStepsOn' | translate) : ('approvalProcess.actions.ignoreStepsOff' | translate) }}
           </button>
         }
         @if (canCreateApprovalSteps) {
           <button cButton color="primary" class="header-button" (click)="onAddStepClick()">
             <svg cIcon name="cil-plus" class="me-2"></svg>
-            Add Step
+            {{ 'approvalProcess.actions.addStep' | translate }}
           </button>
         }
       </div>
@@ -31,22 +31,22 @@
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
       @if (!canViewApprovalSteps) {
         <div class="p-4 text-center text-body-secondary">
-          You do not have permission to view approval steps.
+          {{ 'approvalProcess.messages.permissionViewDenied' | translate }}
         </div>
       } @else if (!selectedProcessSetting && !loading) {
         <div class="p-4 text-center text-body-secondary">
-          Process setting details were not found.
+          {{ 'approvalProcess.messages.processSettingNotFound' | translate }}
         </div>
       } @else {
         @if (selectedProcessSetting) {
           <div class="setting-info px-3 pt-3">
             <div class="small text-body-secondary mb-2">
-              Process Type: <strong>{{ selectedProcessSetting.processType }}</strong>
+              {{ 'approvalProcess.labels.processType' | translate }}: <strong>{{ selectedProcessSetting.processType }}</strong>
             </div>
             <div class="small text-body-secondary">
-              Ignore Steps:
+              {{ 'approvalProcess.labels.ignoreSteps' | translate }}:
               <span class="badge" [class.bg-warning]="selectedProcessSetting.ignoreSteps" [class.bg-success]="!selectedProcessSetting.ignoreSteps">
-                {{ selectedProcessSetting.ignoreSteps ? 'Enabled' : 'Disabled' }}
+                {{ selectedProcessSetting.ignoreSteps ? ('approvalProcess.labels.enabled' | translate) : ('approvalProcess.labels.disabled' | translate) }}
               </span>
             </div>
           </div>
@@ -57,13 +57,13 @@
             <thead class="table-header">
               <tr>
                 <th scope="col" class="bg-body-tertiary">#</th>
-                <th scope="col" class="bg-body-tertiary">Step Name</th>
-                <th scope="col" class="bg-body-tertiary">Order</th>
-                <th scope="col" class="bg-body-tertiary">Role</th>
-                <th scope="col" class="bg-body-tertiary">Active</th>
+                <th scope="col" class="bg-body-tertiary">{{ 'approvalProcess.fields.stepName' | translate }}</th>
+                <th scope="col" class="bg-body-tertiary">{{ 'approvalProcess.fields.stepOrder' | translate }}</th>
+                <th scope="col" class="bg-body-tertiary">{{ 'approvalProcess.fields.role' | translate }}</th>
+                <th scope="col" class="bg-body-tertiary">{{ 'approvalProcess.fields.active' | translate }}</th>
                 <!-- <th scope="col" class="bg-body-tertiary">Final</th> -->
                 @if (canEditApprovalSteps || canDeleteApprovalSteps) {
-                  <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+                  <th scope="col" class="bg-body-tertiary text-center">{{ 'Actions' | translate }}</th>
                 }
               </tr>
             </thead>
@@ -72,7 +72,7 @@
               @if (loading) {
                 <tr>
                   <td [attr.colspan]="tableColumnCount" class="text-center py-4">
-                    <span class="text-body-secondary">Loading...</span>
+                    <span class="text-body-secondary">{{ 'Loading...' | translate }}</span>
                   </td>
                 </tr>
               } @else if (paginatedSteps.length > 0) {
@@ -84,7 +84,7 @@
                     <td>{{ step?.roleName || step?.roleId || 'N/A' }}</td>
                     <td>
                       <span class="badge" [class.bg-success]="step?.isActive" [class.bg-secondary]="!step?.isActive">
-                        {{ step?.isActive ? 'Active' : 'Inactive' }}
+                        {{ step?.isActive ? ('approvalProcess.labels.active' | translate) : ('approvalProcess.labels.inactive' | translate) }}
                       </span>
                     </td>
                     <!-- <td>
@@ -112,7 +112,7 @@
               } @else {
                 <tr>
                   <td [attr.colspan]="tableColumnCount" class="text-center py-4">
-                    <span class="text-body-secondary">No approval steps found</span>
+                    <span class="text-body-secondary">{{ 'approvalProcess.messages.noStepsFound' | translate }}</span>
                   </td>
                 </tr>
               }
@@ -123,13 +123,13 @@
         <!-- Pagination -->
         @if (totalPages > 0) {
           <div class="pagination-container p-3 border-top">
-            <nav aria-label="Page navigation">
+            <nav [attr.aria-label]="'Page navigation' | translate">
               <ul class="pagination justify-content-center mb-2">
                 <li class="page-item" [class.disabled]="!hasPrevious">
                   <a
                     class="page-link"
                     (click)="onPreviousPage($event)"
-                    [attr.aria-label]="'Previous'"
+                    [attr.aria-label]="'Previous' | translate"
                     [attr.tabindex]="!hasPrevious ? -1 : null"
                     [class.disabled]="!hasPrevious"
                     href="#"
@@ -148,7 +148,7 @@
                   <a
                     class="page-link"
                     (click)="onNextPage($event)"
-                    [attr.aria-label]="'Next'"
+                    [attr.aria-label]="'Next' | translate"
                     [attr.tabindex]="!hasNext ? -1 : null"
                     [class.disabled]="!hasNext"
                     href="#"
@@ -160,9 +160,11 @@
             </nav>
 
             <div class="text-body-secondary small text-center">
-              Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
-              {{ Math.min(currentPage * itemsPerPage, totalItems) }} of
-              {{ totalItems }} steps
+              {{ 'approvalProcess.page.paginationSummary' | translate:{
+                from: ((currentPage - 1) * itemsPerPage + 1),
+                to: Math.min(currentPage * itemsPerPage, totalItems),
+                total: totalItems
+              } }}
             </div>
           </div>
         }

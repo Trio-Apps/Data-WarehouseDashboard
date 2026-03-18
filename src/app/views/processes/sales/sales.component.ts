@@ -17,6 +17,7 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { SearchCustomerModalComponent } from './search-customer-modal/search-customer-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 @Component({
   selector: 'app-sales',
    imports: [
@@ -31,7 +32,8 @@ import { SearchCustomerModalComponent } from './search-customer-modal/search-cus
     UtilitiesModule,
     IconDirective,
     DatePipe,
-    SearchCustomerModalComponent
+    SearchCustomerModalComponent,
+    TranslatePipe
   ],
   templateUrl: './sales.component.html',
   styleUrl: './sales.component.scss',

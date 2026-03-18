@@ -16,6 +16,7 @@ import { DeliveryNote, DeliveryNoteItem } from '../Models/delivery-note-model';
 import { DeliveryNoteService } from '../Services/delivery-note.service';
 import { ApprovalService } from '../../approval-process/Services/approval.service';
 import { EditDeliveryNoteItemModalComponent } from './edit-delivery-note-item-modal/edit-delivery-note-item-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-delivery-notes',
@@ -30,7 +31,8 @@ import { EditDeliveryNoteItemModalComponent } from './edit-delivery-note-item-mo
     ModalModule,
     IconDirective,
     DatePipe,
-    EditDeliveryNoteItemModalComponent
+    EditDeliveryNoteItemModalComponent,
+    TranslatePipe
   ],
   templateUrl: './delivery-notes.component.html',
   styleUrl: './delivery-notes.component.scss',

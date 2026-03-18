@@ -93,13 +93,13 @@
   size="lg"
   alignment="center">
   <c-modal-header>
-    <h5 cModalTitle>Add Batch</h5>
+    <h5 cModalTitle>{{ 'Add Batch' | translate }}</h5>
   </c-modal-header>
   <c-modal-body>
     <form [formGroup]="addForm" (ngSubmit)="onSubmitAdd()">
       <c-row [gutter]="3">
         <c-col [md]="6">
-          <label class="form-label">Batch Number <span class="text-danger">*</span></label>
+          <label class="form-label">{{ 'Batch Number' | translate }} <span class="text-danger">*</span></label>
           <input
             cFormControl
             type="text"
@@ -108,13 +108,13 @@
             [class.is-invalid]="addForm.get('batchNumber')?.invalid && addForm.get('batchNumber')?.touched" />
           @if (addForm.get('batchNumber')?.invalid && addForm.get('batchNumber')?.touched) {
             <div class="invalid-feedback d-block">
-              Batch number is required
+              {{ 'Batch number is required' | translate }}
             </div>
           }
         </c-col>
 
         <c-col [md]="6">
-          <label class="form-label">Quantity <span class="text-danger">*</span></label>
+          <label class="form-label">{{ 'Quantity' | translate }} <span class="text-danger">*</span></label>
           <input
             cFormControl
             type="number"
@@ -125,13 +125,13 @@
             [class.is-invalid]="addForm.get('quantity')?.invalid && addForm.get('quantity')?.touched" />
           @if (addForm.get('quantity')?.invalid && addForm.get('quantity')?.touched) {
             <div class="invalid-feedback d-block">
-              Quantity is required and must be at least 0.01
+              {{ 'Quantity is required and must be at least 0.01' | translate }}
             </div>
           }
         </c-col>
 
         <c-col [md]="6">
-          <label class="form-label">Expiry Date</label>
+          <label class="form-label">{{ 'Expiry Date' | translate }}</label>
           <input cFormControl type="date" formControlName="expiryDate" class="form-control" />
         </c-col>
       </c-row>
@@ -139,10 +139,10 @@
   </c-modal-body>
   <c-modal-footer>
     <button cButton color="secondary" type="button" (click)="onCloseAddModal()" [disabled]="saving">
-      Cancel
+      {{ 'Cancel' | translate }}
     </button>
     <button cButton color="primary" type="button" (click)="onSubmitAdd()" [disabled]="addForm.invalid || saving">
-      {{ saving ? 'Adding...' : 'Add Batch' }}
+      {{ (saving ? 'Adding...' : 'Add Batch') | translate }}
     </button>
   </c-modal-footer>
 </c-modal>
@@ -153,18 +153,18 @@
   size="lg"
   alignment="center">
   <c-modal-header>
-    <h5 cModalTitle>Edit Batch</h5>
+    <h5 cModalTitle>{{ 'Edit Batch' | translate }}</h5>
   </c-modal-header>
   <c-modal-body>
     @if (selectedBatch) {
       <div class="mb-3 p-2 bg-light rounded">
-        <strong>Batch ID:</strong> {{ selectedBatch.productionHeaderBatchId }}
+        <strong>{{ 'Batch ID' | translate }}:</strong> {{ selectedBatch.productionHeaderBatchId }}
       </div>
     }
     <form [formGroup]="editForm" (ngSubmit)="onSubmitEdit()">
       <c-row [gutter]="3">
         <c-col [md]="6">
-          <label class="form-label">Batch Number <span class="text-danger">*</span></label>
+          <label class="form-label">{{ 'Batch Number' | translate }} <span class="text-danger">*</span></label>
           <input
             cFormControl
             type="text"
@@ -173,13 +173,13 @@
             [class.is-invalid]="editForm.get('batchNumber')?.invalid && editForm.get('batchNumber')?.touched" />
           @if (editForm.get('batchNumber')?.invalid && editForm.get('batchNumber')?.touched) {
             <div class="invalid-feedback d-block">
-              Batch number is required
+              {{ 'Batch number is required' | translate }}
             </div>
           }
         </c-col>
 
         <c-col [md]="6">
-          <label class="form-label">Quantity <span class="text-danger">*</span></label>
+          <label class="form-label">{{ 'Quantity' | translate }} <span class="text-danger">*</span></label>
           <input
             cFormControl
             type="number"
@@ -190,13 +190,13 @@
             [class.is-invalid]="editForm.get('quantity')?.invalid && editForm.get('quantity')?.touched" />
           @if (editForm.get('quantity')?.invalid && editForm.get('quantity')?.touched) {
             <div class="invalid-feedback d-block">
-              Quantity is required and must be at least 0.01
+              {{ 'Quantity is required and must be at least 0.01' | translate }}
             </div>
           }
         </c-col>
 
         <c-col [md]="6">
-          <label class="form-label">Expiry Date</label>
+          <label class="form-label">{{ 'Expiry Date' | translate }}</label>
           <input cFormControl type="date" formControlName="expiryDate" class="form-control" />
         </c-col>
       </c-row>
@@ -204,10 +204,10 @@
   </c-modal-body>
   <c-modal-footer>
     <button cButton color="secondary" type="button" (click)="onCloseEditModal()" [disabled]="saving">
-      Cancel
+      {{ 'Cancel' | translate }}
     </button>
     <button cButton color="primary" type="button" (click)="onSubmitEdit()" [disabled]="editForm.invalid || saving">
-      {{ saving ? 'Updating...' : 'Update Batch' }}
+      {{ (saving ? 'Updating...' : 'Update Batch') | translate }}
     </button>
   </c-modal-footer>
 </c-modal>

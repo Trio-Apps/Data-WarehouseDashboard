@@ -4,7 +4,6 @@ import { CommonModule,Location } from '@angular/common';
 import {
   ButtonModule,
   CardModule,
-  FormCheckComponent,
   FormCheckInputDirective,
   FormCheckLabelDirective,
   FormModule,
@@ -13,6 +12,7 @@ import {
 } from '@coreui/angular';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ToastrService } from 'ngx-toastr';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 import { PurchaseService } from '../../Services/purchase.service';
 import { GoodsReturnService } from '../../Services/goods-return.service';
 import { AddReturn, Return, UpdateReturn } from '../../Models/retrun-model';
@@ -30,7 +30,7 @@ import { SearchSupplierModalComponent } from '../../search-supplier-modal/search
     ButtonModule,
     GridModule,
     GutterDirective,
-    FormCheckComponent,
+    TranslatePipe,
     FormCheckInputDirective,
     FormCheckLabelDirective,
     SearchSupplierModalComponent

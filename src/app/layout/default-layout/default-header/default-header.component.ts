@@ -1,4 +1,4 @@
-import {NgTemplateOutlet } from '@angular/common';
+import { NgTemplateOutlet } from '@angular/common';
 import { ChangeDetectorRef, Component, computed, inject, input } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { IconDirective } from '@coreui/icons-angular';
@@ -24,6 +24,8 @@ import {
 import { AuthService } from 'src/app/views/pages/Services/auth.service';
 import { SapAuthService } from 'src/app/views/settings/Auth/Services/sap-auth.service';
 import { Sap } from 'src/app/views/settings/Auth/Models/sap';
+import { AppLanguage, TranslationService } from 'src/app/core/i18n/translation.service';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 
 @Component({
@@ -34,12 +36,18 @@ import { Sap } from 'src/app/views/settings/Auth/Models/sap';
   imports: [ContainerComponent, HeaderTogglerDirective, SidebarToggleDirective, IconDirective, HeaderNavComponent,
      NavItemComponent, NavLinkDirective, RouterLink, RouterLinkActive,
      NgTemplateOutlet, BreadcrumbRouterComponent, DropdownComponent, DropdownToggleDirective,
-      DropdownMenuDirective, DropdownHeaderDirective, DropdownItemDirective, DropdownDividerDirective]
+      DropdownMenuDirective, DropdownHeaderDirective, DropdownItemDirective, DropdownDividerDirective, TranslatePipe]
 })
 export class DefaultHeaderComponent extends HeaderComponent {
 
   readonly #colorModeService = inject(ColorModeService);
+  readonly translationService = inject(TranslationService);
   readonly colorMode = this.#colorModeService.colorMode;
+  readonly currentLanguage = this.translationService.currentLanguage;
+  readonly languages: { code: AppLanguage; title: string; subtitle: string }[] = [
+    { code: 'en', title: 'English', subtitle: 'English' },
+    { code: 'ar', title: 'Arabic', subtitle: 'العربية' }
+  ];
 
   //  readonly authService = inject(AuthService);
 
@@ -210,6 +218,10 @@ export class DefaultHeaderComponent extends HeaderComponent {
    
       this.getAllSapsObserve();
     
+  }
+
+  async switchLanguage(language: AppLanguage): Promise<void> {
+    await this.translationService.setLanguage(language);
   }
 
 

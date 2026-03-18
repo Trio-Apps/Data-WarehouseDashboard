@@ -15,6 +15,7 @@ import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
 import { FinishedGoodItem, ProductionOrder, ProductionOrderItem } from '../Models/production.model';
 import { ProductionService } from '../Services/production.service';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-production-items',
@@ -29,7 +30,8 @@ import { ProductionService } from '../Services/production.service';
     UtilitiesModule,
     ModalModule,
     IconDirective,
-    DatePipe
+    DatePipe,
+    TranslatePipe
   ],
   templateUrl: './production-items.component.html',
   styleUrl: './production-items.component.scss'

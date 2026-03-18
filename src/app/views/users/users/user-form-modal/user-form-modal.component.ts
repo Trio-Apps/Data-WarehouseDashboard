@@ -23,6 +23,8 @@ import { SapAuthService } from '../../../settings/Auth/Services/sap-auth.service
 import { Sap } from '../../../settings/Auth/Models/sap-auth.model';
 import { UsersService } from '../../Services/users.service';
 import { Warehouse } from '../../../Inquiries/Models/warehouse.model';
+import { TranslatePipe } from '../../../../core/i18n/translate.pipe';
+import { TranslationService } from '../../../../core/i18n/translation.service';
 
 
 @Component({
@@ -40,7 +42,8 @@ import { Warehouse } from '../../../Inquiries/Models/warehouse.model';
     FormModule,
     GridModule,
     FormCheckInputDirective,
-    FormCheckLabelDirective
+    FormCheckLabelDirective,
+    TranslatePipe
   ],
   templateUrl: './user-form-modal.component.html',
   styleUrl: './user-form-modal.component.scss'
@@ -79,7 +82,8 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     private companiesService: CompaniesService,
     private sapAuthService: SapAuthService,
     private usersService: UsersService,
-    private cdr:ChangeDetectorRef
+    private cdr:ChangeDetectorRef,
+    private translationService: TranslationService
   ) {
     this.checkUserRole();
     this.setCompanyContext();
@@ -631,19 +635,22 @@ export class UserFormModalComponent implements OnInit, OnChanges {
     const field = this.userForm.get(fieldName);
     if (field && field.invalid && field.touched) {
       if (field.errors?.['required']) {
-        return `${this.getFieldLabel(fieldName)} is required`;
+        return this.translationService.translate('validation.required', { field: this.getFieldLabel(fieldName) });
       }
       if (field.errors?.['email']) {
-        return 'Please enter a valid email address';
+        return this.translationService.translate('validation.invalidEmail');
       }
       if (field.errors?.['minlength']) {
-        return `${this.getFieldLabel(fieldName)} must be at least ${field.errors['minlength'].requiredLength} characters`;
+        return this.translationService.translate('validation.minLength', {
+          field: this.getFieldLabel(fieldName),
+          count: field.errors['minlength'].requiredLength
+        });
       }
       if (field.errors?.['pattern']) {
-        return 'Please enter a valid phoneNumber number';
+        return this.translationService.translate('validation.invalidPhone');
       }
       if (field.errors?.['passwordMismatch']) {
-        return 'Passwords do not match';
+        return this.translationService.translate('validation.passwordMismatch');
       }
     }
     return '';
@@ -651,14 +658,13 @@ export class UserFormModalComponent implements OnInit, OnChanges {
 
   getFieldLabel(fieldName: string): string {
     const labels: { [key: string]: string } = {
-      // userName: 'Username',
-      email: 'Email',
-      fullName: 'Full Name',
-      phoneNumber: 'phoneNumber',
-      roles: 'roles',
-      companyId: 'Company',
-      password: 'Password',
-      confirmPassword: 'Confirm Password'
+      email: this.translationService.translate('users.fields.email'),
+      fullName: this.translationService.translate('users.fields.fullName'),
+      phoneNumber: this.translationService.translate('users.fields.phoneNumber'),
+      roles: this.translationService.translate('users.fields.roles'),
+      companyId: this.translationService.translate('users.fields.company'),
+      password: this.translationService.translate('users.fields.password'),
+      confirmPassword: this.translationService.translate('users.fields.confirmPassword')
     };
     return labels[fieldName] || fieldName;
   }

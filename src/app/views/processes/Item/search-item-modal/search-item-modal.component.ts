@@ -4,6 +4,7 @@ import { ButtonModule, FormModule, GridModule, ModalModule, TableModule } from '
 import { ToastrService } from 'ngx-toastr';
 import { Observable } from 'rxjs';
 import { Router } from '@angular/router';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 import {
   ItemsService,
   WarehouseItemLookup,
@@ -12,7 +13,7 @@ import {
 
 @Component({
   selector: 'app-search-item-modal',
-  imports: [CommonModule, ModalModule, ButtonModule, FormModule, GridModule, TableModule],
+  imports: [CommonModule, ModalModule, ButtonModule, FormModule, GridModule, TableModule, TranslatePipe],
   templateUrl: './search-item-modal.component.html',
   styleUrl: './search-item-modal.component.scss'
 })

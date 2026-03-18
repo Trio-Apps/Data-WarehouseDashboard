@@ -1,24 +1,23 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header">
-      <h4 class="mb-0 header-title">Warehouses</h4>
+      <h4 class="mb-0 header-title">{{ 'inquiries.processes.title' | translate }}</h4>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
-      <!-- Form Section -->
       <div class="form-section p-4">
         <form [formGroup]="form" (ngSubmit)="submit()">
           <c-row [gutter]="3" class="align-items-end">
             <c-col [md]="8">
               <label class="form-label">
-                Enter Warehouse Name <span class="text-danger">*</span>
+                {{ 'inquiries.shared.enterWarehouseName' | translate }} <span class="text-danger">*</span>
               </label>
 
               <div class="position-relative">
                 <input
                   cFormControl
                   type="text"
-                  placeholder="search..."
+                  [placeholder]="'inquiries.shared.searchPlaceholder' | translate"
                   class="form-control"
                   [class.is-invalid]="form.controls['warehouseId'].invalid && form.controls['warehouseId'].touched"
                   [matAutocomplete]="auto"
@@ -42,14 +41,14 @@
 
               @if (form.controls['warehouseId'].invalid && form.controls['warehouseId'].touched) {
                 <div class="invalid-feedback d-block">
-                  اختر المخزن
+                  {{ 'inquiries.shared.selectWarehouse' | translate }}
                 </div>
               }
             </c-col>
 
             <c-col [md]="4">
               <button cButton color="primary" type="submit" class="w-100">
-                Submit
+                {{ 'inquiries.shared.submit' | translate }}
               </button>
             </c-col>
           </c-row>

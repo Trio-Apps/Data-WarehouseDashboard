@@ -13,6 +13,8 @@ import {
 } from '@coreui/angular';
 import { Role } from '../../../roles/Models/role.model';
 import { AddApprovalStepDto, ApprovalStepDto, UpdateApprovalStepDto } from '../Models/approval-model';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
+import { TranslationService } from 'src/app/core/i18n/translation.service';
 
 @Component({
   selector: 'app-approval-form',
@@ -27,7 +29,8 @@ import { AddApprovalStepDto, ApprovalStepDto, UpdateApprovalStepDto } from '../M
     ModalFooterComponent,
     ButtonModule,
     FormModule,
-    GridModule
+    GridModule,
+    TranslatePipe
   ],
   templateUrl: './approval-form.component.html',
   styleUrl: './approval-form.component.scss',
@@ -44,7 +47,10 @@ export class ApprovalFormComponent implements OnInit, OnChanges {
 
   approvalForm!: FormGroup;
 
-  constructor(private fb: FormBuilder) {
+  constructor(
+    private fb: FormBuilder,
+    private translationService: TranslationService
+  ) {
     this.initForm();
   }
 
@@ -137,13 +143,19 @@ export class ApprovalFormComponent implements OnInit, OnChanges {
     const field = this.approvalForm.get(fieldName);
     if (field && field.invalid && field.touched) {
       if (field.errors?.['required']) {
-        return `${this.getFieldLabel(fieldName)} is required`;
+        return this.translationService.translate('validation.required', { field: this.getFieldLabel(fieldName) });
       }
       if (field.errors?.['maxlength']) {
-        return `${this.getFieldLabel(fieldName)} must be at most ${field.errors['maxlength'].requiredLength} characters`;
+        return this.translationService.translate('approvalProcess.validation.maxLength', {
+          field: this.getFieldLabel(fieldName),
+          count: field.errors['maxlength'].requiredLength
+        });
       }
       if (field.errors?.['min']) {
-        return `${this.getFieldLabel(fieldName)} must be at least ${field.errors['min'].min}`;
+        return this.translationService.translate('approvalProcess.validation.minValue', {
+          field: this.getFieldLabel(fieldName),
+          count: field.errors['min'].min
+        });
       }
     }
     return '';
@@ -151,9 +163,9 @@ export class ApprovalFormComponent implements OnInit, OnChanges {
 
   getFieldLabel(fieldName: string): string {
     const labels: { [key: string]: string } = {
-      stepName: 'Step Name',
-      stepOrder: 'Step Order',
-      roleId: 'Role'
+      stepName: this.translationService.translate('approvalProcess.fields.stepName'),
+      stepOrder: this.translationService.translate('approvalProcess.fields.stepOrder'),
+      roleId: this.translationService.translate('approvalProcess.fields.role')
     };
     return labels[fieldName] || fieldName;
   }

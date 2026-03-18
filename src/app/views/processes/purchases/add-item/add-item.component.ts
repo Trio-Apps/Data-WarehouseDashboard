@@ -16,6 +16,7 @@ import { ToastrService } from 'ngx-toastr';
 import { UoMGroup } from '../../barcodes/Models/item-barcode.model';
 import { SearchItemModalComponent } from '../../Item/search-item-modal/search-item-modal.component';
 import { WarehouseItemLookup } from '../../../Items/Services/items.service';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-add-item',
@@ -29,7 +30,8 @@ import { WarehouseItemLookup } from '../../../Items/Services/items.service';
     ReactiveFormsModule,
     GutterDirective,
     IconDirective,
-    SearchItemModalComponent
+    SearchItemModalComponent,
+    TranslatePipe
   ],
   templateUrl: './add-item.component.html',
   styleUrl: './add-item.component.scss',

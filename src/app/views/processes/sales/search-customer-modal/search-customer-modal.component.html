@@ -4,34 +4,34 @@
   size="lg"
   alignment="center">
   <c-modal-header>
-    <h5 cModalTitle>Search Customer</h5>
+    <h5 cModalTitle>{{ 'Search Customer' | translate }}</h5>
   </c-modal-header>
 
   <c-modal-body>
     <c-row [gutter]="3" class="align-items-end">
       <c-col [md]="5">
-        <label class="form-label">Customer Code</label>
+        <label class="form-label">{{ 'Customer Code' | translate }}</label>
         <input
           cFormControl
           type="text"
           class="form-control"
           [value]="customerModalCode"
           (input)="customerModalCode = $any($event.target).value"
-          placeholder="Enter customer code" />
+          [placeholder]="'Enter customer code' | translate" />
       </c-col>
       <c-col [md]="5">
-        <label class="form-label">Customer Name</label>
+        <label class="form-label">{{ 'Customer Name' | translate }}</label>
         <input
           cFormControl
           type="text"
           class="form-control"
           [value]="customerModalName"
           (input)="customerModalName = $any($event.target).value"
-          placeholder="Enter customer name" />
+          [placeholder]="'Enter customer name' | translate" />
       </c-col>
       <c-col [md]="2" class="d-grid">
         <button cButton color="primary" type="button" class="customer-modal-search-btn" (click)="onSearch()">
-          Search
+          {{ 'Search' | translate }}
         </button>
       </c-col>
     </c-row>
@@ -41,29 +41,29 @@
         <thead class="table-header">
           <tr>
             <th scope="col" class="bg-body-tertiary">#</th>
-            <th scope="col" class="bg-body-tertiary">Customer Code</th>
-            <th scope="col" class="bg-body-tertiary">Customer Name</th>
+            <th scope="col" class="bg-body-tertiary">{{ 'Customer Code' | translate }}</th>
+            <th scope="col" class="bg-body-tertiary">{{ 'Customer Name' | translate }}</th>
           </tr>
         </thead>
         <tbody>
           @if (customerModalLoading) {
           <tr>
             <td colspan="3" class="text-center py-4">
-              <span class="text-body-secondary">Loading...</span>
+              <span class="text-body-secondary">{{ 'Loading...' | translate }}</span>
             </td>
           </tr>
           } @else if (customerModalCustomers.length > 0) {
           @for (customer of customerModalCustomers; track customer.customerId || $index) {
           <tr class="customer-select-row" (click)="onSelectCustomer(customer)">
             <td>{{ (customerModalCurrentPage - 1) * customerModalItemsPerPage + $index + 1 }}</td>
-            <td>{{ customer.customerCode || 'N/A' }}</td>
-            <td>{{ customer.customerName || 'N/A' }}</td>
+            <td>{{ customer.customerCode || ('N/A' | translate) }}</td>
+            <td>{{ customer.customerName || ('N/A' | translate) }}</td>
           </tr>
           }
           } @else {
           <tr>
             <td colspan="3" class="text-center py-4">
-              <span class="text-body-secondary">No customers found</span>
+              <span class="text-body-secondary">{{ 'No customers found' | translate }}</span>
             </td>
           </tr>
           }
@@ -75,7 +75,7 @@
   <c-modal-footer class="justify-content-between">
     <div class="d-flex flex-column">
       @if (customerModalTotalPages > 0) {
-      <nav aria-label="Customer pagination">
+      <nav [attr.aria-label]="'Customer pagination' | translate">
         <ul class="pagination mb-1">
           <li class="page-item" [class.disabled]="!customerModalHasPrevious">
             <a
@@ -107,21 +107,19 @@
       }
       <small class="text-body-secondary">
         @if (customerModalTotalItems > 0) {
-          Showing {{ (customerModalCurrentPage - 1) * customerModalItemsPerPage + 1 }} to
-          {{ Math.min(customerModalCurrentPage * customerModalItemsPerPage, customerModalTotalItems) }}
-          of {{ customerModalTotalItems }} customers
+          {{ ('Showing ' + ((customerModalCurrentPage - 1) * customerModalItemsPerPage + 1) + ' to ' + Math.min(customerModalCurrentPage * customerModalItemsPerPage, customerModalTotalItems) + ' of ' + customerModalTotalItems + ' customers') | translate }}
         } @else {
-          No customers to display
+          {{ 'No customers to display' | translate }}
         }
       </small>
     </div>
 
     <div class="d-flex gap-2">
       <button cButton color="secondary" type="button" (click)="onClearSelection()">
-        Clear
+        {{ 'Clear' | translate }}
       </button>
       <button cButton color="secondary" type="button" (click)="onVisibleChange(false)">
-        Close
+        {{ 'Close' | translate }}
       </button>
     </div>
   </c-modal-footer>

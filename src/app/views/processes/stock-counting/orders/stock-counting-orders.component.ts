@@ -7,6 +7,7 @@ import { ToastrService } from 'ngx-toastr';
 import { catchError, finalize, of, retry, timeout } from 'rxjs';
 import { CountStockOrder } from '../Models/stock-counting.model';
 import { StockCountingService } from '../Services/stock-counting.service';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 type CountStockOrderView = CountStockOrder & {
   statusText: string;
@@ -25,7 +26,8 @@ type CountStockOrderView = CountStockOrder & {
     CardBodyComponent,
     ButtonDirective,
     TableModule,
-    IconDirective
+    IconDirective,
+    TranslatePipe
   ],
   templateUrl: './stock-counting-orders.component.html',
   styleUrl: './stock-counting-orders.component.scss'

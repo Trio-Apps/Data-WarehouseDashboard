@@ -7,7 +7,6 @@ import {
   ButtonModule,
   GridModule,
   GutterDirective,
-  FormCheckComponent,
   FormCheckInputDirective,
   FormCheckLabelDirective
 } from '@coreui/angular';
@@ -17,6 +16,7 @@ import { ReceiptService } from '../../Services/receipt.service';
 import { Receipt } from '../../Models/receipt';
 import { Supplier } from '../../Models/purchase.model';
 import { SearchSupplierModalComponent } from '../../search-supplier-modal/search-supplier-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-receipt-form',
@@ -28,10 +28,10 @@ import { SearchSupplierModalComponent } from '../../search-supplier-modal/search
     ButtonModule,
     GridModule,
     GutterDirective,
-    FormCheckComponent,
     FormCheckInputDirective,
     FormCheckLabelDirective,
-    SearchSupplierModalComponent
+    SearchSupplierModalComponent,
+    TranslatePipe
   ],
   templateUrl: './receipt-form.component.html',
   styleUrl: './receipt-form.component.scss',
