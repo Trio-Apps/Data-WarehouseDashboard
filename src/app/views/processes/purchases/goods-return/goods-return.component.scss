@@ -112,7 +112,8 @@ c-card.full-height-card{
 
 /* ===== Body container ===== */
 .card-body-container{
-  overflow:hidden;
+  overflow-x:hidden;
+  overflow-y:auto;
   display:flex;
   flex-direction:column;
   position:relative;

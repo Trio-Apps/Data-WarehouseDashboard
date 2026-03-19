@@ -181,7 +181,6 @@ export class PurchaseFormComponent implements OnInit {
 
     // Debug: Log the original dates
     //console.log('Original postingDate:', formValue.postingDate);
-    //console.log('Original dueDate:', formValue.dueDate);
     //console.log('PostingDate getDate():', formValue.postingDate?.getDate());
     //console.log('DueDate getDate():', formValue.dueDate?.getDate());
 

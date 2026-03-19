@@ -17,6 +17,7 @@ import { DeliveryNoteService } from '../Services/delivery-note.service';
 import { ApprovalService } from '../../approval-process/Services/approval.service';
 import { EditDeliveryNoteItemModalComponent } from './edit-delivery-note-item-modal/edit-delivery-note-item-modal.component';
 import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
+import { AttachmentsComponent } from '../../attachments/attachments.component';
 
 @Component({
   selector: 'app-delivery-notes',
@@ -33,6 +34,7 @@ import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
     DatePipe,
     EditDeliveryNoteItemModalComponent,
     TranslatePipe
+    AttachmentsComponent
   ],
   templateUrl: './delivery-notes.component.html',
   styleUrl: './delivery-notes.component.scss',
@@ -299,16 +301,25 @@ export class DeliveryNotesComponent implements OnInit {
     return this.deliveryItems.reduce((total, item) => total + item.quantity, 0);
   }
 
+  getDeliveryNoteDocumentId(): number | null {
+    const id = this.delivery?.deliveryNoteOrderId || this.deliveryNoteId;
+    return id && id > 0 ? id : null;
+  }
+
   getStatusBadgeClass(deliveryDto: DeliveryNote | null): string {
-    switch (deliveryDto?.status) {
-      case 'Draft':
-        return 'badge bg-warning';
-      case 'Processing':
-        return 'badge bg-info';
-      case 'Final':
-        return 'badge bg-success';
-      default:
-        return 'badge bg-secondary';
+    if (!deliveryDto || !deliveryDto.status) return 'badge bg-secondary';
+
+    const status = deliveryDto.status.toLowerCase();
+    if (status === 'draft' || status.includes('draft')) {
+      return 'badge bg-warning';
+    } else if (status === 'completed' || status.includes('completed')) {
+      return 'badge bg-success';
+    } else if (status === 'processing' || status.includes('processing')) {
+      return 'badge bg-info';
+    } else if (status === 'partiallyfailed' || status.includes('partiallyfailed')) {
+      return 'badge bg-danger';
+    } else {
+      return 'badge bg-secondary';
     }
   }
 

@@ -189,6 +189,14 @@
             </div>
           </div>
         }
+
+        <div class="mt-4">
+          <app-attachments
+            [title]="'Attachments'"
+            [documentType]="'Purchase'"
+            [documentId]="purchaseOrderId">
+          </app-attachments>
+        </div>
       </div>
     </c-card-body>
   </c-card>

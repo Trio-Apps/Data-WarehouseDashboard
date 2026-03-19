@@ -236,6 +236,14 @@
             </div>
           </div>
         }
+
+        <div class="mt-4">
+          <app-attachments
+            [title]="'Attachments'"
+            [documentType]="'GoodsReturn'"
+            [documentId]="getGoodsReturnDocumentId()">
+          </app-attachments>
+        </div>
       </div>
     </c-card-body>
   </c-card>

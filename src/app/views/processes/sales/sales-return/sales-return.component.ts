@@ -16,6 +16,7 @@ import { Return, ReturnItem } from '../Models/sales-return-model';
 import { SalesReturnService } from '../Services/sales-return.service';
 import { ApprovalService } from '../../approval-process/Services/approval.service';
 import { EditReturnItemModalComponent } from './edit-return-item-modal/edit-return-item-modal.component';
+import { AttachmentsComponent } from '../../attachments/attachments.component';
 
 @Component({
   selector: 'app-sales-return',
@@ -30,7 +31,8 @@ import { EditReturnItemModalComponent } from './edit-return-item-modal/edit-retu
     ModalModule,
     IconDirective,
     DatePipe,
-    EditReturnItemModalComponent
+    EditReturnItemModalComponent,
+    AttachmentsComponent
   ],
   templateUrl: './sales-return.component.html',
   styleUrl: './sales-return.component.scss',
@@ -327,16 +329,25 @@ export class SalesReturnComponent implements OnInit {
     return this.returnItems.reduce((total, item) => total + item.quantity, 0);
   }
 
+  getSalesReturnDocumentId(): number | null {
+    const id = this.return?.salesReturnOrderId || this.salesReturnId;
+    return id && id > 0 ? id : null;
+  }
+
   getStatusBadgeClass(returnDto: Return | null): string {
-    switch (returnDto?.status) {
-      case 'Draft':
-        return 'badge bg-warning';
-      case 'Processing':
-        return 'badge bg-info';
-      case 'Final':
-        return 'badge bg-success';
-      default:
-        return 'badge bg-secondary';
+    if (!returnDto || !returnDto.status) return 'badge bg-secondary';
+
+    const status = returnDto.status.toLowerCase();
+    if (status === 'draft' || status.includes('draft')) {
+      return 'badge bg-warning';
+    } else if (status === 'completed' || status.includes('completed')) {
+      return 'badge bg-success';
+    } else if (status === 'processing' || status.includes('processing')) {
+      return 'badge bg-info';
+    } else if (status === 'partiallyfailed' || status.includes('partiallyfailed')) {
+      return 'badge bg-danger';
+    } else {
+      return 'badge bg-secondary';
     }
   }
 
