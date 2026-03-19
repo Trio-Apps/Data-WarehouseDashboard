@@ -16,6 +16,7 @@ import { Purchase, PurchaseItem } from '../Models/purchase.model';
 import { EditItemModalComponent } from '../edit-item-modal/edit-item-modal.component';
 import { ToastrService } from 'ngx-toastr';
 import { ApprovalService } from '../../approval-process/Services/approval.service';
+import { AttachmentsComponent } from '../../attachments/attachments.component';
 
 @Component({
   selector: 'app-purchase-items',
@@ -30,7 +31,8 @@ import { ApprovalService } from '../../approval-process/Services/approval.servic
     ModalModule,
     IconDirective,
     DatePipe,
-    EditItemModalComponent
+    EditItemModalComponent,
+    AttachmentsComponent
   ],
   templateUrl: './purchase-items.component.html',
   styleUrl: './purchase-items.component.scss',
@@ -223,7 +225,7 @@ export class PurchaseItemsComponent implements OnInit {
 
   getTotalValue(): number {
     // This would need pricing information from the API
-    // For now, return 0
+    // For now, return 
     return 0;
   }
 

@@ -18,6 +18,7 @@ import { ApprovalService } from '../../approval-process/Services/approval.servic
 import { EditItemModalComponent } from '../edit-item-modal/edit-item-modal.component';
 import { AddReturnItemModalComponent } from '../sales-return/add-return-item-modal/add-return-item-modal.component';
 import { ReturnItem } from '../Models/sales-return-model';
+import { AttachmentsComponent } from '../../attachments/attachments.component';
 
 @Component({
   selector: 'app-sales-items',
@@ -33,7 +34,8 @@ import { ReturnItem } from '../Models/sales-return-model';
     IconDirective,
     DatePipe,
     EditItemModalComponent,
-    AddReturnItemModalComponent
+    AddReturnItemModalComponent,
+    AttachmentsComponent
   ],
   templateUrl: './sales-items.component.html',
   styleUrl: './sales-items.component.scss',
@@ -227,14 +229,17 @@ export class SalesItemsComponent implements OnInit {
     return this.SaleItems.reduce((total, item) => total + item.quantity, 0);
   }
 
+  getSalesDocumentId(): number | null {
+    const id = this.Sale?.salesOrderId || this.salesOrderId;
+    return id && id > 0 ? id : null;
+  }
+
   getStatusBadgeClass(Sale: Sales | null): string {
     if (!Sale || !Sale.status) return 'badge bg-secondary';
 
     const status = Sale.status.toLowerCase();
     if (status === 'draft' || status.includes('draft')) {
       return 'badge bg-warning';
-    } else if (status === 'final' || status.includes('final')) {
-      return 'badge bg-success';
     } else if (status === 'completed' || status.includes('completed')) {
       return 'badge bg-success';
     } else if (status === 'processing' || status.includes('processing')) {

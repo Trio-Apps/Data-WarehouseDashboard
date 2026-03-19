@@ -16,6 +16,7 @@ import { GoodsReturnService } from '../Services/goods-return.service';
 import { Return, ReturnItem } from '../Models/retrun-model';
 import { EditReturnItemModalComponent } from './edit-return-item-modal/edit-return-item-modal.component';
 import { ApprovalService } from '../../approval-process/Services/approval.service';
+import { AttachmentsComponent } from '../../attachments/attachments.component';
 
 @Component({
   selector: 'app-goods-return',
@@ -31,7 +32,8 @@ import { ApprovalService } from '../../approval-process/Services/approval.servic
     ModalModule,
     IconDirective,
     DatePipe,
-    EditReturnItemModalComponent
+    EditReturnItemModalComponent,
+    AttachmentsComponent
   ],
   templateUrl: './goods-return.component.html',
   styleUrl: './goods-return.component.scss',
@@ -284,16 +286,30 @@ export class GoodsReturnComponent implements OnInit {
     return this.returnItems.reduce((total, item) => total + item.quantity, 0);
   }
 
+  getGoodsReturnDocumentId(): number | null {
+    const id = this.return?.goodsReturnOrderId || this.goodsReturnId;
+    return id && id > 0 ? id : null;
+  }
+
   getStatusBadgeClass(returnDto: Return | null): string {
-    switch (returnDto?.status) {
-      case 'Draft':
-        return 'badge bg-warning';
-      case 'Processing':
-        return 'badge bg-info';
-      case 'Final':
-        return 'badge bg-success';
-      default:
-        return 'badge bg-secondary';
+    if (!returnDto || !returnDto.status) return 'badge bg-secondary';
+
+    const status = returnDto.status.toLowerCase();
+    if (status === 'draft' || status.includes('draft')) {
+      return 'badge bg-warning';
+    } else if (
+      status === 'completed' ||
+      status.includes('completed') ||
+      status === 'final' ||
+      status.includes('final')
+    ) {
+      return 'badge bg-success';
+    } else if (status === 'processing' || status.includes('processing')) {
+      return 'badge bg-info';
+    } else if (status === 'partiallyfailed' || status.includes('partiallyfailed')) {
+      return 'badge bg-danger';
+    } else {
+      return 'badge bg-secondary';
     }
   }
 

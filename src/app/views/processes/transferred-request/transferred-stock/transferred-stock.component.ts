@@ -18,6 +18,7 @@ import { TransferredRequestService } from '../Services/transferred-request.servi
 import { TransferredStockService } from '../Services/transferred-stock.service';
 import { TransferredItem, TransferredStock } from '../Models/transferred-stock.model';
 import { TransferredRequest } from '../Models/transferred-request.model';
+import { AttachmentsComponent } from '../../attachments/attachments.component';
 
 @Component({
   selector: 'app-transferred-stock',
@@ -32,7 +33,8 @@ import { TransferredRequest } from '../Models/transferred-request.model';
     ModalModule,
     IconDirective,
     DatePipe,
-    EditTransferredStockItemModalComponent
+    EditTransferredStockItemModalComponent,
+    AttachmentsComponent
   ],
   templateUrl: './transferred-stock.component.html',
   styleUrl: './transferred-stock.component.scss'
@@ -359,26 +361,25 @@ export class TransferredStockComponent implements OnInit {
     return this.items.reduce((total, item) => total + Number(item.quantity || 0), 0);
   }
 
+  getTransferredStockDocumentId(): number | null {
+    const id = this.transferredStock?.transferredStockId || this.transferredStockId;
+    return id && id > 0 ? id : null;
+  }
   getStatusBadgeClass(stock: TransferredStock | null): string {
-    if (!stock?.status) {
-      return 'badge bg-secondary';
-    }
+    if (!stock || !stock.status) return 'badge bg-secondary';
 
     const status = stock.status.toLowerCase();
     if (status === 'draft' || status.includes('draft')) {
       return 'badge bg-warning';
-    }
-    if (status === 'completed' || status.includes('completed')) {
+    } else if (status === 'completed' || status.includes('completed')) {
       return 'badge bg-success';
-    }
-    if (status === 'processing' || status.includes('processing')) {
+    } else if (status === 'processing' || status.includes('processing')) {
       return 'badge bg-info';
-    }
-    if (status === 'partiallyfailed' || status.includes('partiallyfailed')) {
+    } else if (status === 'partiallyfailed' || status.includes('partiallyfailed')) {
       return 'badge bg-danger';
+    } else {
+      return 'badge bg-secondary';
     }
-
-    return 'badge bg-secondary';
   }
 
   getStatusText(stock: TransferredStock | null): string {

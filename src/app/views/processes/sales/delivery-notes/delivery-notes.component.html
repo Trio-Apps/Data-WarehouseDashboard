@@ -222,6 +222,14 @@
             </div>
           </div>
         }
+
+        <div class="mt-4">
+          <app-attachments
+            [title]="'Attachments'"
+            [documentType]="'DeliveryNote'"
+            [documentId]="getDeliveryNoteDocumentId()">
+          </app-attachments>
+        </div>
       </div>
     </c-card-body>
   </c-card>

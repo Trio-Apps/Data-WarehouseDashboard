@@ -18,6 +18,7 @@ import { Receipt, ReceiptItem } from '../Models/receipt';
 import { AddReturnItemModalComponent } from '../goods-return/add-return-item-modal/add-return-item-modal.component';
 import { EditReceiptItemModalComponent } from './edit-receipt-item-modal/edit-receipt-item-modal.component';
 import { ApprovalService } from '../../approval-process/Services/approval.service';
+import { AttachmentsComponent } from '../../attachments/attachments.component';
 
 @Component({
   selector: 'app-receipt-order',
@@ -33,7 +34,8 @@ import { ApprovalService } from '../../approval-process/Services/approval.servic
     IconDirective,
     DatePipe,
     EditReceiptItemModalComponent,
-    AddReturnItemModalComponent
+    AddReturnItemModalComponent,
+    AttachmentsComponent
   ],
   templateUrl: './receipt-order.component.html',
   styleUrl: './receipt-order.component.scss',
@@ -278,17 +280,31 @@ export class ReceiptOrderComponent implements OnInit {
   getTotalQuantity(): number {
     return this.receiptItems.reduce((total, item) => total + item.quantity, 0);
   }
+
+  getReceiptDocumentId(): number | null {
+    const id = this.receipt?.receiptPurchaseOrderId || this.receiptOrderId;
+    return id && id > 0 ? id : null;
+  }
   
-  getStatusBadgeClass(receipt: Receipt): string {
-    switch (receipt.status) {
-      case 'Draft':
-        return 'badge bg-warning';
-      case 'Processing':
-        return 'badge bg-info';
-      case 'Final':
-        return 'badge bg-success';
-      default:
-        return 'badge bg-secondary';
+  getStatusBadgeClass(receipt: Receipt | null): string {
+    if (!receipt || !receipt.status) return 'badge bg-secondary';
+
+    const status = receipt.status.toLowerCase();
+    if (status === 'draft' || status.includes('draft')) {
+      return 'badge bg-warning';
+    } else if (
+      status === 'completed' ||
+      status.includes('completed') ||
+      status === 'final' ||
+      status.includes('final')
+    ) {
+      return 'badge bg-success';
+    } else if (status === 'processing' || status.includes('processing')) {
+      return 'badge bg-info';
+    } else if (status === 'partiallyfailed' || status.includes('partiallyfailed')) {
+      return 'badge bg-danger';
+    } else {
+      return 'badge bg-secondary';
     }
   }
   getStatusText(receipt: Receipt | null): string {
