@@ -101,12 +101,18 @@ export class TranslationService {
       return;
     }
 
-    const response = await firstValueFrom(
-      this.http.get<LocalizationApiResponse>(`${this.localizationApiBaseUrl}/Localization/${language}`)
-    );
+    try {
+      const response = await firstValueFrom(
+        this.http.get<LocalizationApiResponse>(`${this.localizationApiBaseUrl}/Localization/${language}`)
+      );
 
-    this.cache.set(language, response.data);
-    this.literalTranslationCache.set(language, response.literalTranslations ?? {});
+      this.cache.set(language, response.data);
+      this.literalTranslationCache.set(language, response.literalTranslations ?? {});
+    } catch (error) {
+      console.warn(`Failed to load ${language} translations from API. Falling back to empty translations.`, error);
+      this.cache.set(language, {});
+      this.literalTranslationCache.set(language, {});
+    }
   }
 
   private resolveKey(dictionary: TranslationDictionary, key: string): string | TranslationDictionary | undefined {
