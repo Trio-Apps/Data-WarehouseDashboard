@@ -1,15 +1,15 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">Stock Counting Orders - Warehouse #{{ warehouseId }}</h4>
+      <h4 class="mb-0 header-title">{{ 'stockCounting.orders.title' | translate }} - {{ 'Warehouse' | translate }} #{{ warehouseId }}</h4>
       <div class="d-flex gap-2">
         <button cButton color="secondary" class="header-button" (click)="onBack()">
           <svg cIcon name="cil-arrow-left" class="me-2"></svg>
-          Back
+          {{ 'Back' | translate }}
         </button>
         <button cButton color="primary" class="header-button" (click)="onAddOrder()">
           <svg cIcon name="cil-plus" class="me-2"></svg>
-          New Order
+          {{ 'stockCounting.orders.newOrder' | translate }}
         </button>
       </div>
     </c-card-header>
@@ -20,25 +20,25 @@
           <thead class="table-header">
             <tr>
               <th scope="col" class="bg-body-tertiary">#</th>
-              <th scope="col" class="bg-body-tertiary">Order ID</th>
-              <th scope="col" class="bg-body-tertiary">Posting Date</th>
-              <th scope="col" class="bg-body-tertiary">Status</th>
-              <th scope="col" class="bg-body-tertiary">Mode</th>
-              <th scope="col" class="bg-body-tertiary">Comment</th>
-              <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'stockCounting.fields.orderId' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Posting Date' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Status' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'stockCounting.fields.mode' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Comment' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary text-center">{{ 'Actions' | translate }}</th>
             </tr>
           </thead>
           <tbody>
             @if (loading) {
               <tr>
                 <td colspan="7" class="text-center py-4">
-                  <span class="text-body-secondary">Loading...</span>
+                  <span class="text-body-secondary">{{ 'Loading...' | translate }}</span>
                 </td>
               </tr>
             } @else if (orders.length === 0) {
               <tr>
                 <td colspan="7" class="text-center py-4">
-                  <span class="text-body-secondary">No orders found.</span>
+                  <span class="text-body-secondary">{{ 'stockCounting.orders.noOrders' | translate }}</span>
                 </td>
               </tr>
               } @else {
@@ -47,20 +47,20 @@
                   <td>{{ (currentPage - 1) * itemsPerPage + i + 1 }}</td>
                   <td>{{ order.countStockId }}</td>
                   <td>{{ order.postingDate | date:'yyyy-MM-dd' }}</td>
-                  <td><span [class]="order.statusBadgeClass">{{ order.statusText }}</span></td>
-                  <td>{{ order.modeText }}</td>
+                  <td><span [class]="order.statusBadgeClass">{{ order.statusText | translate }}</span></td>
+                  <td>{{ ('stockCounting.mode.' + order.modeText) | translate }}</td>
                   <td>{{ order.comment || '-' }}</td>
                   <td class="text-center d-flex gap-1 justify-content-center">
-                    <button cButton color="primary" size="sm" (click)="onOpenItems(order)" title="Items">
+                    <button cButton color="primary" size="sm" (click)="onOpenItems(order)" [title]="'Items' | translate">
                       <svg cIcon name="cil-list-rich"></svg>
                     </button>
-                    <button cButton color="info" size="sm" (click)="onEditOrder(order)" title="Edit">
+                    <button cButton color="info" size="sm" (click)="onEditOrder(order)" [title]="'Edit' | translate">
                       <svg cIcon name="cil-pencil"></svg>
                     </button>
-                    <button cButton color="danger" size="sm" (click)="onDeleteOrder(order)" title="Delete">
+                    <button cButton color="danger" size="sm" (click)="onDeleteOrder(order)" [title]="'Delete' | translate">
                       <svg cIcon name="cil-trash"></svg>
                     </button>
-                    <button cButton color="success" size="sm" [disabled]="!order.canSubmit" (click)="onSubmit(order)" title="Submit">
+                    <button cButton color="success" size="sm" [disabled]="!order.canSubmit" (click)="onSubmit(order)" [title]="'Submit' | translate">
                       <svg cIcon name="cil-check-circle"></svg>
                     </button>
                   </td>
@@ -73,13 +73,13 @@
 
       @if (totalPages > 0) {
       <div class="pagination-container p-3 border-top">
-        <nav aria-label="Page navigation">
+        <nav [attr.aria-label]="'Page navigation' | translate">
           <ul class="pagination justify-content-center mb-2">
             <li class="page-item" [class.disabled]="!hasPrevious">
               <a
                 class="page-link"
                 (click)="onPreviousPage($event)"
-                [attr.aria-label]="'Previous'"
+                [attr.aria-label]="'Previous' | translate"
                 [attr.tabindex]="!hasPrevious ? -1 : null"
                 [class.disabled]="!hasPrevious"
                 href="#">
@@ -97,7 +97,7 @@
               <a
                 class="page-link"
                 (click)="onNextPage($event)"
-                [attr.aria-label]="'Next'"
+                [attr.aria-label]="'Next' | translate"
                 [attr.tabindex]="!hasNext ? -1 : null"
                 [class.disabled]="!hasNext"
                 href="#">
@@ -108,9 +108,11 @@
         </nav>
 
         <div class="text-body-secondary small text-center">
-          Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
-          {{ Math.min(currentPage * itemsPerPage, totalItems) }}
-          of {{ totalItems }} stock counting orders
+          {{ 'stockCounting.orders.paginationSummary' | translate:{
+            from: ((currentPage - 1) * itemsPerPage + 1),
+            to: Math.min(currentPage * itemsPerPage, totalItems),
+            total: totalItems
+          } }}
         </div>
       </div>
       }

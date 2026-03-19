@@ -10,6 +10,7 @@ import {
 import { ToastrService } from 'ngx-toastr';
 import { SalesService } from '../Services/sales.service';
 import { Customer } from '../Models/sales-model';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-search-customer-modal',
@@ -19,7 +20,8 @@ import { Customer } from '../Models/sales-model';
     ButtonModule,
     FormModule,
     GridModule,
-    TableModule
+    TableModule,
+    TranslatePipe
   ],
   templateUrl: './search-customer-modal.component.html',
   styleUrl: './search-customer-modal.component.scss',

@@ -1,33 +1,33 @@
 <c-modal [visible]="visible" (visibleChange)="onVisibleChange($event)" size="lg" alignment="center">
   <c-modal-header>
-    <h5 cModalTitle>Search Destination Warehouse</h5>
+    <h5 cModalTitle>{{ 'destinationWarehouseModal.title' | translate }}</h5>
   </c-modal-header>
 
   <c-modal-body>
     <c-row [gutter]="3" class="align-items-end">
       <c-col [md]="5">
-        <label class="form-label">Warehouse Code</label>
+        <label class="form-label">{{ 'destinationWarehouseModal.fields.code' | translate }}</label>
         <input
           cFormControl
           type="text"
           class="form-control"
           [value]="warehouseModalCode"
           (input)="warehouseModalCode = $any($event.target).value"
-          placeholder="Enter warehouse code" />
+          [placeholder]="'destinationWarehouseModal.placeholders.code' | translate" />
       </c-col>
       <c-col [md]="5">
-        <label class="form-label">Warehouse Name</label>
+        <label class="form-label">{{ 'destinationWarehouseModal.fields.name' | translate }}</label>
         <input
           cFormControl
           type="text"
           class="form-control"
           [value]="warehouseModalName"
           (input)="warehouseModalName = $any($event.target).value"
-          placeholder="Enter warehouse name" />
+          [placeholder]="'destinationWarehouseModal.placeholders.name' | translate" />
       </c-col>
       <c-col [md]="2" class="d-grid">
         <button cButton color="primary" type="button" class="supplier-modal-search-btn" (click)="onSearch()">
-          Search
+          {{ 'common.search' | translate }}
         </button>
       </c-col>
     </c-row>
@@ -37,29 +37,29 @@
         <thead class="table-header">
           <tr>
             <th scope="col" class="bg-body-tertiary">#</th>
-            <th scope="col" class="bg-body-tertiary">Warehouse Code</th>
-            <th scope="col" class="bg-body-tertiary">Warehouse Name</th>
+            <th scope="col" class="bg-body-tertiary">{{ 'destinationWarehouseModal.fields.code' | translate }}</th>
+            <th scope="col" class="bg-body-tertiary">{{ 'destinationWarehouseModal.fields.name' | translate }}</th>
           </tr>
         </thead>
         <tbody>
           @if (warehouseModalLoading) {
           <tr>
             <td colspan="3" class="text-center py-4">
-              <span class="text-body-secondary">Loading...</span>
+              <span class="text-body-secondary">{{ 'common.loading' | translate }}</span>
             </td>
           </tr>
           } @else if (warehouseModalFilteredWarehouses.length > 0) {
           @for (warehouse of warehouseModalFilteredWarehouses; track warehouse.warehouseId || $index) {
           <tr class="supplier-select-row" (click)="onSelectWarehouse(warehouse)">
             <td>{{ (warehouseModalCurrentPage - 1) * warehouseModalItemsPerPage + $index + 1 }}</td>
-            <td>{{ warehouse.warehouseCode || 'N/A' }}</td>
-            <td>{{ warehouse.warehouseName || 'N/A' }}</td>
+            <td>{{ warehouse.warehouseCode || ('common.notAvailable' | translate) }}</td>
+            <td>{{ warehouse.warehouseName || ('common.notAvailable' | translate) }}</td>
           </tr>
           }
           } @else {
           <tr>
             <td colspan="3" class="text-center py-4">
-              <span class="text-body-secondary">No warehouses found</span>
+              <span class="text-body-secondary">{{ 'destinationWarehouseModal.messages.noWarehouses' | translate }}</span>
             </td>
           </tr>
           }
@@ -71,7 +71,7 @@
   <c-modal-footer class="justify-content-between">
     <div class="d-flex flex-column">
       @if (warehouseModalTotalPages > 0) {
-      <nav aria-label="Warehouse pagination">
+      <nav [attr.aria-label]="'destinationWarehouseModal.pagination.ariaLabel' | translate">
         <ul class="pagination mb-1">
           <li class="page-item" [class.disabled]="!warehouseModalHasPrevious">
             <a
@@ -103,16 +103,22 @@
       }
       <small class="text-body-secondary">
         @if (warehouseModalTotalItems > 0) {
-        Showing {{ (warehouseModalCurrentPage - 1) * warehouseModalItemsPerPage + 1 }} to
-        {{ Math.min(warehouseModalCurrentPage * warehouseModalItemsPerPage, warehouseModalTotalItems) }} of
-        {{ warehouseModalTotalItems }} warehouses
-        } @else { No warehouses to display }
+        {{ 'destinationWarehouseModal.pagination.summary' | translate: {
+          from: (warehouseModalCurrentPage - 1) * warehouseModalItemsPerPage + 1,
+          to: Math.min(warehouseModalCurrentPage * warehouseModalItemsPerPage, warehouseModalTotalItems),
+          total: warehouseModalTotalItems
+        } }}
+        } @else { {{ 'destinationWarehouseModal.messages.noWarehousesToDisplay' | translate }} }
       </small>
     </div>
 
     <div class="d-flex gap-2">
-      <button cButton color="secondary" type="button" (click)="onClearSelection()">Clear</button>
-      <button cButton color="secondary" type="button" (click)="onVisibleChange(false)">Close</button>
+      <button cButton color="secondary" type="button" (click)="onClearSelection()">
+        {{ 'destinationWarehouseModal.actions.clear' | translate }}
+      </button>
+      <button cButton color="secondary" type="button" (click)="onVisibleChange(false)">
+        {{ 'destinationWarehouseModal.actions.close' | translate }}
+      </button>
     </div>
   </c-modal-footer>
 </c-modal>

@@ -18,6 +18,7 @@ import {MatFormFieldModule} from '@angular/material/form-field';
 import { MatAutocompleteModule } from '@angular/material/autocomplete';
 import { MatButtonModule } from '@angular/material/button';
 import { ToastrService } from 'ngx-toastr';
+import { TranslatePipe } from '../../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-item-inquiry',
@@ -33,7 +34,8 @@ import { ToastrService } from 'ngx-toastr';
     MatButtonModule, 
     MatFormFieldModule, 
     MatInputModule, 
-    MatSelectModule
+    MatSelectModule,
+    TranslatePipe
   ],
   templateUrl: './item-inquiry.component.html',
   styleUrl: './item-inquiry.component.scss',

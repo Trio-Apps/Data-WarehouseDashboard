@@ -4,24 +4,24 @@
   size="lg"
   alignment="center">
   <c-modal-header>
-    <h5 cModalTitle>Search Item</h5>
+    <h5 cModalTitle>{{ 'Search Item' | translate }}</h5>
   </c-modal-header>
 
   <c-modal-body>
     <c-row [gutter]="3" class="align-items-end">
       <c-col [md]="10">
-        <label class="form-label">Item Code / Item Name</label>
+        <label class="form-label">{{ 'Item Code / Item Name' | translate }}</label>
         <input
           cFormControl
           type="text"
           class="form-control"
           [value]="itemModalSearchTerm"
           (input)="itemModalSearchTerm = $any($event.target).value"
-          placeholder="Enter item code or item name" />
+          [placeholder]="'Enter item code or item name' | translate" />
       </c-col>
       <c-col [md]="2" class="d-grid">
         <button cButton color="primary" type="button" class="item-modal-search-btn" (click)="onSearch()">
-          Search
+          {{ 'Search' | translate }}
         </button>
       </c-col>
     </c-row>
@@ -31,15 +31,15 @@
         <thead class="table-header">
           <tr>
             <th scope="col" class="bg-body-tertiary">#</th>
-            <th scope="col" class="bg-body-tertiary">Item Code</th>
-            <th scope="col" class="bg-body-tertiary">Item Name</th>
+            <th scope="col" class="bg-body-tertiary">{{ 'Item Code' | translate }}</th>
+            <th scope="col" class="bg-body-tertiary">{{ 'Item Name' | translate }}</th>
           </tr>
         </thead>
         <tbody>
           @if (itemModalLoading) {
           <tr>
             <td colspan="3" class="text-center py-4">
-              <span class="text-body-secondary">Loading...</span>
+              <span class="text-body-secondary">{{ 'Loading...' | translate }}</span>
             </td>
           </tr>
           } @else if (itemModalItems.length > 0) {
@@ -53,7 +53,7 @@
           } @else {
           <tr>
             <td colspan="3" class="text-center py-4">
-              <span class="text-body-secondary">No items found</span>
+              <span class="text-body-secondary">{{ 'No items found' | translate }}</span>
             </td>
           </tr>
           }
@@ -65,7 +65,7 @@
   <c-modal-footer class="justify-content-between">
     <div class="d-flex flex-column">
       @if (itemModalTotalPages > 0) {
-      <nav aria-label="Item pagination">
+      <nav [attr.aria-label]="'Item pagination' | translate">
         <ul class="pagination mb-1">
           <li class="page-item" [class.disabled]="!itemModalHasPrevious">
             <a
@@ -94,21 +94,21 @@
 
       <small class="text-body-secondary">
         @if (itemModalTotalItems > 0) {
-        Showing {{ (itemModalCurrentPage - 1) * itemModalItemsPerPage + 1 }} to
-        {{ Math.min(itemModalCurrentPage * itemModalItemsPerPage, itemModalTotalItems) }}
-        of {{ itemModalTotalItems }} items
+        {{ ('Showing ' + ((itemModalCurrentPage - 1) * itemModalItemsPerPage + 1) + ' to ' +
+        Math.min(itemModalCurrentPage * itemModalItemsPerPage, itemModalTotalItems) +
+        ' of ' + itemModalTotalItems + ' items') | translate }}
         } @else {
-        No items to display
+        {{ 'No items to display' | translate }}
         }
       </small>
     </div>
 
     <div class="d-flex gap-2">
       <button cButton color="secondary" type="button" (click)="onClearSelection()">
-        Clear
+        {{ 'Clear' | translate }}
       </button>
       <button cButton color="secondary" type="button" (click)="onVisibleChange(false)">
-        Close
+        {{ 'Close' | translate }}
       </button>
     </div>
   </c-modal-footer>

@@ -20,6 +20,7 @@ import { DeliveryNote } from '../../Models/delivery-note-model';
 import { Customer } from '../../Models/sales-model';
 import { ApprovalService } from '../../../approval-process/Services/approval.service';
 import { SearchCustomerModalComponent } from '../../search-customer-modal/search-customer-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 type DeliveryNoteOrderListItem = DeliveryNote & {
   salesOrderId?: number;
@@ -48,7 +49,8 @@ type DeliveryNoteOrderListItem = DeliveryNote & {
     ModalModule,
     IconDirective,
     DatePipe,
-    SearchCustomerModalComponent
+    SearchCustomerModalComponent,
+    TranslatePipe
   ],
   templateUrl: './delivery-note-orders.component.html',
   styleUrl: './delivery-note-orders.component.scss',

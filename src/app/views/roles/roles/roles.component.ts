@@ -16,6 +16,7 @@ import { AddRoleWithPermissions, Role, RoleFormPayload, UpdateRoleWithPermission
 import { RoleFormModalComponent } from './role-form-modal/role-form-modal.component';
 import { ToastrService } from 'ngx-toastr';
 import { AuthService } from '../../pages/Services/auth.service';
+import { TranslationService } from 'src/app/core/i18n/translation.service';
 
 @Component({
   selector: 'app-roles',
@@ -72,7 +73,8 @@ export class RolesComponent implements OnInit, OnDestroy {
     private rolesService: RolesService,
     private authService: AuthService,
     private cdr: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private translationService: TranslationService
   ) {
     this.checkPermissions();
     this.form = this.fb.group({
@@ -360,7 +362,7 @@ export class RolesComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (confirm(`Are you sure you want to delete role: ${role.roleName}?`)) {
+    if (confirm(this.translationService.translate(`Are you sure you want to delete role: ${role.roleName}?`))) {
       if (role.id) {
         this.rolesService.deleteRole(role.roleName).subscribe({
           next: () => {

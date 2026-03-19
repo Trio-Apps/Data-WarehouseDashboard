@@ -19,6 +19,7 @@ import { TransferredStockService } from '../../Services/transferred-stock.servic
 import { DestinationWarehouse } from '../../Models/transferred-request.model';
 import { TransferredStock } from '../../Models/transferred-stock.model';
 import { SearchDestinationWarehouseModalComponent } from '../../search-destination-warehouse-modal/search-destination-warehouse-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-transferred-stock-orders',
@@ -35,7 +36,8 @@ import { SearchDestinationWarehouseModalComponent } from '../../search-destinati
     ModalModule,
     IconDirective,
     DatePipe,
-    SearchDestinationWarehouseModalComponent
+    SearchDestinationWarehouseModalComponent,
+    TranslatePipe
   ],
   templateUrl: './transferred-stock-orders.component.html',
   styleUrl: './transferred-stock-orders.component.scss'

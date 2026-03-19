@@ -18,6 +18,7 @@ import { ToastrService } from 'ngx-toastr';
 import { TransferredRequestService } from './Services/transferred-request.service';
 import { DestinationWarehouse, TransferredRequest } from './Models/transferred-request.model';
 import { SearchDestinationWarehouseModalComponent } from './search-destination-warehouse-modal/search-destination-warehouse-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-transferred-request',
@@ -34,7 +35,8 @@ import { SearchDestinationWarehouseModalComponent } from './search-destination-w
     ModalModule,
     IconDirective,
     DatePipe,
-    SearchDestinationWarehouseModalComponent
+    SearchDestinationWarehouseModalComponent,
+    TranslatePipe
   ],
   templateUrl: './transferred-request.component.html',
   styleUrl: './transferred-request.component.scss'

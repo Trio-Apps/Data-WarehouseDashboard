@@ -17,6 +17,7 @@ import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
 import { QuantityAdjustmentStockService } from '../../Services/quantity-adjustment-stock.service';
 import { QuantityAdjustmentStock } from '../../Models/quantity-adjustment-stock.model';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-quantity-adjustment-stock-orders',
@@ -32,7 +33,8 @@ import { QuantityAdjustmentStock } from '../../Models/quantity-adjustment-stock.
     UtilitiesModule,
     ModalModule,
     IconDirective,
-    DatePipe
+    DatePipe,
+    TranslatePipe
   ],
   templateUrl: './quantity-adjustment-stock-orders.component.html',
   styleUrl: './quantity-adjustment-stock-orders.component.scss'

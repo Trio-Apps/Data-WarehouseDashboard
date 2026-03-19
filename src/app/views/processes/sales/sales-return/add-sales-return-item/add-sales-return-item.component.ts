@@ -7,10 +7,7 @@ import {
   CardModule,
   GridModule,
   UtilitiesModule,
-  GutterDirective,
-  FormCheckComponent,
-  FormCheckInputDirective,
-  FormCheckLabelDirective
+  GutterDirective
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -32,9 +29,6 @@ import { WarehouseItemLookup } from '../../../../Items/Services/items.service';
     UtilitiesModule,
     ReactiveFormsModule,
     GutterDirective,
-    FormCheckComponent,
-    FormCheckInputDirective,
-    FormCheckLabelDirective,
     IconDirective,
     SearchItemModalComponent
   ],

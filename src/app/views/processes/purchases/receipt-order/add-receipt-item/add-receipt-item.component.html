@@ -1,7 +1,7 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">Add Item to Receipt #{{ receiptId }}</h4>
+      <h4 class="mb-0 header-title">{{ 'Add Item to Receipt' | translate }} #{{ receiptId }}</h4>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
@@ -14,7 +14,7 @@
               [class.active]="activeTab === 'barcode'"
               (click)="activeTab = 'barcode'"
               type="button">
-              Add by Barcode
+              {{ 'Add by Barcode' | translate }}
             </button>
           </li>
           <li class="nav-item" role="presentation">
@@ -23,7 +23,7 @@
               [class.active]="activeTab === 'manual'"
               (click)="activeTab = 'manual'"
               type="button">
-              Manual Entry
+              {{ 'Manual Entry' | translate }}
             </button>
           </li>
         </ul>
@@ -34,22 +34,22 @@
             <c-row [gutter]="3">
               <c-col [md]="12">
                 <label class="form-label">
-                  Barcode <span class="text-danger">*</span>
+                  {{ 'Barcode' | translate }} <span class="text-danger">*</span>
                 </label>
                 <input
                   cFormControl
                   type="text"
                   formControlName="barCode"
-                  placeholder="Enter barcode"
+                  [placeholder]="'Enter barcode' | translate"
                   class="form-control"
                   [class.is-invalid]="barcodeForm.get('barCode')?.invalid && barcodeForm.get('barCode')?.touched"
                   required>
                 @if (barcodeForm.get('barCode')?.invalid && barcodeForm.get('barCode')?.touched) {
                   <div class="invalid-feedback d-block">
-                    Barcode is required
+                    {{ 'Barcode is required' | translate }}
                   </div>
                 }
-                <small class="form-text text-muted">Scan or enter the item barcode</small>
+                <small class="form-text text-muted">{{ 'Scan or enter the item barcode' | translate }}</small>
               </c-col>
             </c-row>
           </form>
@@ -62,7 +62,7 @@
               <!-- Item Selection -->
               <c-col [md]="12">
                 <label class="form-label">
-                  Item <span class="text-danger">*</span>
+                  {{ 'Item' | translate }} <span class="text-danger">*</span>
                 </label>
                 <div class="d-flex align-items-center gap-2">
                   <input
@@ -70,7 +70,7 @@
                     type="text"
                     class="form-control item-picker-display"
                     [value]="selectedItemDisplay"
-                    placeholder="-- Select Item --"
+                    [placeholder]="'-- Select Item --' | translate"
                     readonly
                     (click)="onOpenItemSearchModal()" />
                   <button cButton color="secondary" type="button" class="item-picker-btn" (click)="onOpenItemSearchModal()">
@@ -80,7 +80,7 @@
                 <input type="hidden" formControlName="itemId" />
                 @if (manualForm.get('itemId')?.invalid && (manualForm.get('itemId')?.touched || manualForm.touched)) {
                   <div class="invalid-feedback d-block">
-                    Item is required
+                    {{ 'Item is required' | translate }}
                   </div>
                 }
               </c-col>
@@ -88,10 +88,10 @@
               <!-- UoM Entry -->
               <c-col [md]="6">
                 <label class="form-label">
-                  UoM Entry <span class="text-danger">*</span>
+                  {{ 'UoM Entry' | translate }} <span class="text-danger">*</span>
                 </label>
                 @if (loadingUomGroups) {
-                  <div class="text-body-secondary">Loading units...</div>
+                  <div class="text-body-secondary">{{ 'Loading units...' | translate }}</div>
                 } @else {
                   <select
                     cFormControl
@@ -100,33 +100,33 @@
                     [class.is-invalid]="manualForm.get('uoMEntry')?.invalid && manualForm.get('uoMEntry')?.touched"
                     [disabled]="!manualForm.get('itemId')?.value"
                     required>
-                    <option value="">-- Select Unit --</option>
+                    <option value="">{{ '-- Select Unit --' | translate }}</option>
                     @if (manualForm.get('itemId')?.value) {
                       @for (uom of uomGroups; track uom.uomEntry) {
                         <option [value]="uom.uomEntry">
-                          {{ uom.uomCode }} (Entry: {{ uom.uomEntry }}, Base Qty: {{ uom.baseQty }})
+                          {{ uom.uomCode }} ({{ 'Entry' | translate }}: {{ uom.uomEntry }}, {{ 'Base Qty' | translate }}: {{ uom.baseQty }})
                         </option>
                       }
                       @if (uomGroups.length === 0) {
-                        <option disabled>No units available</option>
+                        <option disabled>{{ 'No units available' | translate }}</option>
                       }
                     } @else {
-                      <option disabled>Please select an item first</option>
+                      <option disabled>{{ 'Please select an item first' | translate }}</option>
                     }
                   </select>
                   @if (manualForm.get('uoMEntry')?.invalid && manualForm.get('uoMEntry')?.touched) {
                     <div class="invalid-feedback d-block">
-                      Unit of measure is required
+                      {{ 'Unit of measure is required' | translate }}
                     </div>
                   }
                 }
-                <small class="form-text text-muted">Select unit of measure</small>
+                <small class="form-text text-muted">{{ 'Select unit of measure' | translate }}</small>
               </c-col>
 
               <!-- Quantity -->
               <c-col [md]="6">
                 <label class="form-label">
-                  Quantity <span class="text-danger">*</span>
+                  {{ 'Quantity' | translate }} <span class="text-danger">*</span>
                 </label>
                 <input
                   cFormControl
@@ -139,16 +139,16 @@
                   required>
                 @if (manualForm.get('quantity')?.invalid && manualForm.get('quantity')?.touched) {
                   <div class="invalid-feedback d-block">
-                    Quantity is required and must be greater than 0
+                    {{ 'Quantity is required and must be greater than 0' | translate }}
                   </div>
                 }
-                <small class="form-text text-muted">Quantity to add</small>
+                <small class="form-text text-muted">{{ 'Quantity to add' | translate }}</small>
               </c-col>
 
               <!-- Unit Price -->
               <c-col [md]="6">
                 <label class="form-label">
-                  Unit Price <span class="text-danger">*</span>
+                  {{ 'Unit Price' | translate }} <span class="text-danger">*</span>
                 </label>
                 <input
                   cFormControl
@@ -161,10 +161,10 @@
                   required>
                 @if (manualForm.get('unitPrice')?.invalid && manualForm.get('unitPrice')?.touched) {
                   <div class="invalid-feedback d-block">
-                    Unit price is required and must be 0 or greater
+                    {{ 'Unit price is required and must be 0 or greater' | translate }}
                   </div>
                 }
-                <small class="form-text text-muted">Price per unit</small>
+                <small class="form-text text-muted">{{ 'Price per unit' | translate }}</small>
               </c-col>
             </c-row>
           </form>
@@ -179,7 +179,7 @@
         type="button"
         (click)="onCancel()"
         [disabled]="saving">
-        Cancel
+        {{ 'Cancel' | translate }}
       </button>
       @if (activeTab === 'barcode') {
         <button
@@ -191,7 +191,7 @@
           @if (saving) {
             <span class="spinner-border spinner-border-sm me-2" role="status"></span>
           }
-          {{ saving ? 'Adding...' : 'Add Item' }}
+          {{ (saving ? 'Adding...' : 'Add Item') | translate }}
         </button>
       } @else {
         <button
@@ -203,7 +203,7 @@
           @if (saving) {
             <span class="spinner-border spinner-border-sm me-2" role="status"></span>
           }
-          {{ saving ? 'Adding...' : 'Add Item' }}
+          {{ (saving ? 'Adding...' : 'Add Item') | translate }}
         </button>
       }
     </c-card-footer>

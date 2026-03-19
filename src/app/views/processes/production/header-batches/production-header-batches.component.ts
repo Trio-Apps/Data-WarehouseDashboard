@@ -16,6 +16,7 @@ import { ToastrService } from 'ngx-toastr';
 import { catchError, finalize, of, timeout } from 'rxjs';
 import { ProductionHeaderBatch } from '../Models/production.model';
 import { ProductionService } from '../Services/production.service';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-production-header-batches',
@@ -30,7 +31,8 @@ import { ProductionService } from '../Services/production.service';
     UtilitiesModule,
     ModalModule,
     IconDirective,
-    DatePipe
+    DatePipe,
+    TranslatePipe
   ],
   templateUrl: './production-header-batches.component.html',
   styleUrl: './production-header-batches.component.scss'

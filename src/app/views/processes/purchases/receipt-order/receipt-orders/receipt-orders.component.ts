@@ -20,6 +20,7 @@ import { Receipt } from '../../Models/receipt';
 import { Supplier } from '../../Models/purchase.model';
 import { ToastrService } from 'ngx-toastr';
 import { SearchSupplierModalComponent } from '../../search-supplier-modal/search-supplier-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-receipt-orders',
@@ -36,7 +37,8 @@ import { SearchSupplierModalComponent } from '../../search-supplier-modal/search
     ModalModule,
     IconDirective,
     DatePipe,
-    SearchSupplierModalComponent
+    SearchSupplierModalComponent,
+    TranslatePipe
   ],
   templateUrl: './receipt-orders.component.html',
   styleUrl: './receipt-orders.component.scss',

@@ -20,6 +20,8 @@ import { Company } from '../../companies/Models/company.model';
 import { SapAuthService } from '../../settings/Auth/Services/sap-auth.service';
 import { Sap } from '../../settings/Auth/Models/sap-auth.model';
 import { ToastrService } from 'ngx-toastr';
+import { TranslatePipe } from '../../../core/i18n/translate.pipe';
+import { TranslationService } from '../../../core/i18n/translation.service';
 
 @Component({
   selector: 'app-users',
@@ -32,7 +34,8 @@ import { ToastrService } from 'ngx-toastr';
     FormModule,
     GridModule,
     IconDirective,
-    UserFormModalComponent
+    UserFormModalComponent,
+    TranslatePipe
   ],
   templateUrl: './users.component.html',
   styleUrl: './users.component.scss',
@@ -91,7 +94,8 @@ export class UsersComponent implements OnInit, OnDestroy {
     private companiesService: CompaniesService,
     private sapAuthService: SapAuthService,
     private cdr: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private translationService: TranslationService
   ) {
     this.checkPermissions();
     this.form = this.fb.group({
@@ -280,7 +284,10 @@ export class UsersComponent implements OnInit, OnDestroy {
           this.hasPrevious = res.data.hasPrevious || false;
           
           if (this.users.length > 0) {
-            this.toastr.success(`Loaded ${this.users.length} user(s) successfully`, 'Success');
+            this.toastr.success(
+              this.translationService.translate('users.messages.loadedSuccess', { count: this.users.length }),
+              this.translationService.translate('messages.success')
+            );
           }
         }
 
@@ -296,7 +303,10 @@ export class UsersComponent implements OnInit, OnDestroy {
         this.totalPages = 0;
         this.hasNext = false;
         this.hasPrevious = false;
-        this.toastr.error('Failed to load users. Please try again.', err.error?.detail || 'Error');
+        this.toastr.error(
+          this.translationService.translate('users.messages.loadError'),
+          err.error?.detail || this.translationService.translate('messages.error')
+        );
         this.cdr.detectChanges();
       }
     });
@@ -368,7 +378,10 @@ export class UsersComponent implements OnInit, OnDestroy {
 
   onSearch(): void {
     if (!this.canViewUsers) {
-      this.toastr.error('You do not have permission to view users.', 'Access Denied');
+      this.toastr.error(
+        this.translationService.translate('users.messages.permissionViewDenied'),
+        this.translationService.translate('messages.accessDenied')
+      );
       return;
     }
 
@@ -384,7 +397,10 @@ export class UsersComponent implements OnInit, OnDestroy {
     this.searchName = formValue.searchName || '';
 
     if (this.searchCompanyId || this.searchSapId || this.searchEmail || this.searchName) {
-      this.toastr.info('Searching users...', 'Info');
+      this.toastr.info(
+        this.translationService.translate('users.messages.searching'),
+        this.translationService.translate('messages.info')
+      );
     }
 
     // Reset to first page when searching
@@ -394,7 +410,10 @@ export class UsersComponent implements OnInit, OnDestroy {
 
   onAddUser(): void {
     if (!this.canCreateUsers) {
-      this.toastr.error('You do not have permission to create users.', 'Access Denied');
+      this.toastr.error(
+        this.translationService.translate('users.messages.permissionCreateDenied'),
+        this.translationService.translate('messages.accessDenied')
+      );
       return;
     }
 
@@ -405,7 +424,10 @@ export class UsersComponent implements OnInit, OnDestroy {
 
   onEditUser(user: User): void {
     if (!this.canEditUsers) {
-      this.toastr.error('You do not have permission to edit users.', 'Access Denied');
+      this.toastr.error(
+        this.translationService.translate('users.messages.permissionEditDenied'),
+        this.translationService.translate('messages.accessDenied')
+      );
       return;
     }
 
@@ -418,11 +440,17 @@ export class UsersComponent implements OnInit, OnDestroy {
 
   onSaveUser(userData: User): void {
     if (this.isEditMode && !this.canEditUsers) {
-      this.toastr.error('You do not have permission to edit users.', 'Access Denied');
+      this.toastr.error(
+        this.translationService.translate('users.messages.permissionEditDenied'),
+        this.translationService.translate('messages.accessDenied')
+      );
       return;
     }
     if (!this.isEditMode && !this.canCreateUsers) {
-      this.toastr.error('You do not have permission to create users.', 'Access Denied');
+      this.toastr.error(
+        this.translationService.translate('users.messages.permissionCreateDenied'),
+        this.translationService.translate('messages.accessDenied')
+      );
       return;
     }
 
@@ -439,15 +467,18 @@ export class UsersComponent implements OnInit, OnDestroy {
           this.showUserModal = false;
           this.selectedUser = null;
           this.isEditMode = false;
-          this.toastr.success('User updated successfully', 'Success');
+          this.toastr.success(
+            this.translationService.translate('users.messages.updateSuccess'),
+            this.translationService.translate('messages.success')
+          );
           this.loadUsers();
           this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('Error updating user:', err);
           this.modalLoading = false;
-          const errorMessage = err.error?.message || err.error?.errors?.join(', ') || 'Error updating user. Please try again.';
-          this.toastr.error(errorMessage, 'Error');
+          const errorMessage = err.error?.message || err.error?.errors?.join(', ') || this.translationService.translate('users.messages.updateError');
+          this.toastr.error(errorMessage, this.translationService.translate('messages.error'));
           this.cdr.detectChanges();
         }
       });
@@ -460,15 +491,18 @@ export class UsersComponent implements OnInit, OnDestroy {
           this.showUserModal = false;
           this.selectedUser = null;
           this.isEditMode = false;
-          this.toastr.success('User created successfully', 'Success');
+          this.toastr.success(
+            this.translationService.translate('users.messages.createSuccess'),
+            this.translationService.translate('messages.success')
+          );
           this.loadUsers();
           this.cdr.detectChanges();
         },
         error: (err) => {
           console.error('Error creating user:', err);
           this.modalLoading = false;
-          const errorMessage = err.error?.message || err.error?.errors?.join(', ') || 'Error creating user. Please try again.';
-          this.toastr.error(errorMessage, 'Error');
+          const errorMessage = err.error?.message || err.error?.errors?.join(', ') || this.translationService.translate('users.messages.createError');
+          this.toastr.error(errorMessage, this.translationService.translate('messages.error'));
           this.cdr.detectChanges();
         }
       });
@@ -483,21 +517,27 @@ export class UsersComponent implements OnInit, OnDestroy {
 
   onDeleteUser(user: User): void {
     if (!this.canDeleteUsers) {
-      this.toastr.error('You do not have permission to delete users.', 'Access Denied');
+      this.toastr.error(
+        this.translationService.translate('users.messages.permissionDeleteDenied'),
+        this.translationService.translate('messages.accessDenied')
+      );
       return;
     }
 
-    if (confirm(`Are you sure you want to delete user: ${user.id}?`)) {
+    if (confirm(this.translationService.translate('users.messages.deleteConfirm', { user: user.email || user.id || '' }))) {
       if (user.id) {
         this.usersService.deleteUser(user.id).subscribe({
           next: () => {
-            this.toastr.success(`User "${user.email || user.id}" deleted successfully`, 'Success');
+            this.toastr.success(
+              this.translationService.translate('users.messages.deleteSuccess', { user: user.email || user.id || '' }),
+              this.translationService.translate('messages.success')
+            );
             this.loadUsers();
           },
           error: (err) => {
             console.error('Error deleting user:', err);
-            const errorMessage = err.error?.message || 'Error deleting user. Please try again.';
-            this.toastr.error(errorMessage, 'Error');
+            const errorMessage = err.error?.message || this.translationService.translate('users.messages.deleteError');
+            this.toastr.error(errorMessage, this.translationService.translate('messages.error'));
           }
         });
       }

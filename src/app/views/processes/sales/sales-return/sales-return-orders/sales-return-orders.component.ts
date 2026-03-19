@@ -20,6 +20,7 @@ import { Return } from '../../Models/sales-return-model';
 import { Customer } from '../../Models/sales-model';
 import { ApprovalService } from '../../../approval-process/Services/approval.service';
 import { SearchCustomerModalComponent } from '../../search-customer-modal/search-customer-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 type SalesReturnOrderListItem = Return & {
   salesOrderId?: number;
@@ -46,7 +47,8 @@ type SalesReturnOrderListItem = Return & {
     ModalModule,
     IconDirective,
     DatePipe,
-    SearchCustomerModalComponent
+    SearchCustomerModalComponent,
+    TranslatePipe
   ],
   templateUrl: './sales-return-orders.component.html',
   styleUrl: './sales-return-orders.component.scss',

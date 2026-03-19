@@ -19,6 +19,7 @@ import {
   UpdateTransferredRequest
 } from '../Models/transferred-request.model';
 import { SearchDestinationWarehouseModalComponent } from '../search-destination-warehouse-modal/search-destination-warehouse-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-transferred-request-form',
@@ -32,7 +33,8 @@ import { SearchDestinationWarehouseModalComponent } from '../search-destination-
     GutterDirective,
     FormCheckInputDirective,
     FormCheckLabelDirective,
-    SearchDestinationWarehouseModalComponent
+    SearchDestinationWarehouseModalComponent,
+    TranslatePipe
   ],
   templateUrl: './transferred-request-form.component.html',
   styleUrl: './transferred-request-form.component.scss'

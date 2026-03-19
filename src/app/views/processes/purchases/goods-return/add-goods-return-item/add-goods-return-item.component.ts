@@ -7,10 +7,7 @@ import {
   CardModule,
   GridModule,
   UtilitiesModule,
-  GutterDirective,
-  FormCheckComponent,
-  FormCheckInputDirective,
-  FormCheckLabelDirective
+  GutterDirective
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
@@ -20,6 +17,7 @@ import { UoMGroup } from '../../../barcodes/Models/item-barcode.model';
 import { GoodsReturnService } from '../../Services/goods-return.service';
 import { SearchItemModalComponent } from '../../../Item/search-item-modal/search-item-modal.component';
 import { WarehouseItemLookup } from '../../../../Items/Services/items.service';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-add-goods-return-item',
@@ -32,11 +30,9 @@ import { WarehouseItemLookup } from '../../../../Items/Services/items.service';
     UtilitiesModule,
     ReactiveFormsModule,
     GutterDirective,
-    FormCheckComponent,
-    FormCheckInputDirective,
-    FormCheckLabelDirective,
     IconDirective,
-    SearchItemModalComponent
+    SearchItemModalComponent,
+    TranslatePipe
   ],
   templateUrl: './add-goods-return-item.component.html',
   styleUrl: './add-goods-return-item.component.scss',

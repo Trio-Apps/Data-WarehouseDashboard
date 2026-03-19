@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, effect, inject, OnInit } from '@angular/core';
 import { NgIf } from '@angular/common';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { NgScrollbar } from 'ngx-scrollbar';
@@ -18,6 +18,8 @@ import {
 import { DefaultFooterComponent, DefaultHeaderComponent } from './';
 import { navItems, NavItemWithPermissions } from './_nav';
 import { AuthService } from '../../views/pages/Services/auth.service';
+import { TranslatePipe } from '../../core/i18n/translate.pipe';
+import { TranslationService } from '../../core/i18n/translation.service';
 
 function isOverflown(element: HTMLElement) {
   return (
@@ -44,20 +46,27 @@ function isOverflown(element: HTMLElement) {
     NgIf,
     RouterOutlet,
     RouterLink,
-    ShadowOnScrollDirective
+    ShadowOnScrollDirective,
+    TranslatePipe
   ]
 })
 export class DefaultLayoutComponent implements OnInit {
   public navItems: NavItemWithPermissions[] = [];
+  private readonly translationService = inject(TranslationService);
 
-  constructor(private authService: AuthService) {}
+  constructor(private authService: AuthService) {
+    effect(() => {
+      this.translationService.currentLanguage();
+      this.filterNavItems();
+    });
+  }
 
   ngOnInit(): void {
     this.filterNavItems();
   }
 
   filterNavItems(): void {
-    this.navItems = this.filterItemsByPermissions(navItems);
+    this.navItems = this.translateNavItems(this.filterItemsByPermissions(navItems));
   }
 
   private filterItemsByPermissions(items: NavItemWithPermissions[]): NavItemWithPermissions[] {
@@ -95,5 +104,13 @@ export class DefaultLayoutComponent implements OnInit {
 
   logout(): void {
     this.authService.logOut();
+  }
+
+  private translateNavItems(items: NavItemWithPermissions[]): NavItemWithPermissions[] {
+    return items.map((item) => ({
+      ...item,
+      name: item.translationKey ? this.translationService.translate(item.translationKey) : item.name,
+      children: item.children ? this.translateNavItems(item.children) : item.children
+    }));
   }
 }

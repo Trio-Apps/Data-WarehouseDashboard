@@ -1,0 +1,56 @@
+<section class="language-settings-page">
+  <div class="language-settings-shell">
+    <header class="language-settings-hero">
+      <button
+        type="button"
+        class="back-button"
+        (click)="goBack()"
+        [attr.aria-label]="'common.back' | translate"
+      >
+        <svg cIcon name="cilArrowLeft" size="lg"></svg>
+      </button>
+
+      <div class="hero-copy">
+        <h1>{{ 'settings.language.title' | translate }}</h1>
+        <p>{{ 'settings.language.subtitle' | translate }}</p>
+      </div>
+    </header>
+
+    @if (successLanguage()) {
+      <div class="language-alert" role="status" aria-live="polite">
+        <span class="language-alert-icon">
+          <svg cIcon name="cilCheckCircle" size="lg"></svg>
+        </span>
+        <span>{{ 'settings.language.successMessage' | translate:{ language: selectedLanguageLabel() } }}</span>
+      </div>
+    }
+
+    <div class="language-section">
+      <h2>{{ 'settings.language.changeLanguage' | translate }}</h2>
+
+      <div class="language-card-list">
+        @for (language of languageOptions; track language.code) {
+          <button
+            type="button"
+            class="language-option"
+            [ngClass]="{ 'is-active': currentLanguage() === language.code }"
+            (click)="selectLanguage(language.code)"
+          >
+            <span class="language-option-icon">
+              <svg cIcon name="cilGlobeAlt" size="lg"></svg>
+            </span>
+
+            <span class="language-option-copy">
+              <strong>{{ language.nameKey | translate }}</strong>
+              <small>{{ language.nativeName }}</small>
+            </span>
+
+            <span class="language-option-check" [class.visible]="currentLanguage() === language.code">
+              <svg cIcon name="cilCheck" size="lg"></svg>
+            </span>
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+</section>

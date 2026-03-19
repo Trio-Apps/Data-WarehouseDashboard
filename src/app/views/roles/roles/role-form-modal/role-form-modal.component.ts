@@ -13,6 +13,7 @@ import {
   FormCheckInputDirective,
   FormCheckLabelDirective
 } from '@coreui/angular';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 import { Permission, PermissionForRole, Role, RoleFormPayload } from '../../Models/role.model';
 import { RolesService } from '../../Services/roles.service';
 
@@ -31,7 +32,8 @@ import { RolesService } from '../../Services/roles.service';
     FormModule,
     GridModule,
     FormCheckInputDirective,
-    FormCheckLabelDirective
+    FormCheckLabelDirective,
+    TranslatePipe
   ],
   templateUrl: './role-form-modal.component.html',
   styleUrl: './role-form-modal.component.scss'

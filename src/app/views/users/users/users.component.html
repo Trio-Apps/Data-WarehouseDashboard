@@ -1,11 +1,11 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">Users Management</h4>
+      <h4 class="mb-0 header-title">{{ 'users.page.title' | translate }}</h4>
       @if (canCreateUsers) {
         <button cButton color="primary" class="header-button" (click)="onAddUser()">
           <svg cIcon name="cil-plus" class="me-2"></svg>
-          Add User
+          {{ 'users.page.addUser' | translate }}
         </button>
       }
     </c-card-header>
@@ -13,7 +13,7 @@
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
       @if (!canViewUsers) {
         <div class="p-4 text-center text-body-secondary">
-          You do not have permission to view users.
+          {{ 'users.messages.permissionViewDenied' | translate }}
         </div>
       } @else {
         <!-- Table Container with Scroll -->
@@ -22,12 +22,12 @@
             <thead class="table-header">
               <tr>
                 <th scope="col" class="bg-body-tertiary">#</th>
-                <th scope="col" class="bg-body-tertiary">Full Name</th>
-                <th scope="col" class="bg-body-tertiary">Email</th>
-                <th scope="col" class="bg-body-tertiary">phoneNumber</th>
-                <th scope="col" class="bg-body-tertiary">roles</th>
+                <th scope="col" class="bg-body-tertiary">{{ 'users.fields.fullName' | translate }}</th>
+                <th scope="col" class="bg-body-tertiary">{{ 'users.fields.email' | translate }}</th>
+                <th scope="col" class="bg-body-tertiary">{{ 'users.fields.phoneNumber' | translate }}</th>
+                <th scope="col" class="bg-body-tertiary">{{ 'users.fields.roles' | translate }}</th>
                 @if (canEditUsers || canDeleteUsers) {
-                  <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+                  <th scope="col" class="bg-body-tertiary text-center">{{ 'users.page.actions' | translate }}</th>
                 }
               </tr>
             </thead>
@@ -36,7 +36,7 @@
               @if (loading) {
                 <tr>
                   <td [attr.colspan]="tableColumnCount" class="text-center py-4">
-                    <span class="text-body-secondary">Loading...</span>
+                    <span class="text-body-secondary">{{ 'common.loading' | translate }}</span>
                   </td>
                 </tr>
               } @else if (paginatedUsers.length > 0) {
@@ -68,7 +68,7 @@
               } @else {
                 <tr>
                   <td [attr.colspan]="tableColumnCount" class="text-center py-4">
-                    <span class="text-body-secondary">No users found</span>
+                    <span class="text-body-secondary">{{ 'users.messages.noUsersFound' | translate }}</span>
                   </td>
                 </tr>
               }
@@ -117,8 +117,11 @@
             </nav>
 
             <div class="text-body-secondary small text-center">
-              Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }} of
-              {{ totalItems }} users
+              {{ 'users.page.paginationSummary' | translate:{
+                from: (currentPage - 1) * itemsPerPage + 1,
+                to: Math.min(currentPage * itemsPerPage, totalItems),
+                total: totalItems
+              } }}
             </div>
           </div>
         }
@@ -132,9 +135,9 @@
           <c-row [gutter]="3" class="filter-row">
             @if (canViewCompanies) {
               <c-col [md]="4" class="filter-col">
-                <label class="form-label">Company</label>
+                <label class="form-label">{{ 'users.fields.company' | translate }}</label>
                 @if (loadingCompanies) {
-                  <div class="text-body-secondary">Loading companies...</div>
+                  <div class="text-body-secondary">{{ 'users.messages.loadingCompanies' | translate }}</div>
                 } @else {
                   <select
                     cFormControl
@@ -142,7 +145,7 @@
                     (change)="onCompanyChange()"
                     class="form-select"
                   >
-                    <option [value]="null">-- All Companies --</option>
+                    <option [value]="null">{{ 'users.placeholders.allCompanies' | translate }}</option>
                     @for (company of companies; track company.companyId) {
                       <option [value]="company.companyId">{{ company.name }}</option>
                     }
@@ -155,7 +158,7 @@
               <c-col [md]="canViewCompanies ? 3 : 4" class="filter-col">
                 <label class="form-label">SAP</label>
                 @if (loadingSaps) {
-                  <div class="text-body-secondary">Loading SAPs...</div>
+                  <div class="text-body-secondary">{{ 'users.messages.loadingSaps' | translate }}</div>
                 } @else {
                   <select
                     cFormControl
@@ -163,7 +166,7 @@
                     class="form-select"
                     [disabled]="canViewCompanies && !form.value.searchCompanyId"
                   >
-                    <option [value]="null">-- All SAPs --</option>
+                    <option [value]="null">{{ 'users.placeholders.allSaps' | translate }}</option>
                     @for (sap of saps; track sap.sapId) {
                       <option [value]="sap.sapId">{{ sap.name }}</option>
                     }
@@ -173,30 +176,30 @@
             }
 
             <c-col [md]="3" class="filter-col">
-              <label class="form-label">Email</label>
+              <label class="form-label">{{ 'users.fields.email' | translate }}</label>
               <input
                 cFormControl
                 type="email"
                 formControlName="searchEmail"
-                placeholder="Enter Email"
+                [placeholder]="'users.placeholders.enterEmail' | translate"
                 class="form-control"
               />
             </c-col>
 
             <c-col [md]="3" class="filter-col">
-              <label class="form-label">Name</label>
+              <label class="form-label">{{ 'users.fields.name' | translate }}</label>
               <input
                 cFormControl
                 type="text"
                 formControlName="searchName"
-                placeholder="Enter Name"
+                [placeholder]="'users.placeholders.enterName' | translate"
                 class="form-control"
               />
             </c-col>
 
             <c-col [md]="2" class="d-flex align-items-end search-button-col">
               <button cButton color="primary" type="submit" class="w-100">
-                Search
+                {{ 'common.search' | translate }}
               </button>
             </c-col>
           </c-row>
