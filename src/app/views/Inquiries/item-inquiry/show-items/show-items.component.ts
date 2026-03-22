@@ -254,5 +254,12 @@ export class ShowItemsComponent implements OnInit, OnDestroy {
     this.router.navigate(['/processes/item-barcodes', itemId]);
   }
 
+  goBackToItemsInquiry(): void {
+ if (this.warehouseId) {
+      this.router.navigate(['/dashboard'], { queryParams: { warehouseId: this.warehouseId } });
+      return;
+    }
+    this.router.navigate(['/dashboard']);  }
+
   
 }

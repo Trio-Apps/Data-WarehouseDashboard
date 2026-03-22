@@ -52,8 +52,8 @@ export interface TransferredRequestItem {
   itemCode?: string;
   itemName?: string;
   unitName?: string;
+  batches?: TransferredRequestBatch[];
 }
-
 
 export interface AddTransferredRequestItem {
   uoMEntry: number;
@@ -63,7 +63,6 @@ export interface AddTransferredRequestItem {
   UnitPrice?: number;
 }
 
-
 export interface UpdateTransferredRequestItem {
   transferredRequestItemId: number;
   quantity?: number;
@@ -71,6 +70,30 @@ export interface UpdateTransferredRequestItem {
   UnitPrice?: number;
 }
 
+export interface TransferredRequestBatch {
+  transferredRequestBatchId?: number;
+  transferredRequestItemId: number;
+  quantity: number;
+  comment?: string;
+  batchNumber?: string | null;
+  expiryDate?: string;
+}
+
+export interface AddTransferredRequestBatchRequest {
+  transferredRequestItemId: number;
+  quantity: number;
+  comment?: string;
+  batchNumber?: string;
+  expiryDate?: string;
+}
+
+export interface UpdateTransferredRequestBatchRequest {
+  transferredRequestBatchId: number;
+  quantity: number;
+  comment?: string;
+  batchNumber?: string;
+  expiryDate?: string;
+}
 
 export interface Item {
   itemId: number;
@@ -111,3 +134,4 @@ export interface TransferredRequestResponse {
   };
   errors: any;
 }
+

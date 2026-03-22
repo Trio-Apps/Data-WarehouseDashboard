@@ -125,6 +125,7 @@
                 <th scope="col" class="bg-body-tertiary">Quantity</th>
                 <th scope="col" class="bg-body-tertiary">Price</th>
                 <th scope="col" class="bg-body-tertiary">Unit</th>
+                <th scope="col" class="bg-body-tertiary text-center">Batches</th>
                 @if (transferredRequest && !isCompletedStatus(transferredRequest)) {
                 <th scope="col" class="bg-body-tertiary text-center">Actions</th>
                 }
@@ -134,7 +135,7 @@
             <tbody>
               @if (loading) {
               <tr>
-                <td [attr.colspan]="transferredRequest && !isCompletedStatus(transferredRequest) ? 8 : 7" class="text-center py-4">
+                <td [attr.colspan]="transferredRequest && !isCompletedStatus(transferredRequest) ? 9 : 8" class="text-center py-4">
                   <span class="text-body-secondary">Loading...</span>
                 </td>
               </tr>
@@ -148,6 +149,11 @@
                 <td>{{ item.quantity }}</td>
                 <td>{{ item.unitPrice || 0 }}</td>
                 <td>{{ item.unitName || 'N/A' }}</td>
+                <td class="text-center">
+                  <button cButton color="success" size="sm" (click)="onViewBatches(item)" title="View Batches">
+                    <svg cIcon name="cil-layers"></svg>
+                  </button>
+                </td>
                 @if (transferredRequest && !isCompletedStatus(transferredRequest)) {
                 <td class="text-center">
                   <button cButton color="info" size="sm" class="me-2" (click)="onEditItem(item)">
@@ -162,7 +168,7 @@
               }
               } @else {
               <tr>
-                <td [attr.colspan]="transferredRequest && !isCompletedStatus(transferredRequest) ? 8 : 7" class="text-center py-4">
+                <td [attr.colspan]="transferredRequest && !isCompletedStatus(transferredRequest) ? 9 : 8" class="text-center py-4">
                   <span class="text-body-secondary">No items in this transferred request</span>
                 </td>
               </tr>
@@ -243,5 +249,4 @@
     </button>
   </c-modal-footer>
 </c-modal>
-
 

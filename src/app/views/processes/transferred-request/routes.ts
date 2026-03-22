@@ -38,6 +38,16 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'transferred-request-batches/:transferredRequestId/:transferredRequestItemId/:itemQuantity',
+        loadComponent: () =>
+          import('./transferred-request-batches/transferred-request-batches.component').then(
+            (m) => m.TransferredRequestBatchesComponent
+          ),
+        data: {
+          title: 'Transferred Request Batches'
+        }
+      },
+      {
         path: 'add-item/:transferredRequestId/:warehouseId',
         loadComponent: () => import('./add-item/add-item.component').then((m) => m.AddItemComponent),
         data: {
@@ -115,3 +125,4 @@ export const routes: Routes = [
     ]
   }
 ];
+
