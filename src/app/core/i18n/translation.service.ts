@@ -36,6 +36,7 @@ export class TranslationService {
   readonly supportedLanguages: AppLanguage[] = ['en', 'ar'];
   readonly currentLanguage = signal<AppLanguage>(this.fallbackLanguage);
   readonly direction = computed(() => this.currentLanguage() === 'ar' ? 'rtl' : 'ltr');
+  readonly translationRevision = signal(0);
 
   private readonly translations = signal<TranslationDictionary>({});
 
@@ -62,6 +63,7 @@ export class TranslationService {
     localStorage.setItem(this.storageKey, normalizedLanguage);
     this.applyDocumentLanguage(normalizedLanguage);
     this.localizeStaticContent();
+    this.translationRevision.update((revision) => revision + 1);
   }
 
   translate(key: string, params?: Record<string, string | number>): string {
