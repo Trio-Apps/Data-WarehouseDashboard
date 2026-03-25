@@ -77,6 +77,15 @@
                   [title]="'View Items' | translate">
                   <svg cIcon name="cil-list"></svg>
                 </button>
+                <button
+                  cButton
+                  color="secondary"
+                  size="sm"
+                  class="me-2"
+                  (click)="onDuplicateTransferredRequest(request)"
+                  [title]="'Duplicate' | translate">
+                  Duplicate
+                </button>
 
                 @if (!isApproved(request) && !isCompletedStatus(request)) {
                 <button
@@ -171,8 +180,6 @@
         </nav>
 
         <div class="text-body-secondary small text-center">
-          {{ ('Showing ' + ((currentPage - 1) * itemsPerPage + 1) + ' to ' + Math.min(currentPage * itemsPerPage, totalItems) + ' of ' + totalItems + ' transferred requests') | translate }}
-      <div class="text-body-secondary small text-center">
           Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to
           {{ Math.min(currentPage * itemsPerPage, totalItems) }} of {{ totalItems }} transferred requests
         </div>

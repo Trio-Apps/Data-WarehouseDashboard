@@ -118,6 +118,10 @@ export class TransferredStockService {
     return this.http.delete<any>(`${this.baseUrl}TransferredStock/${transferredStockId}`, this.headerOption);
   }
 
+  duplicateTransferredStock(transferredStockId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}TransferredStock/${transferredStockId}/duplicate`, {}, this.headerOption);
+  }
+
   retryTransferredStockSap(transferredStockId: number): Observable<any> {
     return this.http.patch<any>(
       `${this.baseUrl}TransferredStock/${transferredStockId}/revert-partially-failed`,

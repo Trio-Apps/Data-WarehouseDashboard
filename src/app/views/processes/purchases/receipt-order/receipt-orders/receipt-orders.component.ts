@@ -421,6 +421,27 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
     }
   }
 
+  onDuplicateReceipt(receipt: Receipt): void {
+    if (!receipt.receiptPurchaseOrderId) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to duplicate receipt #${receipt.receiptPurchaseOrderId}?`)) {
+      this.receiptService.duplicateReceipt(receipt.receiptPurchaseOrderId).subscribe({
+        next: () => {
+          this.toastr.success('Receipt duplicated successfully', 'Success');
+          this.loadReceipts();
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Error duplicating receipt:', err);
+          const errorMessage = err.error?.message || 'Error duplicating receipt. Please try again.';
+          this.toastr.error(errorMessage, 'Error');
+        }
+      });
+    }
+  }
+
   hasErrorMessage(receipt: Receipt): boolean {
     return !!receipt.errorMessage?.trim();
   }

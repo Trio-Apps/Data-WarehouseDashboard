@@ -106,6 +106,22 @@ export class StockCountingOrdersComponent implements OnInit {
     });
   }
 
+  onDuplicateOrder(order: CountStockOrder): void {
+    if (!confirm(`Duplicate stock counting order #${order.countStockId}?`)) {
+      return;
+    }
+
+    this.stockService.duplicateOrder(order.countStockId).subscribe({
+      next: () => {
+        this.toastr.success('Order duplicated successfully.', 'Success');
+        this.loadOrders();
+      },
+      error: (err) => {
+        this.toastr.error(this.extractError(err, 'Failed to duplicate order.'), 'Error');
+      }
+    });
+  }
+
   onPageChange(page: number, event?: Event): void {
     if (event) {
       event.preventDefault();

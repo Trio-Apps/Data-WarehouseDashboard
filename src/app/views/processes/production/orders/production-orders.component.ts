@@ -451,6 +451,22 @@ export class ProductionOrdersComponent implements OnInit {
     });
   }
 
+  onDuplicate(order: ProductionOrder): void {
+    if (!confirm(`Duplicate production order #${order.productionOrderId}?`)) {
+      return;
+    }
+
+    this.productionService.duplicateProductionOrder(order.productionOrderId).subscribe({
+      next: () => {
+        this.toastr.success('Production order duplicated successfully.', 'Success');
+        this.loadOrders();
+      },
+      error: (err) => {
+        this.toastr.error(this.extractError(err, 'Failed to duplicate order.'), 'Error');
+      }
+    });
+  }
+
   getStatusBadgeClass(status: string): string {
     switch (status) {
       case 'Draft':

@@ -109,6 +109,14 @@ export class TransferredRequestService {
     );
   }
 
+  duplicateTransferredRequest(transferredRequestId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}TransferredRequestOrder/${transferredRequestId}/duplicate`,
+      {},
+      this.headerOption
+    );
+  }
+
   retryTransferredRequestSap(transferredRequestId: number): Observable<any> {
     return this.http.patch<any>(
       `${this.baseUrl}TransferredRequestOrder/${transferredRequestId}/revert-partially-failed`,

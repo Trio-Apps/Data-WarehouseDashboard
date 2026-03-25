@@ -384,6 +384,30 @@ export class TransferredStockOrdersComponent implements OnInit, OnDestroy {
     });
   }
 
+  onDuplicateTransferredStock(stock: TransferredStock): void {
+    if (!stock.transferredStockId) {
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to duplicate transferred stock #${stock.transferredStockId}?`)) {
+      return;
+    }
+
+    this.transferredStockService.duplicateTransferredStock(stock.transferredStockId).subscribe({
+      next: () => {
+        this.toastr.success('Transferred stock duplicated successfully', 'Success');
+        this.loadTransferredStocks();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Error duplicating transferred stock:', err);
+        const errorMessage =
+          err?.error?.message || 'Error duplicating transferred stock. Please try again.';
+        this.toastr.error(errorMessage, 'Error');
+      }
+    });
+  }
+
   onAddTransferredStock(): void {
     this.router.navigate(['/processes/transferred-request/transferred-stock-form', this.warehouseId, 0]);
   }

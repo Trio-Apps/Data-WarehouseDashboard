@@ -391,6 +391,27 @@ export class SalesComponent implements OnInit, OnDestroy {
     }
   }
 
+  onDuplicateSale(Sale: Sales): void {
+    if (!Sale.salesOrderId) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to duplicate Sale #${Sale.salesOrderId}?`)) {
+      this.saleService.duplicateSales(Sale.salesOrderId).subscribe({
+        next: () => {
+          this.toastr.success('Sale duplicated successfully', 'Success');
+          this.loadSales();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error duplicating Sale:', err);
+          const errorMessage = err.error?.message || 'Error duplicating Sale. Please try again.';
+          this.toastr.error(errorMessage, 'Error');
+        }
+      });
+    }
+  }
+
   onDeleteSale(Sale: Sales): void {
     if (confirm(`Are you sure you want to delete Sale #${Sale.salesOrderId}?`)) {
       if (Sale.salesOrderId) {

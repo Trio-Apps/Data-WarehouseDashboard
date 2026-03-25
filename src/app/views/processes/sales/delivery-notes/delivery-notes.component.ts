@@ -33,7 +33,7 @@ import { AttachmentsComponent } from '../../attachments/attachments.component';
     IconDirective,
     DatePipe,
     EditDeliveryNoteItemModalComponent,
-    TranslatePipe
+    TranslatePipe,
     AttachmentsComponent
   ],
   templateUrl: './delivery-notes.component.html',

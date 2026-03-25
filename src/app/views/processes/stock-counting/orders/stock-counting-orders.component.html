@@ -57,6 +57,9 @@
                     <button cButton color="info" size="sm" (click)="onEditOrder(order)" [title]="'Edit' | translate">
                       <svg cIcon name="cil-pencil"></svg>
                     </button>
+                    <button cButton color="secondary" size="sm" (click)="onDuplicateOrder(order)" [title]="'Duplicate' | translate">
+                      Duplicate
+                    </button>
                     <button cButton color="danger" size="sm" (click)="onDeleteOrder(order)" [title]="'Delete' | translate">
                       <svg cIcon name="cil-trash"></svg>
                     </button>

@@ -434,6 +434,29 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     }
   }
 
+  onDuplicatePurchase(purchase: Purchase): void {
+    if (!purchase.purchaseOrderId) {
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to duplicate purchase #${purchase.purchaseOrderId}?`)) {
+      return;
+    }
+
+    this.purchaseService.duplicatePurchase(purchase.purchaseOrderId).subscribe({
+      next: () => {
+        this.toastr.success('Purchase duplicated successfully', 'Success');
+        this.loadPurchases();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error duplicating purchase:', err);
+        const errorMessage = err.error?.message || 'Error duplicating purchase. Please try again.';
+        this.toastr.error(errorMessage, 'Error');
+      }
+    });
+  }
+
   onDeletePurchase(purchase: Purchase): void {
     if (confirm(`Are you sure you want to delete purchase #${purchase.purchaseOrderId}?`)) {
       if (purchase.purchaseOrderId) {

@@ -319,6 +319,23 @@ export class TranslationService {
       return `-- ${this.translateFragment(wrappedAllMatch[1])} --`;
     }
 
+    const notificationMessageMatch = text.match(/^(.+?)\s+#(\d+)\s+has been\s+(.+)\.$/i);
+    if (notificationMessageMatch) {
+      return this.formatLiteralTemplate('__pattern.notificationMessage', {
+        entity: this.translateFragment(notificationMessageMatch[1]),
+        value: notificationMessageMatch[2],
+        action: this.translateFragment(notificationMessageMatch[3].toLowerCase())
+      }) ?? text;
+    }
+
+    const notificationTitleMatch = text.match(/^(.+?)\s+(Created|Submitted|Approved|Rejected|Deleted|Completed|Updated|Partially Failed)$/i);
+    if (notificationTitleMatch) {
+      return this.formatLiteralTemplate('__pattern.notificationTitle', {
+        entity: this.translateFragment(notificationTitleMatch[1]),
+        action: this.translateFragment(notificationTitleMatch[2].toLowerCase())
+      }) ?? text;
+    }
+
     const warehouseIdHeaderMatch = text.match(/^(.+)\s+-\s+Warehouse ID:\s+(.+)$/i);
     if (warehouseIdHeaderMatch) {
       return this.formatLiteralTemplate('__pattern.warehouseIdHeader', {
