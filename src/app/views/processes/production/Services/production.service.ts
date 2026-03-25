@@ -65,6 +65,10 @@ export class ProductionService {
     return this.http.delete<any>(`${this.baseUrl}ProductionOrder/${id}`, this.headerOption);
   }
 
+  duplicateProductionOrder(id: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}ProductionOrder/${id}/duplicate`, {}, this.headerOption);
+  }
+
   submitProductionOrder(id: number, note?: string): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}ProductionOrder/${id}/submit`, { note }, this.headerOption);
   }

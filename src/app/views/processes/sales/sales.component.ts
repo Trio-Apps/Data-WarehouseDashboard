@@ -17,6 +17,7 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { SearchCustomerModalComponent } from './search-customer-modal/search-customer-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 @Component({
   selector: 'app-sales',
    imports: [
@@ -31,7 +32,8 @@ import { SearchCustomerModalComponent } from './search-customer-modal/search-cus
     UtilitiesModule,
     IconDirective,
     DatePipe,
-    SearchCustomerModalComponent
+    SearchCustomerModalComponent,
+    TranslatePipe
   ],
   templateUrl: './sales.component.html',
   styleUrl: './sales.component.scss',
@@ -386,6 +388,27 @@ export class SalesComponent implements OnInit, OnDestroy {
     //console.log(Sale.salesOrderId);
     if (Sale.salesOrderId) {
       this.router.navigate(['/processes/sales/sales-form', this.warehouseId, Sale.salesOrderId]);
+    }
+  }
+
+  onDuplicateSale(Sale: Sales): void {
+    if (!Sale.salesOrderId) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to duplicate Sale #${Sale.salesOrderId}?`)) {
+      this.saleService.duplicateSales(Sale.salesOrderId).subscribe({
+        next: () => {
+          this.toastr.success('Sale duplicated successfully', 'Success');
+          this.loadSales();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error duplicating Sale:', err);
+          const errorMessage = err.error?.message || 'Error duplicating Sale. Please try again.';
+          this.toastr.error(errorMessage, 'Error');
+        }
+      });
     }
   }
 

@@ -7,6 +7,7 @@ import { ToastrService } from 'ngx-toastr';
 import { catchError, finalize, of, retry, timeout } from 'rxjs';
 import { CountStockOrder } from '../Models/stock-counting.model';
 import { StockCountingService } from '../Services/stock-counting.service';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 type CountStockOrderView = CountStockOrder & {
   statusText: string;
@@ -25,7 +26,8 @@ type CountStockOrderView = CountStockOrder & {
     CardBodyComponent,
     ButtonDirective,
     TableModule,
-    IconDirective
+    IconDirective,
+    TranslatePipe
   ],
   templateUrl: './stock-counting-orders.component.html',
   styleUrl: './stock-counting-orders.component.scss'
@@ -100,6 +102,22 @@ export class StockCountingOrdersComponent implements OnInit {
       },
       error: (err) => {
         this.toastr.error(this.extractError(err, 'Submit failed.'), 'Error');
+      }
+    });
+  }
+
+  onDuplicateOrder(order: CountStockOrder): void {
+    if (!confirm(`Duplicate stock counting order #${order.countStockId}?`)) {
+      return;
+    }
+
+    this.stockService.duplicateOrder(order.countStockId).subscribe({
+      next: () => {
+        this.toastr.success('Order duplicated successfully.', 'Success');
+        this.loadOrders();
+      },
+      error: (err) => {
+        this.toastr.error(this.extractError(err, 'Failed to duplicate order.'), 'Error');
       }
     });
   }

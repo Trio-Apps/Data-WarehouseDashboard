@@ -5,7 +5,7 @@
   size="lg"
 >
   <c-modal-header>
-    <h5 cModalTitle>{{ isEditMode ? 'Edit User' : 'Add New User' }}</h5>
+    <h5 cModalTitle>{{ isEditMode ? ('users.modal.editTitle' | translate) : ('users.modal.addTitle' | translate) }}</h5>
   </c-modal-header>
   <c-modal-body>
     <!-- <div>{{userForm.value | json}}</div> -->
@@ -35,13 +35,13 @@
         <!-- Email -->
         <c-col [md]="6">
           <label class="form-label">
-            Email <span class="text-danger">*</span>
+            {{ 'users.fields.email' | translate }} <span class="text-danger">*</span>
           </label>
           <input
             cFormControl
             type="email"
             formControlName="email"
-            placeholder="Enter email"
+            [placeholder]="'users.placeholders.enterEmail' | translate"
             class="form-control"
             [class.is-invalid]="isFieldInvalid('email')"
           />
@@ -54,12 +54,12 @@
 
         <!-- First Name -->
         <c-col [md]="6">
-          <label class="form-label">Full Name</label>
+          <label class="form-label">{{ 'users.fields.fullName' | translate }}</label>
           <input
             cFormControl
             type="text"
             formControlName="fullName"
-            placeholder="Enter full name"
+            [placeholder]="'users.placeholders.enterFullName' | translate"
             class="form-control"
           />
         </c-col>
@@ -68,12 +68,12 @@
 
         <!-- phoneNumber -->
         <c-col [md]="6">
-          <label class="form-label">phoneNumber</label>
+          <label class="form-label">{{ 'users.fields.phoneNumber' | translate }}</label>
           <input
             cFormControl
             type="tel"
             formControlName="phoneNumber"
-            placeholder="Enter phoneNumber number"
+            [placeholder]="'users.placeholders.enterPhoneNumber' | translate"
             class="form-control"
             [class.is-invalid]="isFieldInvalid('phoneNumber')"
           />
@@ -86,7 +86,7 @@
   <!-- roles -->
         <c-col [md]="6">
           <label class="form-label">
-            roles <span class="text-danger">*</span>
+            {{ 'users.fields.roles' | translate }} <span class="text-danger">*</span>
           </label>
           <select
             cFormControl
@@ -94,7 +94,7 @@
             class="form-select"
             [class.is-invalid]="isFieldInvalid('roles')"
           >
-            <option value="">Select roles</option>
+            <option value="">{{ 'users.placeholders.selectRoles' | translate }}</option>
             @for (role of getAvailableRoles(); track role.id || $index) {
               <option [value]="role.roleName">{{ role.roleName }}</option>
             }
@@ -109,10 +109,10 @@
         @if (requiresCompanySelection) {
           <c-col [md]="6">
             <label class="form-label">
-              Company <span class="text-danger">*</span>
+              {{ 'users.fields.company' | translate }} <span class="text-danger">*</span>
             </label>
             @if (loadingCompanies) {
-              <div class="text-body-secondary">Loading companies...</div>
+              <div class="text-body-secondary">{{ 'users.messages.loadingCompanies' | translate }}</div>
             } @else {
               <select
                 cFormControl
@@ -120,7 +120,7 @@
                 class="form-select"
                 [class.is-invalid]="isFieldInvalid('companyId')"
               >
-                <option [value]="null">-- Select Company --</option>
+                <option [value]="null">{{ 'users.placeholders.selectCompany' | translate }}</option>
                 @for (company of companies; track company.companyId) {
                   <option [value]="company.companyId">{{ company.name }}</option>
                 }
@@ -138,10 +138,10 @@
         @if (shouldShowSapWarehouseSelection) {
           <c-col [md]="12">
             <label class="form-label">
-              SAP Connections <span class="text-danger">*</span>
+              {{ 'users.fields.sapConnections' | translate }} <span class="text-danger">*</span>
             </label>
             @if (loadingSaps) {
-              <div class="text-body-secondary">Loading SAPs...</div>
+              <div class="text-body-secondary">{{ 'users.messages.loadingSaps' | translate }}</div>
             } @else {
               <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
                 @for (sap of saps; track sap.sapId) {
@@ -159,12 +159,12 @@
                   </div>
                 }
                 @if (saps.length === 0) {
-                  <div class="text-body-secondary text-center py-2">No SAPs available</div>
+                  <div class="text-body-secondary text-center py-2">{{ 'users.messages.noSapsAvailable' | translate }}</div>
                 }
               </div>
               @if (isSapIdsInvalid()) {
                 <div class="invalid-feedback d-block">
-                  Please select at least one SAP connection
+                  {{ 'users.validation.selectSap' | translate }}
                 </div>
               }
             }
@@ -173,12 +173,12 @@
           @for (sapId of getSelectedSapIds(); track sapId) {
             <c-col [md]="12">
               <label class="form-label">
-                Warehouses for {{ getSapName(sapId) }} <span class="text-danger">*</span>
+                {{ 'users.fields.warehousesFor' | translate:{ sap: getSapName(sapId) } }} <span class="text-danger">*</span>
               </label>
               @if (isWarehousesLoadingForSap(sapId)) {
-                <div class="text-body-secondary">Loading warehouses...</div>
+                <div class="text-body-secondary">{{ 'users.messages.loadingWarehouses' | translate }}</div>
               } @else if (getWarehousesForSap(sapId).length === 0) {
-                <div class="text-body-secondary">No warehouses available for this SAP</div>
+                <div class="text-body-secondary">{{ 'users.messages.noWarehousesForSap' | translate }}</div>
               } @else {
                 <div class="border rounded p-3" style="max-height: 200px; overflow-y: auto;">
                   @for (warehouse of getWarehousesForSap(sapId); track warehouse.warehouseId) {
@@ -203,7 +203,7 @@
           @if (isWarehouseIdsInvalid()) {
             <c-col [md]="12">
               <div class="invalid-feedback d-block">
-                Please select at least one warehouse
+                {{ 'users.validation.selectWarehouse' | translate }}
               </div>
             </c-col>
           }
@@ -243,13 +243,13 @@
         @if (!isEditMode) {
           <c-col [md]="6">
             <label class="form-label">
-              Password <span class="text-danger">*</span>
+              {{ 'users.fields.password' | translate }} <span class="text-danger">*</span>
             </label>
             <input
               cFormControl
               type="password"
               formControlName="password"
-              placeholder="Enter password"
+              [placeholder]="'users.placeholders.enterPassword' | translate"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('password')"
             />
@@ -263,13 +263,13 @@
           <!-- Confirm Password -->
           <c-col [md]="6">
             <label class="form-label">
-              Confirm Password <span class="text-danger">*</span>
+              {{ 'users.fields.confirmPassword' | translate }} <span class="text-danger">*</span>
             </label>
             <input
               cFormControl
               type="password"
               formControlName="confirmPassword"
-              placeholder="Confirm password"
+              [placeholder]="'users.placeholders.confirmPassword' | translate"
               class="form-control"
               [class.is-invalid]="isFieldInvalid('confirmPassword')"
             />
@@ -300,10 +300,10 @@
   </c-modal-body>
   <c-modal-footer>
     <button cButton color="secondary" (click)="onCancel()">
-      Cancel
+      {{ 'common.cancel' | translate }}
     </button>
     <button cButton color="primary" (click)="onSave()" [disabled]="userForm.invalid">
-      {{ isEditMode ? 'Update' : 'Create' }}
+      {{ isEditMode ? ('common.update' | translate) : ('common.create' | translate) }}
     </button>
   </c-modal-footer>
 </c-modal>

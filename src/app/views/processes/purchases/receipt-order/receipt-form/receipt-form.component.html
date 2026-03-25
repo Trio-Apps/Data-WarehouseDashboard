@@ -2,11 +2,11 @@
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0 header-title">
-        {{ isEditMode ? 'Edit' : 'Create' }} Receipt Order
+        {{ (isEditMode ? 'Edit' : 'Create') | translate }} {{ 'Receipt Order' | translate }}
         @if (purchaseOrderId) {
-          - Purchase #{{ purchaseOrderId }}
+          - {{ 'Purchase' | translate }} #{{ purchaseOrderId }}
         } @else {
-          - Without Reference
+          - {{ 'Without Reference' | translate }}
         }
       </h4>
     </c-card-header>
@@ -14,7 +14,7 @@
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
       @if (loading) {
         <div class="text-center py-5">
-          <span class="text-body-secondary">Loading...</span>
+          <span class="text-body-secondary">{{ 'Loading...' | translate }}</span>
         </div>
       } @else {
         <div class="p-4">
@@ -23,7 +23,7 @@
               <!-- Posting Date -->
               <c-col [md]="6">
                 <label class="form-label">
-                  Posting Date <span class="text-danger">*</span>
+                  {{ 'Posting Date' | translate }} <span class="text-danger">*</span>
                 </label>
                 <input
                   cFormControl
@@ -34,7 +34,7 @@
                   required>
                 @if (form.get('postingDate')?.invalid && form.get('postingDate')?.touched) {
                   <div class="invalid-feedback d-block">
-                    Posting date is required
+                    {{ 'Posting date is required' | translate }}
                   </div>
                 }
               </c-col>
@@ -42,7 +42,7 @@
               <!-- Due Date -->
               <c-col [md]="6">
                 <label class="form-label">
-                  Due Date <span class="text-danger">*</span>
+                  {{ 'Due Date' | translate }} <span class="text-danger">*</span>
                 </label>
                 <input
                   cFormControl
@@ -53,7 +53,7 @@
                   required>
                 @if (form.get('dueDate')?.invalid && form.get('dueDate')?.touched) {
                   <div class="invalid-feedback d-block">
-                    Due date is required
+                    {{ 'Due date is required' | translate }}
                   </div>
                 }
               </c-col>
@@ -62,14 +62,14 @@
               @if (!purchaseOrderId) {
                 <c-col [md]="12">
                   <label class="form-label">
-                    Supplier <span class="text-danger">*</span>
+                    {{ 'Supplier' | translate }} <span class="text-danger">*</span>
                   </label>
                   <input
                     cFormControl
                     type="text"
                     class="form-control supplier-picker-display"
                     [value]="selectedSupplierDisplay"
-                    placeholder="-- Select Supplier --"
+                    [placeholder]="'-- Select Supplier --' | translate"
                     readonly
                     (click)="onOpenSupplierModal()"
                     [class.is-invalid]="form.get('supplierId')?.invalid && form.get('supplierId')?.touched"
@@ -78,7 +78,7 @@
                   
                   @if (form.get('supplierId')?.invalid && form.get('supplierId')?.touched) {
                     <div class="invalid-feedback d-block">
-                      Supplier is required
+                      {{ 'Supplier is required' | translate }}
                     </div>
                   }
                 </c-col>
@@ -88,12 +88,12 @@
 
               <!-- Comment -->
               <c-col [md]="12">
-                <label class="form-label">Comment</label>
+                <label class="form-label">{{ 'Comment' | translate }}</label>
                 <textarea
                   cFormControl
                   formControlName="comment"
                   rows="3"
-                  placeholder="Enter any comments for this receipt"
+                  [placeholder]="'Enter any comments for this receipt' | translate"
                   class="form-control">
                 </textarea>
               </c-col>
@@ -107,11 +107,11 @@
                     formControlName="isDraft"
                     id="isDraft">
                   <label cFormCheckLabel for="isDraft">
-                    Save as Draft
+                    {{ 'Save as Draft' | translate }}
                   </label>
                 </div>
                 <small class="form-text text-muted d-block mt-1">
-                  Draft receipts can be modified later. Final receipts cannot be edited.
+                  {{ 'Draft receipts can be modified later. Final receipts cannot be edited.' | translate }}
                 </small>
               </c-col>
             </c-row>
@@ -127,7 +127,7 @@
         type="button"
         (click)="onCancel()"
         [disabled]="saving">
-        Cancel
+        {{ 'Cancel' | translate }}
       </button>
       <button
         cButton
@@ -138,7 +138,7 @@
         @if (saving) {
           <span class="spinner-border spinner-border-sm me-2" role="status"></span>
         }
-        {{ saving ? 'Saving...' : (isEditMode ? 'Update Receipt' : 'Create Receipt') }}
+        {{ (saving ? 'Saving...' : (isEditMode ? 'Update Receipt' : 'Create Receipt')) | translate }}
       </button>
       @if (!isEditMode && purchaseOrderId) {
         <button
@@ -150,7 +150,7 @@
           @if (saving) {
             <span class="spinner-border spinner-border-sm me-2" role="status"></span>
           }
-          Create Receipt With Default Lines
+          {{ 'Create Receipt With Default Lines' | translate }}
         </button>
       }
     </c-card-footer>

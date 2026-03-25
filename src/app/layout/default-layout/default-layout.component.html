@@ -24,10 +24,10 @@
       <button
         type="button"
         class="sidebar-logout-btn"
-        aria-label="Logout"
+        [attr.aria-label]="'common.logout' | translate"
         (click)="logout()"
       >
-        Logout
+        {{ 'common.logout' | translate }}
       </button>
     </c-sidebar-footer>
   }

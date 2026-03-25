@@ -20,6 +20,7 @@ import { Return } from '../../Models/sales-return-model';
 import { Customer } from '../../Models/sales-model';
 import { ApprovalService } from '../../../approval-process/Services/approval.service';
 import { SearchCustomerModalComponent } from '../../search-customer-modal/search-customer-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 type SalesReturnOrderListItem = Return & {
   salesOrderId?: number;
@@ -46,7 +47,8 @@ type SalesReturnOrderListItem = Return & {
     ModalModule,
     IconDirective,
     DatePipe,
-    SearchCustomerModalComponent
+    SearchCustomerModalComponent,
+    TranslatePipe
   ],
   templateUrl: './sales-return-orders.component.html',
   styleUrl: './sales-return-orders.component.scss',
@@ -404,6 +406,27 @@ export class SalesReturnOrdersComponent implements OnInit, OnDestroy {
         error: (err) => {
           console.error('Error deleting return order:', err);
           const errorMessage = err.error?.message || 'Error deleting return order. Please try again.';
+          this.toastr.error(errorMessage, 'Error');
+        }
+      });
+    }
+  }
+
+  onDuplicateReturnOrder(returnOrder: SalesReturnOrderListItem): void {
+    if (!returnOrder.salesReturnOrderId) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to duplicate return order #${returnOrder.salesReturnOrderId}?`)) {
+      this.returnService.duplicateReturnOrder(returnOrder.salesReturnOrderId).subscribe({
+        next: () => {
+          this.toastr.success('Return order duplicated successfully', 'Success');
+          this.loadReturns();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error duplicating return order:', err);
+          const errorMessage = err.error?.message || 'Error duplicating return order. Please try again.';
           this.toastr.error(errorMessage, 'Error');
         }
       });

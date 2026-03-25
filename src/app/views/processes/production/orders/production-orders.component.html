@@ -124,6 +124,9 @@
                     <button cButton color="info" size="sm" class="me-2" (click)="onOpen(order)">
                       <svg cIcon name="cil-pencil"></svg>
                     </button>
+                    <button cButton color="secondary" size="sm" class="me-2" (click)="onDuplicate(order)">
+                      Duplicate
+                    </button>
 
                     @if (order.status === 'Draft') {
                       <button cButton color="success" size="sm" class="me-2" (click)="onSubmit(order)">

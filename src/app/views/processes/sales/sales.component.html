@@ -1,15 +1,15 @@
 <div class="container-fluid h-100 d-flex flex-column p-0">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
-      <h4 class="mb-0 header-title">Sales - Warehouse #{{ warehouseId }}</h4>
+      <h4 class="mb-0 header-title">{{ 'Sales' | translate }} - {{ 'Warehouse' | translate }} #{{ warehouseId }}</h4>
       <div class="d-flex align-items-center gap-2">
         <button cButton color="primary" class="header-button" (click)="onAddSale()">
           <svg cIcon name="cil-plus" class="me-2"></svg>
-          Add Sale Order
+          {{ 'Add Sale Order' | translate }}
         </button>
         <button cButton color="secondary" class="header-button" (click)="onBackToShowProcesses()">
           <svg cIcon name="cil-arrow-left" class="me-2"></svg>
-          Back
+          {{ 'Back' | translate }}
         </button>
       </div>
     </c-card-header>
@@ -22,15 +22,15 @@
             <tr>
               <th scope="col" class="bg-body-tertiary">#</th>
               <th scope="col" class="bg-body-tertiary">ID</th>
-              <th scope="col" class="bg-body-tertiary">Customer</th>
-              <th scope="col" class="bg-body-tertiary">Posting Date</th>
-              <th scope="col" class="bg-body-tertiary">Due Date</th>
-              <th scope="col" class="bg-body-tertiary">Status</th>
-              <th scope="col" class="bg-body-tertiary">Approval Status</th>
-              <th scope="col" class="bg-body-tertiary">Comment</th>
-              <th scope="col" class="bg-body-tertiary">Items Count</th>
-              <th scope="col" class="bg-body-tertiary text-center">Actions</th>
-              <th scope="col" class="bg-body-tertiary text-center">Delivery Note</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Customer' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Posting Date' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Due Date' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Status' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Approval Status' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Comment' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Items Count' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary text-center">{{ 'Actions' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary text-center">{{ 'Delivery Note' | translate }}</th>
               <!-- <th scope="col" class="bg-body-tertiary text-center">Return</th> -->
             </tr>
           </thead>
@@ -39,7 +39,7 @@
             @if (loading) {
             <tr>
               <td colspan="12" class="text-center py-4">
-                <span class="text-body-secondary">Loading...</span>
+                <span class="text-body-secondary">{{ 'Loading...' | translate }}</span>
               </td>
             </tr>
             } @else if (paginatedSales.length > 0) {
@@ -47,24 +47,24 @@
             <tr>
               <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
               <td>{{ sale.salesOrderId }}</td>
-              <td>{{ sale.customer?.customerCode || 'N/A' }}</td>
+              <td>{{ sale.customer?.customerCode || ('N/A' | translate) }}</td>
               <td>{{ sale.postingDate | date:'short' }}</td>
               <td>{{ sale.dueDate | date:'short' }}</td>
               <td>
                 <span [class]="getStatusBadgeClass(sale)">
-                  {{ getStatusText(sale) }}
+                  {{ getStatusText(sale) | translate }}
                 </span>
               </td>
               <td>
                 <span [class]="getApprovalBadgeClass(sale)">
-                  {{ getApprovalStatusText(sale) }}
+                  {{ getApprovalStatusText(sale) | translate }}
                 </span>
               </td>
-              <td>{{ sale.comment || 'No comment' }}</td>
+              <td>{{ sale.comment || ('No comment' | translate) }}</td>
               <td>{{ sale.itemCount }}</td>
               <td class="text-center">
                 <button cButton color="info" size="sm" class="me-2" (click)="onViewSaleItems(sale)"
-                  title="View Items">
+                  [title]="'View Items' | translate">
                   <svg cIcon name="cil-list"></svg>
                 </button>
 
@@ -72,7 +72,10 @@
                 <!-- <button cButton color="warning" size="sm" class="me-2" (click)="onEditSale(sale)" title="Edit">
                   <svg cIcon name="cil-pencil"></svg>
                 </button> -->
-                <button cButton color="danger" size="sm" (click)="onDeleteSale(sale)" title="Delete">
+                <button cButton color="secondary" size="sm" class="me-2" (click)="onDuplicateSale(sale)" [title]="'Duplicate' | translate">
+                  Duplicate
+                </button>
+                <button cButton color="danger" size="sm" (click)="onDeleteSale(sale)" [title]="'Delete' | translate">
                   <svg cIcon name="cil-trash"></svg>
                 </button>
                 }
@@ -81,7 +84,7 @@
               <td class="text-center">
                 @if (sale.status == "Completed") {
                 <button cButton color="success" size="sm" class="me-2" (click)="onViewDeliveryNote(sale)"
-                  title="View Delivery Note">
+                  [title]="'View Delivery Note' | translate">
                   <svg cIcon name="cil-inbox"></svg>
                 </button>
                 }
@@ -100,7 +103,7 @@
             } @else {
             <tr>
               <td colspan="12" class="text-center py-4">
-                <span class="text-body-secondary">No Sales found</span>
+                <span class="text-body-secondary">{{ 'No Sales found' | translate }}</span>
               </td>
             </tr>}
           </tbody>
@@ -110,10 +113,10 @@
       <!-- Pagination -->
       @if (totalPages > 0) {
       <div class="pagination-container p-3 border-top">
-        <nav aria-label="Page navigation">
+        <nav [attr.aria-label]="'Page navigation' | translate">
           <ul class="pagination justify-content-center mb-2">
             <li class="page-item" [class.disabled]="!hasPrevious">
-              <a class="page-link" (click)="onPreviousPage($event)" [attr.aria-label]="'Previous'"
+              <a class="page-link" (click)="onPreviousPage($event)" [attr.aria-label]="'Previous' | translate"
                 [attr.tabindex]="!hasPrevious ? -1 : null" [class.disabled]="!hasPrevious" href="#">
                 <span aria-hidden="true">&laquo;</span>
               </a>
@@ -126,7 +129,7 @@
             }
 
             <li class="page-item" [class.disabled]="!hasNext">
-              <a class="page-link" (click)="onNextPage($event)" [attr.aria-label]="'Next'"
+              <a class="page-link" (click)="onNextPage($event)" [attr.aria-label]="'Next' | translate"
                 [attr.tabindex]="!hasNext ? -1 : null" [class.disabled]="!hasNext" href="#">
                 <span aria-hidden="true">&raquo;</span>
               </a>
@@ -136,9 +139,7 @@
         </nav>
 
         <div class="text-body-secondary small text-center">
-          Showing {{ (currentPage - 1) * itemsPerPage + 1 }} to {{ Math.min(currentPage * itemsPerPage, totalItems) }}
-          of
-          {{ totalItems }} Sales
+          {{ ('Showing ' + ((currentPage - 1) * itemsPerPage + 1) + ' to ' + Math.min(currentPage * itemsPerPage, totalItems) + ' of ' + totalItems + ' Sales') | translate }}
         </div>
 
       </div>
@@ -152,25 +153,25 @@
         <c-row [gutter]="3">
           <!-- Status Filter -->
           <c-col [md]="2">
-            <label class="form-label">Status</label>
+            <label class="form-label">{{ 'Status' | translate }}</label>
             <select cFormControl formControlName="status" class="form-select">
-              <option value="">-- All Statuses --</option>
-              <option value="Draft">Draft</option>
-              <option value="Processing">Processing</option>
-              <option value="Completed">Completed</option>
-              <option value="PartiallyFailed">PartiallyFailed</option>
-              <option value="Final">Final</option>
+              <option value="">{{ '-- All Statuses --' | translate }}</option>
+              <option value="Draft">{{ 'Draft' | translate }}</option>
+              <option value="Processing">{{ 'Processing' | translate }}</option>
+              <option value="Completed">{{ 'Completed' | translate }}</option>
+              <option value="PartiallyFailed">{{ 'PartiallyFailed' | translate }}</option>
+              <option value="Final">{{ 'Final' | translate }}</option>
             </select>
           </c-col>
 
           <c-col [md]="2">
-            <label class="form-label">Customer</label>
+            <label class="form-label">{{ 'Customer' | translate }}</label>
             <input
               cFormControl
               type="text"
               class="form-control customer-picker-display"
               [value]="selectedCustomerDisplay"
-              placeholder="-- All Customers --"
+              [placeholder]="'-- All Customers --' | translate"
               readonly
               (click)="onOpenCustomerModal()" />
             <input type="hidden" formControlName="customerId" />
@@ -192,24 +193,23 @@
 
           <!-- Posting Date Filter -->
           <c-col [md]="2">
-            <label class="form-label">Posting Date</label>
+            <label class="form-label">{{ 'Posting Date' | translate }}</label>
             <input cFormControl type="date" formControlName="postingDate" class="form-control" />
           </c-col>
 
           <!-- Due Date Filter -->
           <c-col [md]="2">
-            <label class="form-label">Due Date</label>
+            <label class="form-label">{{ 'Due Date' | translate }}</label>
             <input cFormControl type="date" formControlName="dueDate" class="form-control" />
           </c-col>
 
           <!-- liveStatus Filter -->
           <c-col [md]="2">
-            <label class="form-label" for="liveStatus">Live Status</label>
+            <label class="form-label" for="liveStatus">{{ 'Live Status' | translate }}</label>
             <select id="liveStatus" class="form-select" formControlName="liveStatus" cFormControl>
-
-              <option value="">-- All Live Status --</option>
-              <option value="delivery-note">Delivery Note</option>
-              <option value="return">Return</option>
+              <option value="">{{ '-- All Live Status --' | translate }}</option>
+              <option value="delivery-note">{{ 'Delivery Note' | translate }}</option>
+              <option value="return">{{ 'Return' | translate }}</option>
             </select>
           </c-col>
 
@@ -217,7 +217,7 @@
           <!-- Action Buttons -->
           <c-col [md]="2" class="d-flex align-items-end">
             <button cButton color="primary" type="submit" class="w-100">
-              Search
+              {{ 'Search' | translate }}
             </button>
           </c-col>
         </c-row>

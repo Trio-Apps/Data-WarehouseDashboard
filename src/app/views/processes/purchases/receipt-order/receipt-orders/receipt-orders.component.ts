@@ -20,6 +20,7 @@ import { Receipt } from '../../Models/receipt';
 import { Supplier } from '../../Models/purchase.model';
 import { ToastrService } from 'ngx-toastr';
 import { SearchSupplierModalComponent } from '../../search-supplier-modal/search-supplier-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-receipt-orders',
@@ -36,7 +37,8 @@ import { SearchSupplierModalComponent } from '../../search-supplier-modal/search
     ModalModule,
     IconDirective,
     DatePipe,
-    SearchSupplierModalComponent
+    SearchSupplierModalComponent,
+    TranslatePipe
   ],
   templateUrl: './receipt-orders.component.html',
   styleUrl: './receipt-orders.component.scss',
@@ -413,6 +415,27 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
         error: (err) => {
           console.error('Error deleting receipt:', err);
           const errorMessage = err.error?.message || 'Error deleting receipt. Please try again.';
+          this.toastr.error(errorMessage, 'Error');
+        }
+      });
+    }
+  }
+
+  onDuplicateReceipt(receipt: Receipt): void {
+    if (!receipt.receiptPurchaseOrderId) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to duplicate receipt #${receipt.receiptPurchaseOrderId}?`)) {
+      this.receiptService.duplicateReceipt(receipt.receiptPurchaseOrderId).subscribe({
+        next: () => {
+          this.toastr.success('Receipt duplicated successfully', 'Success');
+          this.loadReceipts();
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Error duplicating receipt:', err);
+          const errorMessage = err.error?.message || 'Error duplicating receipt. Please try again.';
           this.toastr.error(errorMessage, 'Error');
         }
       });

@@ -19,6 +19,8 @@ import {
   UpdateApprovalStepDto
 } from './Models/approval-model';
 import { ApprovalFormComponent } from './approval-form/approval-form.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
+import { TranslationService } from 'src/app/core/i18n/translation.service';
 
 @Component({
   selector: 'app-approval-process',
@@ -31,7 +33,8 @@ import { ApprovalFormComponent } from './approval-form/approval-form.component';
     FormModule,
     GridModule,
     IconDirective,
-    ApprovalFormComponent
+    ApprovalFormComponent,
+    TranslatePipe
   ],
   templateUrl: './approval-process.component.html',
   styleUrl: './approval-process.component.scss',
@@ -93,7 +96,8 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
     private authService: AuthService,
     private companiesService: CompaniesService,
     private cdr: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private translationService: TranslationService
   ) {
     this.checkPermissions();
     this.form = this.fb.group({
@@ -429,13 +433,19 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
           };
         }
         this.togglingIgnoreSteps = false;
-        this.toastr.success('Ignore steps updated successfully.', 'Success');
+        this.toastr.success(
+          this.translationService.translate('approvalProcess.messages.ignoreStepsUpdated'),
+          this.translationService.translate('messages.success')
+        );
         this.cdr.detectChanges();
       },
       error: (err) => {
         console.error('Error toggling ignore steps:', err);
         this.togglingIgnoreSteps = false;
-        this.toastr.error('Failed to update ignore steps.', 'Error');
+        this.toastr.error(
+          this.translationService.translate('approvalProcess.messages.ignoreStepsUpdateError'),
+          this.translationService.translate('messages.error')
+        );
         this.cdr.detectChanges();
       }
     });
@@ -447,7 +457,10 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
 
   onAddStepClick(): void {
     if (!this.canCreateApprovalSteps) {
-      this.toastr.error('You do not have permission to create approval steps.', 'Access Denied');
+      this.toastr.error(
+        this.translationService.translate('approvalProcess.messages.permissionCreateDenied'),
+        this.translationService.translate('messages.accessDenied')
+      );
       return;
     }
 
@@ -458,7 +471,10 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
 
   onEditStep(step: ApprovalStepDto): void {
     if (!this.canEditApprovalSteps) {
-      this.toastr.error('You do not have permission to edit approval steps.', 'Access Denied');
+      this.toastr.error(
+        this.translationService.translate('approvalProcess.messages.permissionEditDenied'),
+        this.translationService.translate('messages.accessDenied')
+      );
       return;
     }
 
@@ -470,11 +486,17 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
   onSaveStep(stepData: AddApprovalStepDto | UpdateApprovalStepDto): void {
    
     if (this.isEditMode && !this.canEditApprovalSteps) {
-      this.toastr.error('You do not have permission to edit approval steps.', 'Access Denied');
+      this.toastr.error(
+        this.translationService.translate('approvalProcess.messages.permissionEditDenied'),
+        this.translationService.translate('messages.accessDenied')
+      );
       return;
     }
     if (!this.isEditMode && !this.canCreateApprovalSteps) {
-      this.toastr.error('You do not have permission to create approval steps.', 'Access Denied');
+      this.toastr.error(
+        this.translationService.translate('approvalProcess.messages.permissionCreateDenied'),
+        this.translationService.translate('messages.accessDenied')
+      );
       return;
     }
 
@@ -498,13 +520,19 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
        console.log("step",stepData);
 
     if (!this.canCreateApprovalSteps) {
-      this.toastr.error('You do not have permission to create approval steps.', 'Access Denied');
+      this.toastr.error(
+        this.translationService.translate('approvalProcess.messages.permissionCreateDenied'),
+        this.translationService.translate('messages.accessDenied')
+      );
       return;
     }
 
     this.approvalService.createApprovalStep(stepData).subscribe({
       next: () => {
-        this.toastr.success('Approval step created successfully', 'Success');
+        this.toastr.success(
+          this.translationService.translate('approvalProcess.messages.createSuccess'),
+          this.translationService.translate('messages.success')
+        );
         this.modalLoading = false;
         this.showStepModal = false;
         this.loadApprovalSteps();
@@ -512,21 +540,30 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error creating approval step:', err);
         this.modalLoading = false;
-        const errorMessage = err.error?.message || err.error?.errors?.join(', ') || 'Error creating approval step.';
-        this.toastr.error(errorMessage, 'Error');
+        const errorMessage =
+          err.error?.message ||
+          err.error?.errors?.join(', ') ||
+          this.translationService.translate('approvalProcess.messages.createError');
+        this.toastr.error(errorMessage, this.translationService.translate('messages.error'));
       }
     });
   }
 
   onUpdateStep(stepData: UpdateApprovalStepDto): void {
     if (!this.canEditApprovalSteps) {
-      this.toastr.error('You do not have permission to edit approval steps.', 'Access Denied');
+      this.toastr.error(
+        this.translationService.translate('approvalProcess.messages.permissionEditDenied'),
+        this.translationService.translate('messages.accessDenied')
+      );
       return;
     }
 
     this.approvalService.updateApprovalStep(stepData).subscribe({
       next: () => {
-        this.toastr.success('Approval step updated successfully', 'Success');
+        this.toastr.success(
+          this.translationService.translate('approvalProcess.messages.updateSuccess'),
+          this.translationService.translate('messages.success')
+        );
         this.modalLoading = false;
         this.showStepModal = false;
         this.loadApprovalSteps();
@@ -534,28 +571,38 @@ export class ApprovalProcessComponent implements OnInit, OnDestroy {
       error: (err) => {
         console.error('Error updating approval step:', err);
         this.modalLoading = false;
-        const errorMessage = err.error?.message || err.error?.errors?.join(', ') || 'Error updating approval step.';
-        this.toastr.error(errorMessage, 'Error');
+        const errorMessage =
+          err.error?.message ||
+          err.error?.errors?.join(', ') ||
+          this.translationService.translate('approvalProcess.messages.updateError');
+        this.toastr.error(errorMessage, this.translationService.translate('messages.error'));
       }
     });
   }
 
   onDeleteStep(step: ApprovalStepDto): void {
     if (!this.canDeleteApprovalSteps) {
-      this.toastr.error('You do not have permission to delete approval steps.', 'Access Denied');
+      this.toastr.error(
+        this.translationService.translate('approvalProcess.messages.permissionDeleteDenied'),
+        this.translationService.translate('messages.accessDenied')
+      );
       return;
     }
 
-    if (confirm(`Are you sure you want to delete step: ${step.stepName}?`)) {
+    if (confirm(this.translationService.translate('approvalProcess.messages.deleteConfirm', { step: step.stepName }))) {
       this.approvalService.deleteApprovalStep(step.approvalStepId).subscribe({
         next: () => {
-          this.toastr.success(`Step "${step.stepName}" deleted successfully`, 'Success');
+          this.toastr.success(
+            this.translationService.translate('approvalProcess.messages.deleteSuccess', { step: step.stepName }),
+            this.translationService.translate('messages.success')
+          );
           this.loadApprovalSteps();
         },
         error: (err) => {
           console.error('Error deleting approval step:', err);
-          const errorMessage = err.error?.message || 'Error deleting approval step. Please try again.';
-          this.toastr.error(errorMessage, 'Error');
+          const errorMessage =
+            err.error?.message || this.translationService.translate('approvalProcess.messages.deleteError');
+          this.toastr.error(errorMessage, this.translationService.translate('messages.error'));
         }
       });
     }

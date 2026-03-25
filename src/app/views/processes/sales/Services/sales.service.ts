@@ -130,6 +130,10 @@ getSalesWithFilterationByWarehouse(
     return this.http.delete<any>(`${this.baseUrl}SalesOrder/${salesOrderId}`, this.headerOption);
   }
 
+  duplicateSales(salesOrderId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}SalesOrder/${salesOrderId}/duplicate`, {}, this.headerOption);
+  }
+
   /**
    * Get all customers
    */

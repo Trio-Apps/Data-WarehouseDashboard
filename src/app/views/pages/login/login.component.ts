@@ -1,6 +1,6 @@
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { IconDirective } from '@coreui/icons-angular';
 import {
@@ -15,9 +15,6 @@ import {
   InputGroupComponent,
   InputGroupTextDirective,
   RowComponent,
-  FormCheckComponent,
-  FormCheckInputDirective,
-  FormCheckLabelDirective
 } from '@coreui/angular';
 import { AuthService } from '../Services/auth.service';
 
@@ -32,6 +29,7 @@ import { AuthService } from '../Services/auth.service';
     ContainerComponent,
     RowComponent,
     ColComponent,
+    RouterLink,
     CardGroupComponent,
     CardComponent,
     CardBodyComponent,
@@ -40,10 +38,7 @@ import { AuthService } from '../Services/auth.service';
     InputGroupTextDirective,
     IconDirective,
     FormControlDirective,
-    ButtonDirective,
-    FormCheckComponent,
-    FormCheckInputDirective,
-    FormCheckLabelDirective
+    ButtonDirective
   ]
 })
 export class LoginComponent implements OnInit {

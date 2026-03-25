@@ -2,21 +2,21 @@
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0 header-title">
-        {{ isEditMode ? 'Edit' : 'Create' }} Quantity Adjustment Stock - Warehouse #{{ warehouseId }}
+        {{ (isEditMode ? 'Edit Quantity Adjustment Stock' : 'Create Quantity Adjustment Stock') | translate }} - {{ 'Warehouse' | translate }} #{{ warehouseId }}
       </h4>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
       @if (loading) {
         <div class="text-center py-5">
-          <span class="text-body-secondary">Loading...</span>
+          <span class="text-body-secondary">{{ 'Loading...' | translate }}</span>
         </div>
       } @else {
         <div class="p-4">
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
             <c-row [gutter]="3">
               <c-col [md]="6">
-                <label class="form-label">Posting Date <span class="text-danger">*</span></label>
+                <label class="form-label">{{ 'Posting Date' | translate }} <span class="text-danger">*</span></label>
                 <input
                   cFormControl
                   type="date"
@@ -25,12 +25,12 @@
                   [class.is-invalid]="form.get('postingDate')?.invalid && form.get('postingDate')?.touched"
                   required />
                 @if (form.get('postingDate')?.invalid && form.get('postingDate')?.touched) {
-                  <div class="invalid-feedback d-block">Posting date is required</div>
+                  <div class="invalid-feedback d-block">{{ 'Posting date is required' | translate }}</div>
                 }
               </c-col>
 
               <c-col [md]="6">
-                <label class="form-label">Due Date <span class="text-danger">*</span></label>
+                <label class="form-label">{{ 'Due Date' | translate }} <span class="text-danger">*</span></label>
                 <input
                   cFormControl
                   type="date"
@@ -39,27 +39,27 @@
                   [class.is-invalid]="form.get('dueDate')?.invalid && form.get('dueDate')?.touched"
                   required />
                 @if (form.get('dueDate')?.invalid && form.get('dueDate')?.touched) {
-                  <div class="invalid-feedback d-block">Due date is required</div>
+                  <div class="invalid-feedback d-block">{{ 'Due date is required' | translate }}</div>
                 }
               </c-col>
 
               <c-col [md]="12">
-                <label class="form-label">Comment</label>
+                <label class="form-label">{{ 'Comment' | translate }}</label>
                 <textarea
                   cFormControl
                   formControlName="comment"
                   rows="3"
-                  placeholder="Enter any comments for this quantity adjustment stock"
+                  [placeholder]="'Enter any comments for this quantity adjustment stock' | translate"
                   class="form-control"></textarea>
               </c-col>
 
               <c-col [md]="12">
                 <div class="form-check">
                   <input cFormCheckInput type="checkbox" formControlName="isDraft" id="isDraft" />
-                  <label cFormCheckLabel for="isDraft">Save as Draft</label>
+                  <label cFormCheckLabel for="isDraft">{{ 'Save as Draft' | translate }}</label>
                 </div>
                 <small class="form-text text-muted d-block mt-1">
-                  Draft quantity adjustment stocks can be modified later. Final stocks cannot be edited.
+                  {{ 'Draft quantity adjustment stocks can be modified later. Final stocks cannot be edited.' | translate }}
                 </small>
               </c-col>
             </c-row>
@@ -69,7 +69,7 @@
     </c-card-body>
 
     <c-card-footer class="d-flex justify-content-end gap-2 p-3 border-top">
-      <button cButton color="secondary" type="button" (click)="onCancel()" [disabled]="saving">Cancel</button>
+      <button cButton color="secondary" type="button" (click)="onCancel()" [disabled]="saving">{{ 'Cancel' | translate }}</button>
       <button
         cButton
         color="primary"
@@ -79,7 +79,7 @@
         @if (saving) {
           <span class="spinner-border spinner-border-sm me-2" role="status"></span>
         }
-        {{ saving ? 'Saving...' : (isEditMode ? 'Update Stock' : 'Create Stock') }}
+        {{ (saving ? 'Saving...' : (isEditMode ? 'Update Stock' : 'Create Stock')) | translate }}
       </button>
     </c-card-footer>
   </c-card>

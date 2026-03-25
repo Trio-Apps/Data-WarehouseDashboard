@@ -22,6 +22,7 @@ import {
 } from '../../Models/transferred-stock.model';
 import { DestinationWarehouse } from '../../Models/transferred-request.model';
 import { SearchDestinationWarehouseModalComponent } from '../../search-destination-warehouse-modal/search-destination-warehouse-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-transferred-stock-form',
@@ -35,7 +36,8 @@ import { SearchDestinationWarehouseModalComponent } from '../../search-destinati
     GutterDirective,
     FormCheckInputDirective,
     FormCheckLabelDirective,
-    SearchDestinationWarehouseModalComponent
+    SearchDestinationWarehouseModalComponent,
+    TranslatePipe
   ],
   templateUrl: './transferred-stock-form.component.html',
   styleUrl: './transferred-stock-form.component.scss'

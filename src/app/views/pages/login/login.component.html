@@ -7,9 +7,8 @@
             <c-card-body>
               <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" cForm>
                 <h1>Login</h1>
-                <p class="text-body-secondary">Sign In to your account</p>
-                
-                <!-- Error Message -->
+                <p class="text-body-secondary">Sign in to your account</p>
+
                 <div *ngIf="errorMessage" class="alert alert-danger" role="alert">
                   {{ errorMessage }}
                 </div>
@@ -47,52 +46,6 @@
                   {{ getFieldError('password') }}
                 </div>
 
-                <!-- Role Selection -->
-                <!-- <div class="mb-4">
-                  <label class="form-label mb-3">Select Role <span class="text-danger">*</span></label>
-                  <div class="d-flex gap-4">
-                     <div class="form-check">
-                      <input
-                        cFormCheckInput
-                        type="radio"
-                        formControlName="role"
-                        value="super-admin"
-                        id="roleSuperAdmin"
-                        name="role"
-                      />
-                      <label cFormCheckLabel for="roleSuperAdmin">
-                        Super Admin
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input
-                        cFormCheckInput
-                        type="radio"
-                        formControlName="role"
-                        value="admin"
-                        id="roleAdmin"
-                        name="role"
-                      />
-                      <label cFormCheckLabel for="roleAdmin">
-                        Admin
-                      </label>
-                    </div>
-                    <div class="form-check">
-                      <input
-                        cFormCheckInput
-                        type="radio"
-                        formControlName="role"
-                        value="manager"
-                        id="roleManager"
-                        name="role"
-                      />
-                      <label cFormCheckLabel for="roleManager">
-                        Manager
-                      </label>
-                    </div>
-                  </div>
-                </div> -->
-
                 <c-row>
                   <c-col xs="6">
                     <button
@@ -115,19 +68,16 @@
               </form>
             </c-card-body>
           </c-card>
+
           <c-card [style.minWidth.%]="44" class="text-white bg-primary py-5">
             <c-card-body class="text-center">
-             <div>
-  <h2>Welcome 👋</h2>
-  <p>
-    Welcome to the Smart Warehouse Management System.<br />
-    Manage your inventory, track items, and monitor stock efficiently from one place.
-  </p>
-  <button [active]="true" cButton class="mt-3" color="primary" routerLink="/login">
-    Get Started
-  </button>
-</div>
-
+              <div>
+                <h2>Welcome</h2>
+                <p>Welcome to the Smart Warehouse Management System. Manage your inventory, track items, and monitor stock efficiently from one place.</p>
+                <button [active]="true" cButton class="mt-3" color="primary" routerLink="/login">
+                  Get Started
+                </button>
+              </div>
             </c-card-body>
           </c-card>
         </c-card-group>

@@ -19,6 +19,7 @@ import { TransferredStockService } from '../../Services/transferred-stock.servic
 import { DestinationWarehouse } from '../../Models/transferred-request.model';
 import { TransferredStock } from '../../Models/transferred-stock.model';
 import { SearchDestinationWarehouseModalComponent } from '../../search-destination-warehouse-modal/search-destination-warehouse-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-transferred-stock-orders',
@@ -35,7 +36,8 @@ import { SearchDestinationWarehouseModalComponent } from '../../search-destinati
     ModalModule,
     IconDirective,
     DatePipe,
-    SearchDestinationWarehouseModalComponent
+    SearchDestinationWarehouseModalComponent,
+    TranslatePipe
   ],
   templateUrl: './transferred-stock-orders.component.html',
   styleUrl: './transferred-stock-orders.component.scss'
@@ -377,6 +379,30 @@ export class TransferredStockOrdersComponent implements OnInit, OnDestroy {
         console.error('Error deleting transferred stock:', err);
         const errorMessage =
           err?.error?.message || 'Error deleting transferred stock. Please try again.';
+        this.toastr.error(errorMessage, 'Error');
+      }
+    });
+  }
+
+  onDuplicateTransferredStock(stock: TransferredStock): void {
+    if (!stock.transferredStockId) {
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to duplicate transferred stock #${stock.transferredStockId}?`)) {
+      return;
+    }
+
+    this.transferredStockService.duplicateTransferredStock(stock.transferredStockId).subscribe({
+      next: () => {
+        this.toastr.success('Transferred stock duplicated successfully', 'Success');
+        this.loadTransferredStocks();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Error duplicating transferred stock:', err);
+        const errorMessage =
+          err?.error?.message || 'Error duplicating transferred stock. Please try again.';
         this.toastr.error(errorMessage, 'Error');
       }
     });

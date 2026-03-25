@@ -5,7 +5,7 @@
   size="lg"
 >
   <c-modal-header>
-    <h5 cModalTitle>{{ isEditMode ? 'Edit Role' : 'Add New Role' }}</h5>
+    <h5 cModalTitle>{{ (isEditMode ? 'Edit Role' : 'Add New Role') | translate }}</h5>
   </c-modal-header>
   <c-modal-body>
     <!-- <div>{{roleForm | json }}</div> -->
@@ -14,13 +14,13 @@
         <!-- Role Name -->
         <c-col [md]="12">
           <label class="form-label">
-            Role Name <span class="text-danger">*</span>
+            {{ 'Role Name' | translate }} <span class="text-danger">*</span>
           </label>
           <input
             cFormControl
             type="text"
             formControlName="roleName"
-            placeholder="Enter role name"
+            [placeholder]="'Enter role name' | translate"
             class="form-control"
             [class.is-invalid]="isFieldInvalid('roleName')"
           />
@@ -46,12 +46,12 @@
         
         <!-- Permissions -->
         <c-col [md]="12">
-          <label class="form-label">Permissions</label>
+          <label class="form-label">{{ 'Permissions' | translate }}</label>
           <div class="permissions-container border rounded p-3" style="max-height: 300px; overflow-y: auto;">
             @if (permissionsLoading) {
-              <div class="text-body-secondary">Loading permissions...</div>
+              <div class="text-body-secondary">{{ 'Loading permissions...' | translate }}</div>
             } @else if (availablePermissions.length === 0) {
-              <div class="text-body-secondary">No permissions available</div>
+              <div class="text-body-secondary">{{ 'No permissions available' | translate }}</div>
             } @else {
               <div class="form-check mb-3">
                 <input
@@ -63,7 +63,7 @@
                   (change)="toggleAllPermissions($event)"
                 />
                 <label cFormCheckLabel for="select-all-permissions">
-                  Select all permissions
+                  {{ 'Select all permissions' | translate }}
                 </label>
               </div>
 
@@ -79,7 +79,7 @@
                         (change)="togglePermission(permission.permissionId)"
                       />
                       <label cFormCheckLabel [for]="'perm-' + permission.permissionId">
-                        {{ permission.name || permission.key }}
+                        {{ (permission.name || permission.key) | translate }}
                       </label>
                     </div>
                   </c-col>
@@ -88,7 +88,7 @@
             }
           </div>
           <small class="text-body-secondary">
-            Selected: {{ roleForm.get('permissionIds')?.value?.length || 0 }} permissions
+            {{ ('Selected: ' + (roleForm.get('permissionIds')?.value?.length || 0) + ' permissions') | translate }}
           </small>
         </c-col>
 
@@ -111,10 +111,10 @@
   </c-modal-body>
   <c-modal-footer>
     <button cButton color="secondary" (click)="onCancel()">
-      Cancel
+      {{ 'Cancel' | translate }}
     </button>
     <button cButton color="primary" (click)="onSave()" [disabled]="roleForm.invalid">
-      {{ isEditMode ? 'Update' : 'Create' }}
+      {{ (isEditMode ? 'Update' : 'Create') | translate }}
     </button>
   </c-modal-footer>
 </c-modal>

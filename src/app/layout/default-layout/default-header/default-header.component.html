@@ -7,7 +7,7 @@
       class="btn"
       toggle="visible"
       style="margin-inline-start: -14px;"
-      aria-label="Toggle sidebar navigation">
+      [attr.aria-label]="'header.toggleSidebar' | translate">
       <svg cIcon name="cilMenu" size="lg"></svg>
     </button>
 
@@ -15,13 +15,13 @@
 
     <c-header-nav class="d-none d-md-flex">
       <c-nav-item>
-        <a cNavLink routerLink="/dashboard" routerLinkActive="active">Dashboard</a>
+        <a cNavLink routerLink="/dashboard" routerLinkActive="active">{{ 'common.dashboard' | translate }}</a>
       </c-nav-item>   
       <c-nav-item>
-        <a cNavLink routerLink="/users" routerLinkActive="active">Users</a>
+        <a cNavLink routerLink="/users" routerLinkActive="active">{{ 'common.users' | translate }}</a>
       </c-nav-item>  
       <c-nav-item>
-        <a cNavLink routerLink="/settings" routerLinkActive="active">Settings</a>
+        <a cNavLink routerLink="/settings" routerLinkActive="active">{{ 'common.settings' | translate }}</a>
       </c-nav-item>
     </c-header-nav>
 
@@ -56,6 +56,8 @@
     </c-header-nav> -->
 
     <c-header-nav class="mx-0">
+      <ng-container *ngTemplateOutlet="notificationsDropdown" />
+      <ng-container *ngTemplateOutlet="languageDropdown" />
       <ng-container *ngTemplateOutlet="userDropdown" />
     </c-header-nav>
         
@@ -73,19 +75,19 @@
       cDropdownToggle
       class="user-menu-toggle d-inline-flex align-items-center"
       type="button"
-      aria-label="Open user menu">
+      [attr.aria-label]="'header.openUserMenu' | translate">
       <svg cIcon name="cilUser" size="lg"></svg>
     </button>
     <ul cDropdownMenu class="user-menu-dropdown-menu pt-0">
       <li>
         <h6 cDropdownHeader class="user-menu-header fw-semibold py-2 rounded-top">
-          User Menu
+          {{ 'header.userMenu' | translate }}
         </h6>
       </li>
       <li>
         <a cDropdownItem class="user-menu-item" routerLink="/settings">
           <svg cIcon class="me-2" name="cilUser"></svg>
-          Profile
+          {{ 'common.profile' | translate }}
         </a>
       </li>
       <li>
@@ -94,9 +96,141 @@
       <li>
         <a cDropdownItem class="user-menu-item text-danger" (click)="logout()">
           <svg cIcon class="me-2" name="cilAccountLogout"></svg>
-          Logout
+          {{ 'common.logout' | translate }}
         </a>
       </li>
+    </ul>
+  </c-dropdown>
+</ng-template>
+
+<ng-template #notificationsDropdown>
+  <c-dropdown alignment="end" variant="nav-item" class="notification-dropdown">
+    <button
+      [caret]="false"
+      cDropdownToggle
+      class="notification-toggle d-inline-flex align-items-center justify-content-center"
+      type="button"
+      [attr.aria-label]="'notifications.title' | translate"
+      (click)="onNotificationsDropdownClick()"
+    >
+      <svg cIcon name="cilBell" size="lg"></svg>
+      @if (unreadNotifications > 0) {
+        <span class="notification-badge">{{ unreadNotifications > 99 ? '99+' : unreadNotifications }}</span>
+      }
+    </button>
+
+    <ul cDropdownMenu class="notification-dropdown-menu pt-0">
+      <li class="notification-dropdown-top">
+        <div class="notification-dropdown-copy">
+          <h6 cDropdownHeader class="notification-dropdown-header fw-semibold rounded-top">
+            {{ 'notifications.title' | translate }}
+          </h6>
+          <small class="notification-dropdown-subtitle">
+            {{ 'notifications.unreadCount' | translate:{ count: unreadNotifications } }}
+          </small>
+        </div>
+        <button
+          cDropdownItem
+          class="notification-mark-read"
+          type="button"
+          (click)="markAllNotificationsAsRead()"
+        >
+          {{ 'notifications.markAllRead' | translate }}
+        </button>
+      </li>
+
+      @if (loadingNotifications) {
+        <li>
+          <div class="notification-dropdown-empty">
+            {{ 'notifications.loading' | translate }}
+          </div>
+        </li>
+      } @else if (notifications.length === 0) {
+        <li>
+          <div class="notification-dropdown-empty">
+            {{ 'notifications.empty' | translate }}
+          </div>
+        </li>
+      } @else {
+        @for (notification of notifications; track notification.notificationId) {
+          <li>
+            <button
+              cDropdownItem
+              type="button"
+              class="notification-item"
+              [class.notification-item-unread]="!notification.isRead"
+              (click)="markNotificationAsRead(notification)"
+            >
+              <span class="notification-item-icon" aria-hidden="true">
+                <svg cIcon name="cilDescription"></svg>
+              </span>
+              <span class="notification-item-copy">
+                <span class="notification-item-title">{{ notification.title }}</span>
+                <small class="notification-item-message">{{ notification.message }}</small>
+              </span>
+            </button>
+          </li>
+        }
+      }
+    </ul>
+  </c-dropdown>
+</ng-template>
+
+<ng-template #languageDropdown>
+  <c-dropdown alignment="end" variant="nav-item" class="language-dropdown">
+    <button
+      [caret]="false"
+      cDropdownToggle
+      class="language-toggle d-inline-flex align-items-center gap-2"
+      type="button"
+      [attr.aria-label]="'header.openLanguageMenu' | translate"
+    >
+      <span class="language-toggle-planet" aria-hidden="true">
+        <span class="language-toggle-orbit orbit-one"></span>
+        <span class="language-toggle-orbit orbit-two"></span>
+        <span class="language-toggle-core">
+          <span class="language-toggle-core-code">{{ currentLanguage().toUpperCase() }}</span>
+        </span>
+      </span>
+      <span class="language-toggle-meta d-none d-lg-flex">
+        <span class="language-toggle-label">{{ 'Language' | translate }}</span>
+        <span class="language-toggle-current">
+          {{ currentLanguage() === 'ar' ? 'العربية' : 'English' }}
+        </span>
+      </span>
+    </button>
+    <ul cDropdownMenu class="language-dropdown-menu pt-0">
+      <li>
+        <h6 cDropdownHeader class="language-menu-header fw-semibold py-3 rounded-top">
+          {{ 'Change Language' | translate }}
+        </h6>
+      </li>
+      @for (language of languages; track language.code) {
+        <li>
+          <button
+            cDropdownItem
+            class="language-menu-item"
+            [class.active-language]="currentLanguage() === language.code"
+            [active]="currentLanguage() === language.code"
+            (click)="switchLanguage(language.code)"
+          >
+            <span class="language-item-icon" aria-hidden="true">
+              <span class="language-item-globe">
+                <span class="globe-line globe-line-h"></span>
+                <span class="globe-line globe-line-v"></span>
+                <span class="globe-line globe-line-lat"></span>
+              </span>
+            </span>
+            <span class="language-item-copy">
+              <span class="language-item-name">{{ language.title }}</span>
+              <small class="language-item-subtitle">{{ language.subtitle }}</small>
+            </span>
+            @if (currentLanguage() === language.code) {
+              <span class="language-item-check" aria-hidden="true">&#10003;</span>
+            }
+          </button>
+        </li>
+      }
     </ul>
   </c-dropdown>
 </ng-template>
@@ -112,41 +246,41 @@
       cDropdownToggle 
       class="sap-dropdown-toggle d-inline-flex align-items-center gap-2"
       type="button"
-      aria-label="Open SAPs menu" 
-      title="SAP Connections"
+      [attr.aria-label]="'header.openSapMenu' | translate"
+      [attr.title]="'header.sapConnections' | translate"
       (click)="onSapsDropdownClick()"
     >
       <span class="sap-trigger-mark">SAP</span>
-      <span class="sap-trigger-label d-none d-lg-inline">Connections</span>
+      <span class="sap-trigger-label d-none d-lg-inline">{{ 'header.connections' | translate }}</span>
     </button>
     
     <ul cDropdownMenu class="sap-dropdown-menu pt-0">
       <li>
         <h6 cDropdownHeader class="sap-dropdown-header fw-semibold py-2 rounded-top">
-          SAP Connections
+          {{ 'header.sapConnections' | translate }}
         </h6>
       </li>
       @if (loadingSaps) {
         <li>
           <div class="sap-dropdown-loading px-3 py-2 text-center">
             <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
-              <span class="visually-hidden">Loading...</span>
+              <span class="visually-hidden">{{ 'common.loading' | translate }}</span>
             </div>
-            <span class="text-body-secondary">Loading SAPs...</span>
+            <span class="text-body-secondary">{{ 'header.loadingSaps' | translate }}</span>
           </div>
         </li>
       } @else if (SapsList.length === 0) {
         <li>
           <div class="sap-dropdown-empty px-3 py-2 text-center text-body-secondary">
-            No SAP connections found
+            {{ 'header.noSapConnections' | translate }}
           </div>
         </li>
       } @else {
         @for (sap of SapsList; track sap.sapId || $index) {
           <li>
             <a cDropdownItem class="sap-dropdown-item d-flex flex-column" (click)="selectSapObserve(sap.sapId)"> 
-              <div class="sap-item-name fw-semibold">{{ sap.name || 'N/A' }}</div>
-              <small class="sap-item-user text-body-secondary">{{ sap.userName || 'N/A' }}</small>
+              <div class="sap-item-name fw-semibold">{{ sap.name || ('common.notAvailable' | translate) }}</div>
+              <small class="sap-item-user text-body-secondary">{{ sap.userName || ('common.notAvailable' | translate) }}</small>
             </a>
           </li>
         }

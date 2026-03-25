@@ -18,6 +18,7 @@ import {
   QuantityAdjustmentStock,
   UpdateQuantityAdjustmentStock
 } from '../../Models/quantity-adjustment-stock.model';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-quantity-adjustment-stock-form',
@@ -30,7 +31,8 @@ import {
     GridModule,
     GutterDirective,
     FormCheckInputDirective,
-    FormCheckLabelDirective
+    FormCheckLabelDirective,
+    TranslatePipe
   ],
   templateUrl: './quantity-adjustment-stock-form.component.html',
   styleUrl: './quantity-adjustment-stock-form.component.scss'

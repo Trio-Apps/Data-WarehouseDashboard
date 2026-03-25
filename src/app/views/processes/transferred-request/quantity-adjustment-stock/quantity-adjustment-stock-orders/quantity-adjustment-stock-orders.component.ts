@@ -17,6 +17,7 @@ import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
 import { QuantityAdjustmentStockService } from '../../Services/quantity-adjustment-stock.service';
 import { QuantityAdjustmentStock } from '../../Models/quantity-adjustment-stock.model';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-quantity-adjustment-stock-orders',
@@ -32,7 +33,8 @@ import { QuantityAdjustmentStock } from '../../Models/quantity-adjustment-stock.
     UtilitiesModule,
     ModalModule,
     IconDirective,
-    DatePipe
+    DatePipe,
+    TranslatePipe
   ],
   templateUrl: './quantity-adjustment-stock-orders.component.html',
   styleUrl: './quantity-adjustment-stock-orders.component.scss'
@@ -307,6 +309,32 @@ export class QuantityAdjustmentStockOrdersComponent implements OnInit, OnDestroy
           console.error('Error deleting quantity adjustment stock:', err);
           const errorMessage =
             err?.error?.message || 'Error deleting quantity adjustment stock. Please try again.';
+          this.toastr.error(errorMessage, 'Error');
+        }
+      });
+  }
+
+  onDuplicateQuantityAdjustmentStock(stock: QuantityAdjustmentStock): void {
+    if (!stock.quantityAdjustmentStockId) {
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to duplicate quantity adjustment stock #${stock.quantityAdjustmentStockId}?`)) {
+      return;
+    }
+
+    this.quantityAdjustmentStockService
+      .duplicateQuantityAdjustmentStock(stock.quantityAdjustmentStockId)
+      .subscribe({
+        next: () => {
+          this.toastr.success('Quantity adjustment stock duplicated successfully', 'Success');
+          this.loadQuantityAdjustmentStocks();
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Error duplicating quantity adjustment stock:', err);
+          const errorMessage =
+            err?.error?.message || 'Error duplicating quantity adjustment stock. Please try again.';
           this.toastr.error(errorMessage, 'Error');
         }
       });

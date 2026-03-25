@@ -10,6 +10,7 @@ import {
 import { PurchaseService } from '../Services/purchase.service';
 import { Supplier } from '../Models/purchase.model';
 import { ToastrService } from 'ngx-toastr';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-search-supplier-modal',
@@ -19,7 +20,8 @@ import { ToastrService } from 'ngx-toastr';
     ButtonModule,
     FormModule,
     GridModule,
-    TableModule
+    TableModule,
+    TranslatePipe
   ],
   templateUrl: './search-supplier-modal.component.html',
   styleUrl: './search-supplier-modal.component.scss',

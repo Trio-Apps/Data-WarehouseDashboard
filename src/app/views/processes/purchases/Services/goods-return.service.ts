@@ -99,6 +99,10 @@ createReturn(returnData: AddReturn): Observable<any> {
     return this.http.delete<any>(`${this.baseUrl}GoodsReturnOrder/${returnId}`, this.headerOption);
   }
 
+  duplicateReturnOrder(returnId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}GoodsReturnOrder/${returnId}/duplicate`, {}, this.headerOption);
+  }
+
   /**
    * Revert a partially failed goods return order back to processing for SAP sync.
    */

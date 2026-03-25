@@ -12,7 +12,6 @@ import {
   ButtonModule,
   GridModule,
   GutterDirective,
-  FormCheckComponent,
   FormCheckInputDirective,
   FormCheckLabelDirective
 } from '@coreui/angular';
@@ -26,7 +25,6 @@ import {
     ButtonModule,
     GridModule,
     GutterDirective,
-    FormCheckComponent,
     FormCheckInputDirective,
     FormCheckLabelDirective,
     ReactiveFormsModule,

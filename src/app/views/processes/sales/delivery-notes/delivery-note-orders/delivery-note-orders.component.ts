@@ -20,6 +20,7 @@ import { DeliveryNote } from '../../Models/delivery-note-model';
 import { Customer } from '../../Models/sales-model';
 import { ApprovalService } from '../../../approval-process/Services/approval.service';
 import { SearchCustomerModalComponent } from '../../search-customer-modal/search-customer-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 type DeliveryNoteOrderListItem = DeliveryNote & {
   salesOrderId?: number;
@@ -48,7 +49,8 @@ type DeliveryNoteOrderListItem = DeliveryNote & {
     ModalModule,
     IconDirective,
     DatePipe,
-    SearchCustomerModalComponent
+    SearchCustomerModalComponent,
+    TranslatePipe
   ],
   templateUrl: './delivery-note-orders.component.html',
   styleUrl: './delivery-note-orders.component.scss',
@@ -425,6 +427,27 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
         error: (err) => {
           console.error('Error deleting delivery note order:', err);
           const errorMessage = err.error?.message || 'Error deleting delivery note order. Please try again.';
+          this.toastr.error(errorMessage, 'Error');
+        }
+      });
+    }
+  }
+
+  onDuplicateDeliveryNoteOrder(returnOrder: DeliveryNoteOrderListItem): void {
+    if (!returnOrder.deliveryNoteOrderId) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to duplicate delivery note order #${returnOrder.deliveryNoteOrderId}?`)) {
+      this.returnService.duplicateDeliveryNoteOrder(returnOrder.deliveryNoteOrderId).subscribe({
+        next: () => {
+          this.toastr.success('Delivery note order duplicated successfully', 'Success');
+          this.loadDeliveryNotes();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error duplicating delivery note order:', err);
+          const errorMessage = err.error?.message || 'Error duplicating delivery note order. Please try again.';
           this.toastr.error(errorMessage, 'Error');
         }
       });

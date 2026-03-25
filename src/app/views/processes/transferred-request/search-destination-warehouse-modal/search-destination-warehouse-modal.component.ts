@@ -4,10 +4,11 @@ import { ModalModule, ButtonModule, FormModule, GridModule, TableModule } from '
 import { ToastrService } from 'ngx-toastr';
 import { DestinationWarehouse } from '../Models/transferred-request.model';
 import { TransferredRequestService } from '../Services/transferred-request.service';
+import { TranslatePipe } from '../../../../core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-search-destination-warehouse-modal',
-  imports: [CommonModule, ModalModule, ButtonModule, FormModule, GridModule, TableModule],
+  imports: [CommonModule, ModalModule, ButtonModule, FormModule, GridModule, TableModule, TranslatePipe],
   templateUrl: './search-destination-warehouse-modal.component.html',
   styleUrl: './search-destination-warehouse-modal.component.scss'
 })

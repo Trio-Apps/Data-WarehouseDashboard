@@ -4,34 +4,34 @@
   size="lg"
   alignment="center">
   <c-modal-header>
-    <h5 cModalTitle>Search Supplier</h5>
+    <h5 cModalTitle>{{ 'Search Supplier' | translate }}</h5>
   </c-modal-header>
 
   <c-modal-body>
     <c-row [gutter]="3" class="align-items-end">
       <c-col [md]="5">
-        <label class="form-label">Supplier Code</label>
+        <label class="form-label">{{ 'Supplier Code' | translate }}</label>
         <input
           cFormControl
           type="text"
           class="form-control"
           [value]="supplierModalCode"
           (input)="supplierModalCode = $any($event.target).value"
-          placeholder="Enter supplier code" />
+          [placeholder]="'Enter supplier code' | translate" />
       </c-col>
       <c-col [md]="5">
-        <label class="form-label">Supplier Name</label>
+        <label class="form-label">{{ 'Supplier Name' | translate }}</label>
         <input
           cFormControl
           type="text"
           class="form-control"
           [value]="supplierModalName"
           (input)="supplierModalName = $any($event.target).value"
-          placeholder="Enter supplier name" />
+          [placeholder]="'Enter supplier name' | translate" />
       </c-col>
       <c-col [md]="2" class="d-grid">
         <button cButton color="primary" type="button" class="supplier-modal-search-btn" (click)="onSearch()">
-          Search
+          {{ 'Search' | translate }}
         </button>
       </c-col>
     </c-row>
@@ -41,15 +41,15 @@
         <thead class="table-header">
           <tr>
             <th scope="col" class="bg-body-tertiary">#</th>
-            <th scope="col" class="bg-body-tertiary">Supplier Code</th>
-            <th scope="col" class="bg-body-tertiary">Supplier Name</th>
+            <th scope="col" class="bg-body-tertiary">{{ 'Supplier Code' | translate }}</th>
+            <th scope="col" class="bg-body-tertiary">{{ 'Supplier Name' | translate }}</th>
           </tr>
         </thead>
         <tbody>
           @if (supplierModalLoading) {
           <tr>
             <td colspan="3" class="text-center py-4">
-              <span class="text-body-secondary">Loading...</span>
+              <span class="text-body-secondary">{{ 'Loading...' | translate }}</span>
             </td>
           </tr>
           } @else if (supplierModalSuppliers.length > 0) {
@@ -63,7 +63,7 @@
           } @else {
           <tr>
             <td colspan="3" class="text-center py-4">
-              <span class="text-body-secondary">No suppliers found</span>
+              <span class="text-body-secondary">{{ 'No suppliers found' | translate }}</span>
             </td>
           </tr>
           }
@@ -75,7 +75,7 @@
   <c-modal-footer class="justify-content-between">
     <div class="d-flex flex-column">
       @if (supplierModalTotalPages > 0) {
-      <nav aria-label="Supplier pagination">
+      <nav [attr.aria-label]="'Supplier pagination' | translate">
         <ul class="pagination mb-1">
           <li class="page-item" [class.disabled]="!supplierModalHasPrevious">
             <a
@@ -107,21 +107,21 @@
       }
       <small class="text-body-secondary">
         @if (supplierModalTotalItems > 0) {
-          Showing {{ (supplierModalCurrentPage - 1) * supplierModalItemsPerPage + 1 }} to
-          {{ Math.min(supplierModalCurrentPage * supplierModalItemsPerPage, supplierModalTotalItems) }}
-          of {{ supplierModalTotalItems }} suppliers
+          {{ ('Showing ' + ((supplierModalCurrentPage - 1) * supplierModalItemsPerPage + 1) + ' to ' +
+          Math.min(supplierModalCurrentPage * supplierModalItemsPerPage, supplierModalTotalItems) +
+          ' of ' + supplierModalTotalItems + ' suppliers') | translate }}
         } @else {
-          No suppliers to display
+          {{ 'No suppliers to display' | translate }}
         }
       </small>
     </div>
 
     <div class="d-flex gap-2">
       <button cButton color="secondary" type="button" (click)="onClearSelection()">
-        Clear
+        {{ 'Clear' | translate }}
       </button>
       <button cButton color="secondary" type="button" (click)="onVisibleChange(false)">
-      Close
+      {{ 'Close' | translate }}
       </button>
     </div>
   </c-modal-footer>

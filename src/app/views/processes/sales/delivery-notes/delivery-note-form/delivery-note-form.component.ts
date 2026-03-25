@@ -4,7 +4,6 @@ import { CommonModule } from '@angular/common';
 import {
   ButtonModule,
   CardModule,
-  FormCheckComponent,
   FormCheckInputDirective,
   FormCheckLabelDirective,
   FormModule,
@@ -31,7 +30,6 @@ import { SearchCustomerModalComponent } from '../../search-customer-modal/search
     ButtonModule,
     GridModule,
     GutterDirective,
-    FormCheckComponent,
     FormCheckInputDirective,
     FormCheckLabelDirective,
     SearchCustomerModalComponent

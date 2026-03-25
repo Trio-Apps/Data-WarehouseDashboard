@@ -119,6 +119,10 @@ getPurchasesWithFilterationByWarehouse(
     return this.http.delete<any>(`${this.baseUrl}PurchaseOrder/${purchaseOrderId}`, this.headerOption);
   }
 
+  duplicatePurchase(purchaseOrderId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}PurchaseOrder/${purchaseOrderId}/duplicate`, {}, this.headerOption);
+  }
+
   /**
    * Revert a partially failed purchase order back to processing for SAP sync.
    */

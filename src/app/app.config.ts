@@ -1,4 +1,4 @@
-import { ApplicationConfig } from '@angular/core';
+import { ApplicationConfig, inject, provideAppInitializer } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import {
@@ -13,6 +13,7 @@ import { IconSetService } from '@coreui/icons-angular';
 import { provideToastr } from 'ngx-toastr';
 import { routes } from './app.routes';
 import { authInterceptor } from './interceptors/auth.interceptor';
+import { TranslationService } from './core/i18n/translation.service';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -31,6 +32,7 @@ export const appConfig: ApplicationConfig = {
     IconSetService,
     provideHttpClient(withInterceptors([authInterceptor])),
     provideAnimationsAsync(),
+    provideAppInitializer(() => inject(TranslationService).initialize()),
     provideToastr({
       timeOut: 3000,
       positionClass: 'toast-top-right',

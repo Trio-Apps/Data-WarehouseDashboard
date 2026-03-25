@@ -5,20 +5,20 @@
   size="lg"
 >
   <c-modal-header>
-    <h5 cModalTitle>{{ isEditMode ? 'Edit Approval Step' : 'Add Approval Step' }}</h5>
+    <h5 cModalTitle>{{ isEditMode ? ('approvalProcess.modal.editTitle' | translate) : ('approvalProcess.modal.addTitle' | translate) }}</h5>
   </c-modal-header>
   <c-modal-body>
     <form [formGroup]="approvalForm" (ngSubmit)="onSave()">
       <c-row [gutter]="3">
         <c-col [md]="8">
           <label class="form-label">
-            Step Name <span class="text-danger">*</span>
+            {{ 'approvalProcess.fields.stepName' | translate }} <span class="text-danger">*</span>
           </label>
           <input
             cFormControl
             type="text"
             formControlName="stepName"
-            placeholder="Enter step name"
+            [placeholder]="'approvalProcess.placeholders.stepName' | translate"
             class="form-control"
             [class.is-invalid]="isFieldInvalid('stepName')"
           />
@@ -31,7 +31,7 @@
 
         <c-col [md]="4">
           <label class="form-label">
-            Step Order <span class="text-danger">*</span>
+            {{ 'approvalProcess.fields.stepOrder' | translate }} <span class="text-danger">*</span>
           </label>
           <input
             cFormControl
@@ -51,7 +51,7 @@
 
         <c-col [md]="12">
           <label class="form-label">
-            Role <span class="text-danger">*</span>
+            {{ 'approvalProcess.fields.role' | translate }} <span class="text-danger">*</span>
           </label>
           <select
             cFormControl
@@ -59,7 +59,7 @@
             class="form-select"
             [class.is-invalid]="isFieldInvalid('roleId')"
           >
-            <option value="">-- Select Role --</option>
+            <option value="">{{ 'approvalProcess.placeholders.selectRole' | translate }}</option>
             @for (role of roles; track role.id) {
               <option [value]="role.id">{{ role.roleName }}</option>
             }
@@ -75,10 +75,10 @@
   </c-modal-body>
   <c-modal-footer>
     <button cButton color="secondary" (click)="onCancel()">
-      Cancel
+      {{ 'Cancel' | translate }}
     </button>
     <button cButton color="primary" (click)="onSave()" [disabled]="approvalForm.invalid">
-      {{ isEditMode ? 'Update' : 'Create' }}
+      {{ isEditMode ? ('Update' | translate) : ('Create' | translate) }}
     </button>
   </c-modal-footer>
 </c-modal>

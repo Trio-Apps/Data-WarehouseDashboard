@@ -21,6 +21,14 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'language',
+        loadComponent: () => import('./language/language-settings.component')
+          .then(m => m.LanguageSettingsComponent),
+        data: {
+          title: 'Language'
+        }
+      },
+      {
         path: 'sync-reset',
         loadComponent: () => import('../sync/sync.component')
           .then(m => m.SyncComponent),

@@ -7,6 +7,7 @@ import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
 import { catchError, finalize, of, timeout } from 'rxjs';
 import { StockCountingService } from '../Services/stock-counting.service';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
   selector: 'app-stock-counting-order-form',
@@ -18,7 +19,8 @@ import { StockCountingService } from '../Services/stock-counting.service';
     CardBodyComponent,
     ButtonDirective,
     FormModule,
-    IconDirective
+    IconDirective,
+    TranslatePipe
   ],
   templateUrl: './stock-counting-order-form.component.html',
   styleUrl: './stock-counting-order-form.component.scss'

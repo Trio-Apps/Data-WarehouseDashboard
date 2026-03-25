@@ -95,6 +95,10 @@ export class DeliveryNoteService {
     return this.http.delete<any>(`${this.baseUrl}DeliveryNoteOrder/${deliveryNoteId}`, this.headerOption);
   }
 
+  duplicateDeliveryNoteOrder(deliveryNoteId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}DeliveryNoteOrder/${deliveryNoteId}/duplicate`, {}, this.headerOption);
+  }
+
   /**
    * Revert a partially failed delivery note order back to processing for SAP sync.
    */
