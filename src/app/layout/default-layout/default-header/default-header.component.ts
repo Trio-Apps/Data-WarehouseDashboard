@@ -1,8 +1,8 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectorRef, Component, computed, inject, input, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, inject, input, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { IconDirective } from '@coreui/icons-angular';
-import { catchError, finalize, map, of } from 'rxjs';
+import { Subscription, catchError, finalize, interval, map, of } from 'rxjs';
 
 import {
   BreadcrumbRouterComponent,
@@ -40,7 +40,7 @@ import { AppNotification } from 'src/app/core/notifications/notification.model';
      NgTemplateOutlet, BreadcrumbRouterComponent, DropdownComponent, DropdownToggleDirective,
       DropdownMenuDirective, DropdownHeaderDirective, DropdownItemDirective, DropdownDividerDirective, TranslatePipe]
 })
-export class DefaultHeaderComponent extends HeaderComponent implements OnInit {
+export class DefaultHeaderComponent extends HeaderComponent implements OnInit, OnDestroy {
 
   readonly #colorModeService = inject(ColorModeService);
   readonly translationService = inject(TranslationService);
@@ -67,6 +67,8 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit {
   notificationsLoaded: boolean = false;
   unreadNotifications: number = 0;
   private readonly notificationPageSize = 10;
+  private readonly notificationRefreshMs = 15000;
+  private notificationRefreshSubscription?: Subscription;
   readonly icons = computed(() => {
     const currentMode = this.colorMode();
     return this.colorModes.find(mode => mode.name === currentMode)?.icon ?? 'cilSun';
@@ -78,6 +80,13 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit {
 
   ngOnInit(): void {
     this.refreshUnreadCount();
+    this.notificationRefreshSubscription = interval(this.notificationRefreshMs).subscribe(() => {
+      this.refreshUnreadCount();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.notificationRefreshSubscription?.unsubscribe();
   }
 
 
@@ -233,6 +242,7 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit {
   }
 
   onNotificationsDropdownClick(): void {
+    this.refreshUnreadCount();
     this.loadNotifications();
   }
 
