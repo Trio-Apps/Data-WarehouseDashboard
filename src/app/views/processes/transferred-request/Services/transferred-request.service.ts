@@ -166,6 +166,7 @@ export class TransferredRequestService {
       uoMEntry: number;
       quantity: number;
       UnitPrice?: number;
+      VatPercent?: number;
       transferredRequestId: number;
       itemId: number;
     }
@@ -269,4 +270,3 @@ export class TransferredRequestService {
     };
   }
 }
-

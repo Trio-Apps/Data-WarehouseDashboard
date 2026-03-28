@@ -145,6 +145,8 @@ createReturn(returnData: AddReturn): Observable<any> {
     addReceiptItemManually(returnOrderId: number, itemData: {
       uoMEntry: number;
       quantity: number;
+      UnitPrice?: number;
+      VatPercent?: number;
       itemId: number;
     }): Observable<any> {
       const request: AddGeneralItemRequest = {
@@ -156,6 +158,8 @@ createReturn(returnData: AddReturn): Observable<any> {
     addReturnItemManually(returnOrderId: number, itemData: {
       uoMEntry: number;
       quantity: number;
+      UnitPrice?: number;
+      VatPercent?: number;
       itemId: number;
     }): Observable<any> {
       return this.addReceiptItemManually(returnOrderId, itemData);

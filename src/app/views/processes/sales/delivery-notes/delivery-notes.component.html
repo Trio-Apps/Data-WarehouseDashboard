@@ -154,6 +154,10 @@
                 <th scope="col" class="bg-body-tertiary">{{ 'Item Name' | translate }}</th>
                 <th scope="col" class="bg-body-tertiary">{{ 'Barcode' | translate }}</th>
                 <th scope="col" class="bg-body-tertiary">{{ 'Quantity' | translate }}</th>
+                <th scope="col" class="bg-body-tertiary">VAT %</th>
+                <th scope="col" class="bg-body-tertiary">VAT Amount</th>
+                <th scope="col" class="bg-body-tertiary">Before VAT</th>
+                <th scope="col" class="bg-body-tertiary">After VAT</th>
                 <th scope="col" class="bg-body-tertiary">{{ 'Unit' | translate }}</th>
                 <th scope="col" class="bg-body-tertiary text-center">{{ 'Batches' | translate }}</th>
                 @if (delivery && !isCompletedStatus(delivery)) {
@@ -165,13 +169,13 @@
             <tbody>
               @if (loading) {
                 <tr>
-                  <td [attr.colspan]="delivery && !isCompletedStatus(delivery) ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="delivery && !isCompletedStatus(delivery) ? 12 : 11" class="text-center py-4">
                     <span class="text-body-secondary">{{ 'Loading...' | translate }}</span>
                   </td>
                 </tr>
               } @else if (!delivery) {
                 <tr>
-                  <td [attr.colspan]="7" class="text-center py-4">
+                  <td [attr.colspan]="11" class="text-center py-4">
                     <span class="text-body-secondary">{{ 'Please create delivery note order first' | translate }}</span>
                   </td>
                 </tr>
@@ -183,6 +187,10 @@
                     <td>{{ item.itemName || ('N/A' | translate) }}</td>
                     <td>{{ item.barCode || ('N/A' | translate) }}</td>
                     <td>{{ item.quantity }}</td>
+                    <td>{{ item.vatPercent ?? 'N/A' }}</td>
+                    <td>{{ item.vatAmount ?? 'N/A' }}</td>
+                    <td>{{ item.lineTotalBeforeVat ?? 'N/A' }}</td>
+                    <td>{{ item.lineTotalAfterVat ?? 'N/A' }}</td>
                     <td>{{ item.unitName || ('N/A' | translate) }}</td>
                     <td class="text-center">
                       <button cButton color="success" size="sm" (click)="onViewBatches(item)" [title]="'View Batches' | translate">
@@ -203,7 +211,7 @@
                 }
               } @else {
                 <tr>
-                  <td [attr.colspan]="delivery && !isCompletedStatus(delivery) ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="delivery && !isCompletedStatus(delivery) ? 12 : 11" class="text-center py-4">
                     <span class="text-body-secondary">{{ 'No items in this delivery' | translate }}</span>
                   </td>
                 </tr>

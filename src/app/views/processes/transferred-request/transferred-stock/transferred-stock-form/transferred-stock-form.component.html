@@ -16,6 +16,19 @@
           <form [formGroup]="form" (ngSubmit)="onSubmit()">
             <c-row [gutter]="3">
               <c-col [md]="6">
+                <label class="form-label">{{ 'Posting Date' | translate }} <span class="text-danger">*</span></label>
+                <input
+                  cFormControl
+                  type="date"
+                  formControlName="postingDate"
+                  class="form-control"
+                  [class.is-invalid]="form.get('postingDate')?.invalid && form.get('postingDate')?.touched"
+                  required />
+                @if (form.get('postingDate')?.invalid && form.get('postingDate')?.touched) {
+                  <div class="invalid-feedback d-block">{{ 'Posting date is required' | translate }}</div>
+                }
+              </c-col>
+              <c-col [md]="6">
                 <label class="form-label">{{ 'Due Date' | translate }} <span class="text-danger">*</span></label>
                 <input
                   cFormControl
@@ -49,17 +62,20 @@
                 }
               </c-col>
 
-              <c-col [md]="12">
-                <label class="form-label">{{ 'Comment' | translate }}</label>
-                <textarea
-                  cFormControl
-                  formControlName="comment"
-                  rows="3"
-                  [placeholder]="'transferredStockForm.placeholders.comment' | translate"
-                  class="form-control"></textarea>
+              <c-col [md]="6">
+                <label class="form-label">Reason</label>
+                <select cFormControl class="form-select" formControlName="reasonId">
+                  <option [ngValue]="null">-- Select Reason --</option>
+                  @for (reason of reasons; track reason.reasonId) {
+                    <option [ngValue]="reason.reasonId">{{ reason.name }}</option>
+                  }
+                </select>
+                @if (loadingReasons) {
+                  <small class="form-text text-muted">Loading reasons...</small>
+                }
               </c-col>
 
-              <c-col [md]="12">
+              <c-col [md]="12"> 
                 <div class="form-check">
                   <input cFormCheckInput type="checkbox" formControlName="isDraft" id="isDraft" />
                   <label cFormCheckLabel for="isDraft">{{ 'Save as Draft' | translate }}</label>
@@ -98,3 +114,10 @@
   (destinationWarehouseSelected)="onDestinationWarehouseSelected($event)"
   (clearSelected)="onDestinationWarehouseCleared()">
 </app-search-destination-warehouse-modal>
+
+
+
+
+
+
+

@@ -22,6 +22,8 @@ import {
   ProductionOrderItem
 } from '../Models/production.model';
 import { ProductionService } from '../Services/production.service';
+import { ReasonService } from '../../reasons/Services/reason.service';
+import { ReasonDto } from '../../reasons/Models/reason.model';
 
 @Component({
   selector: 'app-production-order-form',
@@ -63,6 +65,8 @@ export class ProductionOrderFormComponent implements OnInit {
   headerBatches: ProductionHeaderBatch[] = [];
 
   editingHeaderBatchId = 0;
+  reasons: ReasonDto[] = [];
+  loadingReasons = false;
 
   constructor(
     private fb: FormBuilder,
@@ -70,7 +74,8 @@ export class ProductionOrderFormComponent implements OnInit {
     private router: Router,
     private toastr: ToastrService,
     private productionService: ProductionService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private reasonService: ReasonService
   ) {}
 
   ngOnInit(): void {
@@ -83,7 +88,8 @@ export class ProductionOrderFormComponent implements OnInit {
       remarks: [''],
       warehouseId: [null, [Validators.required, Validators.min(1)]],
       finishedGoodItemId: [null, [Validators.required, Validators.min(1)]],
-      plannedQuantity: [1, [Validators.required, Validators.min(0.000001)]]
+      plannedQuantity: [1, [Validators.required, Validators.min(0.000001)]],
+      reasonId: [null]
     });
 
     this.headerBatchForm = this.fb.group({
@@ -97,6 +103,8 @@ export class ProductionOrderFormComponent implements OnInit {
     this.isEditMode = this.productionOrderId > 0;
 
     this.form.patchValue({ warehouseId: this.warehouseId });
+
+    this.loadReasons();
 
     this.route.fragment.subscribe((fragment) => {
       if (!fragment) {
@@ -319,6 +327,24 @@ export class ProductionOrderFormComponent implements OnInit {
     });
   }
 
+  private loadReasons(): void {
+    this.loadingReasons = true;
+
+    this.reasonService.getReasonsByProcessType('Production').subscribe({
+      next: (res) => {
+        const payload = (res as any)?.data?.data ?? (res as any)?.data ?? res;
+        this.reasons = Array.isArray(payload) ? payload : [];
+        this.loadingReasons = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading reasons:', err);
+        this.reasons = [];
+        this.loadingReasons = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
   private loadOrderDetails(): void {
     if (!this.productionOrderId) {
       this.runUiUpdate(() => {
@@ -382,6 +408,7 @@ export class ProductionOrderFormComponent implements OnInit {
               postingDate: this.toDateInputValue(order?.postingDate ?? order?.PostingDate),
               dueDate: this.toDateInputValue(order?.dueDate ?? order?.DueDate),
               remarks: order?.remarks ?? order?.Remarks ?? '',
+              reasonId: order?.reasonId ?? order?.ReasonId ?? null,
               warehouseId: this.warehouseId
             });
 
@@ -545,6 +572,7 @@ export class ProductionOrderFormComponent implements OnInit {
       postingDate: this.formatDateToISOString(this.form.value.postingDate),
       dueDate: this.formatDateToISOString(this.form.value.dueDate),
       remarks: this.form.value.remarks,
+      reasonId: Number(this.form.value.reasonId) || null,
       warehouseId: Number(this.form.value.warehouseId)
     };
   }
@@ -780,3 +808,4 @@ export class ProductionOrderFormComponent implements OnInit {
     });
   }
 }
+

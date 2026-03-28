@@ -125,6 +125,8 @@ export class SalesReturnService {
   addReturnItemManually(returnOrderId: number, itemData: {
     uoMEntry: number;
     quantity: number;
+    UnitPrice?: number;
+    VatPercent?: number;
     itemId: number;
   }): Observable<any> {
     const request: AddGeneralItemRequest = {

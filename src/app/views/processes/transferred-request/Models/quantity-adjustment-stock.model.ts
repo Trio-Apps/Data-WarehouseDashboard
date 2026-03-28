@@ -16,6 +16,7 @@ export interface QuantityAdjustmentStock {
   processItemIsProgressId?: number | null;
   processApprovalId?: number | null;
   reason?: string | null;
+  reasonId?: number | null;
   hasProgress?: boolean;
   isReturn?: boolean | null;
   returnOrderId?: number | null;
@@ -27,6 +28,7 @@ export interface AddQuantityAdjustmentStock {
   postingDate: string;
   dueDate: string;
   comment?: string;
+  reasonId?: number | null;
   isDraft: boolean;
   warehouseId: number;
 }
@@ -36,6 +38,7 @@ export interface UpdateQuantityAdjustmentStock {
   postingDate?: string;
   dueDate?: string;
   comment?: string;
+  reasonId?: number | null;
   isDraft: boolean;
 }
 
@@ -48,6 +51,10 @@ export interface QuantityAdjustmentStockItem {
   unitName?: string;
   barCode?: string;
   unitPrice?: number;
+  vatPercent?: number;
+  vatAmount?: number;
+  lineTotalBeforeVat?: number;
+  lineTotalAfterVat?: number;
   itemCode?: string;
   itemId: number;
   itemName?: string;
@@ -62,6 +69,7 @@ export interface AddQuantityAdjustmentStockItemRequest {
     uoMEntry: number;
     quantity?: number;
     unitPrice?: number;
+    vatPercent?: number;
     itemId: number;
     quantityAdjustmentStockId?: number;
   };
@@ -72,6 +80,7 @@ export interface UpdateQuantityAdjustmentStockItemRequest {
   quantity?: number;
   uoMEntry: number;
   unitPrice?: number;
+  vatPercent?: number;
 }
 
 export interface QuantityAdjustmentStockBatch {
@@ -113,3 +122,5 @@ export interface QuantityAdjustmentStockResponse {
   };
   errors: any;
 }
+
+

@@ -8,6 +8,8 @@ import { ToastrService } from 'ngx-toastr';
 import { catchError, finalize, of, timeout } from 'rxjs';
 import { StockCountingService } from '../Services/stock-counting.service';
 import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
+import { ReasonService } from '../../reasons/Services/reason.service';
+import { ReasonDto } from '../../reasons/Models/reason.model';
 
 @Component({
   selector: 'app-stock-counting-order-form',
@@ -31,11 +33,14 @@ export class StockCountingOrderFormComponent implements OnInit {
   saving = false;
   loading = false;
   private loadToken = 0;
+  reasons: ReasonDto[] = [];
+  loadingReasons = false;
 
   form = this.fb.group({
     postingDate: ['', Validators.required],
     comment: [''],
     mode: ['Counting', Validators.required],
+    reasonId: [null],
     isDraft: [true]
   });
 
@@ -45,12 +50,15 @@ export class StockCountingOrderFormComponent implements OnInit {
     private router: Router,
     private toastr: ToastrService,
     private stockService: StockCountingService,
-    private cdr: ChangeDetectorRef
+    private cdr: ChangeDetectorRef,
+    private reasonService: ReasonService
   ) {}
 
   ngOnInit(): void {
     this.warehouseId = Number(this.route.snapshot.paramMap.get('warehouseId') || 0);
     this.countStockId = Number(this.route.snapshot.paramMap.get('countStockId') || 0);
+
+    this.loadReasons();
 
     if (!this.form.value.postingDate) {
       this.form.patchValue({ postingDate: this.toDateInputValue(new Date()) });
@@ -84,6 +92,7 @@ export class StockCountingOrderFormComponent implements OnInit {
         countStockId: this.countStockId,
         postingDate: this.formatDateToISOString(this.form.value.postingDate as string),
         comment: String(this.form.value.comment || ''),
+        reasonId: Number(this.form.value.reasonId) || null,
         mode: this.normalizeMode(this.form.value.mode)
       };
 
@@ -105,6 +114,7 @@ export class StockCountingOrderFormComponent implements OnInit {
       isDraft: Boolean(this.form.value.isDraft),
       postingDate: this.formatDateToISOString(this.form.value.postingDate as string),
       comment: String(this.form.value.comment || ''),
+      reasonId: Number(this.form.value.reasonId) || null,
       mode: this.normalizeMode(this.form.value.mode),
       warehouseId: this.warehouseId
     };
@@ -128,6 +138,24 @@ export class StockCountingOrderFormComponent implements OnInit {
     });
   }
 
+  private loadReasons(): void {
+    this.loadingReasons = true;
+
+    this.reasonService.getReasonsByProcessType('CountStock').subscribe({
+      next: (res) => {
+        const payload = (res as any)?.data?.data ?? (res as any)?.data ?? res;
+        this.reasons = Array.isArray(payload) ? payload : [];
+        this.loadingReasons = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading reasons:', err);
+        this.reasons = [];
+        this.loadingReasons = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
   private loadOrder(): void {
     if (!this.countStockId) {
       this.runUiUpdate(() => {
@@ -189,6 +217,7 @@ export class StockCountingOrderFormComponent implements OnInit {
               postingDate: this.toDateInputValue(order?.postingDate),
               comment: order?.comment || '',
               mode: this.normalizeMode(rawMode),
+              reasonId: order?.reasonId ?? order?.ReasonId ?? null,
               isDraft: String(order?.status || '').toLowerCase() === 'draft'
             });
           });
@@ -254,3 +283,4 @@ export class StockCountingOrderFormComponent implements OnInit {
     });
   }
 }
+

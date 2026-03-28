@@ -131,6 +131,51 @@
                     <div class="invalid-feedback d-block">Quantity is required and must be greater than 0</div>
                   }
                 </c-col>
+
+                <c-col [md]="6">
+                  <label class="form-label">Unit Price</label>
+                  <input
+                    cFormControl
+                    type="number"
+                    step="0.01"
+                    formControlName="unitPrice"
+                    placeholder="0.00"
+                    class="form-control"
+                    [class.is-invalid]="manualForm.get('unitPrice')?.invalid && manualForm.get('unitPrice')?.touched">
+                  @if (manualForm.get('unitPrice')?.invalid && manualForm.get('unitPrice')?.touched) {
+                    <div class="invalid-feedback d-block">Unit price must be 0 or greater</div>
+                  }
+                </c-col>
+
+                <c-col [md]="6">
+                  <label class="form-label">VAT Percent</label>
+                  <input
+                    cFormControl
+                    type="number"
+                    step="0.01"
+                    formControlName="vatPercent"
+                    placeholder="0"
+                    class="form-control"
+                    [class.is-invalid]="manualForm.get('vatPercent')?.invalid && manualForm.get('vatPercent')?.touched">
+                  @if (manualForm.get('vatPercent')?.invalid && manualForm.get('vatPercent')?.touched) {
+                    <div class="invalid-feedback d-block">VAT percent must be 0 or greater</div>
+                  }
+                </c-col>
+
+                <c-col [md]="4">
+                  <label class="form-label">Line Total Before VAT</label>
+                  <input cFormControl type="number" class="form-control" [value]="lineTotalBeforeVat" readonly>
+                </c-col>
+
+                <c-col [md]="4">
+                  <label class="form-label">VAT Amount</label>
+                  <input cFormControl type="number" class="form-control" [value]="vatAmount" readonly>
+                </c-col>
+
+                <c-col [md]="4">
+                  <label class="form-label">Line Total After VAT</label>
+                  <input cFormControl type="number" class="form-control" [value]="lineTotalAfterVat" readonly>
+                </c-col>
               </c-row>
             </form>
           }

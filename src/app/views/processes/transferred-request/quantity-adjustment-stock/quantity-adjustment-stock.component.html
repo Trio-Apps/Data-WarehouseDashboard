@@ -139,6 +139,10 @@
                 <th scope="col" class="bg-body-tertiary">Barcode</th>
                 <th scope="col" class="bg-body-tertiary">Quantity</th>
                 <th scope="col" class="bg-body-tertiary">Price</th>
+                <th scope="col" class="bg-body-tertiary">VAT %</th>
+                <th scope="col" class="bg-body-tertiary">VAT Amount</th>
+                <th scope="col" class="bg-body-tertiary">Before VAT</th>
+                <th scope="col" class="bg-body-tertiary">After VAT</th>
                 <th scope="col" class="bg-body-tertiary">Unit</th>
                 @if (quantityAdjustmentStock && !isCompletedStatus(quantityAdjustmentStock)) {
                   <th scope="col" class="bg-body-tertiary text-center">Actions</th>
@@ -149,13 +153,13 @@
             <tbody>
               @if (loading) {
                 <tr>
-                  <td [attr.colspan]="quantityAdjustmentStock && !isCompletedStatus(quantityAdjustmentStock) ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="quantityAdjustmentStock && !isCompletedStatus(quantityAdjustmentStock) ? 12 : 11" class="text-center py-4">
                     <span class="text-body-secondary">Loading...</span>
                   </td>
                 </tr>
               } @else if (!quantityAdjustmentStock) {
                 <tr>
-                  <td colspan="7" class="text-center py-4">
+                  <td colspan="11" class="text-center py-4">
                     <span class="text-body-secondary">Please create quantity adjustment stock first</span>
                   </td>
                 </tr>
@@ -168,6 +172,10 @@
                     <td>{{ item.barCode || 'N/A' }}</td>
                     <td>{{ item.quantity }}</td>
                     <td>{{ item.unitPrice || 0 }}</td>
+                    <td>{{ item.vatPercent ?? 'N/A' }}</td>
+                    <td>{{ item.vatAmount ?? 'N/A' }}</td>
+                    <td>{{ item.lineTotalBeforeVat ?? 'N/A' }}</td>
+                    <td>{{ item.lineTotalAfterVat ?? 'N/A' }}</td>
                     <td>{{ item.unitName || 'N/A' }}</td>
                     @if (quantityAdjustmentStock && !isCompletedStatus(quantityAdjustmentStock)) {
                       <td class="text-center">
@@ -183,7 +191,7 @@
                 }
               } @else {
                 <tr>
-                  <td [attr.colspan]="quantityAdjustmentStock && !isCompletedStatus(quantityAdjustmentStock) ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="quantityAdjustmentStock && !isCompletedStatus(quantityAdjustmentStock) ? 12 : 11" class="text-center py-4">
                     <span class="text-body-secondary">No items in this quantity adjustment stock</span>
                   </td>
                 </tr>

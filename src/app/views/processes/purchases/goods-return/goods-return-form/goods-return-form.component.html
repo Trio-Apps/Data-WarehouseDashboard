@@ -57,7 +57,7 @@
               </c-col>
 
               @if ( (isEditMode && !this.returnOrder?.receiptPurchaseOrderId) || (!isEditMode && !this.receiptOrderId)) {
-                <c-col [md]="12">
+                <c-col [md]="6">
                   <label class="form-label">
                     {{ 'Supplier' | translate }} <span class="text-danger">*</span>
                   </label>
@@ -79,6 +79,54 @@
                   }
                 </c-col>
               }
+
+              <c-col [md]="6">
+                <label class="form-label">Reason</label>
+                @if (loadingReasons) {
+                  <div class="text-body-secondary">Loading reasons...</div>
+                } @else {
+                  <input type="hidden" formControlName="reasonId">
+                  <div class="position-relative">
+                    <input
+                      cFormControl
+                      type="text"
+                      class="form-control reason-picker-display"
+                      [value]="selectedReasonDisplay"
+                      placeholder="-- Select Reason --"
+                      [readonly]="true"
+                      (focus)="onReasonFocus()"
+                      (blur)="onReasonBlur()">
+
+                    @if (selectedReason) {
+                      <button
+                        cButton
+                        color="secondary"
+                        type="button"
+                        class="reason-clear-btn"
+                        (mousedown)="onClearReason()">
+                        Clear
+                      </button>
+                    }
+
+                    @if (showReasonSuggestions && reasons.length > 0) {
+                      <div class="unit-price-suggestions shadow-sm">
+                        @for (reason of reasons; track reason.reasonId) {
+                          <button
+                            type="button"
+                            class="unit-price-suggestion-item"
+                            (mousedown)="onSelectReason(reason)">
+                            <span>{{ reason.name }}</span>
+                            <small class="text-muted">ID: {{ reason.reasonId }}</small>
+                          </button>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+                <small class="form-text text-muted d-block mt-1">
+                  Optional field. Leave empty if no reason is needed.
+                </small>
+              </c-col>
 
               <c-col [md]="12">
                 <label class="form-label">{{ 'Comment' | translate }}</label>

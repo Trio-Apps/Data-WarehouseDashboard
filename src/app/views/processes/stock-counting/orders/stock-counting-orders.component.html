@@ -26,18 +26,19 @@
               <th scope="col" class="bg-body-tertiary">{{ 'stockCounting.fields.mode' | translate }}</th>
               <th scope="col" class="bg-body-tertiary">{{ 'Comment' | translate }}</th>
               <th scope="col" class="bg-body-tertiary text-center">{{ 'Actions' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary text-center"></th>
             </tr>
           </thead>
           <tbody>
             @if (loading) {
               <tr>
-                <td colspan="7" class="text-center py-4">
+                <td colspan="8" class="text-center py-4">
                   <span class="text-body-secondary">{{ 'Loading...' | translate }}</span>
                 </td>
               </tr>
             } @else if (orders.length === 0) {
               <tr>
-                <td colspan="7" class="text-center py-4">
+                <td colspan="8" class="text-center py-4">
                   <span class="text-body-secondary">{{ 'stockCounting.orders.noOrders' | translate }}</span>
                 </td>
               </tr>
@@ -66,6 +67,25 @@
                     <button cButton color="success" size="sm" [disabled]="!order.canSubmit" (click)="onSubmit(order)" [title]="'Submit' | translate">
                       <svg cIcon name="cil-check-circle"></svg>
                     </button>
+                  </td>
+                  <td>
+                    @if (hasErrorMessage(order)) {
+                      <div class="d-flex justify-content-center align-items-center gap-3 mt-2">
+                        <button
+                          type="button"
+                          class="status-action-button status-action-button-error"
+                          (click)="onOpenErrorModal(order)">
+                          {{ 'Error' | translate }}
+                        </button>
+                        <button
+                          type="button"
+                          class="status-action-button status-action-button-sync"
+                          (click)="onRetrySap(order)"
+                          [disabled]="isRetryingSap(order)">
+                          {{ (isRetryingSap(order) ? 'Syncing...' : 'Sync SAP') | translate }}
+                        </button>
+                      </div>
+                    }
                   </td>
                 </tr>
               }
@@ -122,3 +142,29 @@
     </c-card-body>
   </c-card>
 </div>
+
+
+
+<c-modal
+  class="counting-error-modal"
+  [visible]="showErrorModal"
+  (visibleChange)="onErrorModalVisibleChange($event)"
+  alignment="center">
+  <c-modal-header>
+    <h5 cModalTitle>{{ 'Error' | translate }}</h5>
+  </c-modal-header>
+  <c-modal-body>
+    <div class="purchase-error-title">{{ 'SAP Error Message' | translate }}</div>
+    <div class="purchase-error-content">{{ selectedErrorMessage }}</div>
+  </c-modal-body>
+  <c-modal-footer>
+    <button
+      cButton
+      color="secondary"
+      type="button"
+      class="purchase-error-close-btn"
+      (click)="onErrorModalVisibleChange(false)">
+      {{ 'Close' | translate }}
+    </button>
+  </c-modal-footer>
+</c-modal>

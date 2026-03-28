@@ -74,7 +74,8 @@ export class AddQuantityAdjustmentStockItemComponent implements OnInit {
       itemId: [0, Validators.required],
       uoMEntry: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(0.01)]],
-      unitPrice: [null, [Validators.min(0)]]
+      unitPrice: [null, [Validators.min(0)]],
+      vatPercent: [0, [Validators.min(0)]]
     });
 
     this.manualForm.get('itemId')?.valueChanges.subscribe((itemId) => {
@@ -182,6 +183,7 @@ export class AddQuantityAdjustmentStockItemComponent implements OnInit {
         unitPriceValue === null || unitPriceValue === undefined || unitPriceValue === ''
           ? undefined
           : Number(unitPriceValue),
+      vatPercent: Number(formValue.vatPercent || 0),
       itemId: Number(formValue.itemId),
       quantityAdjustmentStockId: this.quantityAdjustmentStockId
     };
@@ -203,6 +205,21 @@ export class AddQuantityAdjustmentStockItemComponent implements OnInit {
           this.cdr.detectChanges();
         }
       });
+  }
+
+  get lineTotalBeforeVat(): number {
+    const quantity = Number(this.manualForm?.get('quantity')?.value) || 0;
+    const unitPrice = Number(this.manualForm?.get('unitPrice')?.value) || 0;
+    return quantity * unitPrice;
+  }
+
+  get vatAmount(): number {
+    const vatPercent = Number(this.manualForm?.get('vatPercent')?.value) || 0;
+    return (this.lineTotalBeforeVat * vatPercent) / 100;
+  }
+
+  get lineTotalAfterVat(): number {
+    return this.lineTotalBeforeVat + this.vatAmount;
   }
 
   onOpenItemSearchModal(): void {
@@ -230,7 +247,8 @@ export class AddQuantityAdjustmentStockItemComponent implements OnInit {
       itemId: 0,
       uoMEntry: '',
       quantity: 1,
-      unitPrice: null
+      unitPrice: null,
+      vatPercent: 0
     });
     this.manualForm.get('itemId')?.markAsTouched();
     this.selectedItemDisplay = '';

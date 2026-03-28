@@ -6,6 +6,7 @@ export interface Receipt {
   postingDate: string;
   dueDate: string;
   comment: string;
+  reasonId?: number | null;
   errorMessage?: string;
   isDraft: boolean;
   status: string;
@@ -50,6 +51,10 @@ export interface ReceiptItem {
   itemCode?: string;
   unitName?: string;
   comment?: string;
+  vatPercent?: number;
+  vatAmount?: number;
+  lineTotalBeforeVat?: number;
+  lineTotalAfterVat?: number;
 }
 
 
@@ -61,6 +66,7 @@ export interface AddReceiptItemRequest {
     uoMEntry: number;
     quantity: number;
     UnitPrice?: number;
+    VatPercent?: number;
     receiptPurchaseOrderId: number;
     itemId: number;
   };
@@ -71,6 +77,7 @@ export interface UpdateReceiptItemRequest {
   quantity: number;
   uoMEntry: number;
   UnitPrice?: number;
+  VatPercent?: number;
 }
 
 export interface ReceiptBatch {
@@ -97,4 +104,5 @@ export interface UpdateReceiptBatchRequest {
   comment?: string;
   expiryDate: string;
 }
+
 

@@ -65,6 +65,16 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'transferred-received-stock-orders/:warehouseId',
+        loadComponent: () =>
+          import('./transferred-stock/transferred-received-stock/transferred-received-stock.component').then(
+            (m) => m.TransferredReceivedStockComponent
+          ),
+        data: {
+          title: 'Transferred Received Stock Orders'
+        }
+      },
+      {
         path: 'transferred-stock-form/:warehouseId/:transferredRequestId',
         loadComponent: () =>
           import('./transferred-stock/transferred-stock-form/transferred-stock-form.component').then(

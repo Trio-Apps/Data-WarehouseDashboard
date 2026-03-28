@@ -1,5 +1,6 @@
 export interface TransferredStock {
   transferredStockId?: number;
+  postingDate?: string;
   status: string;
   dueDate: string;
   userId?: string;
@@ -14,19 +15,25 @@ export interface TransferredStock {
   processItemIsProgressId?: number | null;
   processApprovalId?: number | null;
   reason?: string | null;
+  reasonId?: number | null;
   transferredRequestId?: number | null;
   isReceived?: boolean | null;
   receivedStockId?: number | null;
+  warehouseName?: string;
   warehouseCode?: string;
   distinationWarehouseName?: string;
   errorMessage?: string | null;
   isDraft?: boolean;
+  receivingStatus?: string | number | null;
+  ReceivingStatus?: string | number | null;
   transferredItems?: TransferredItem[];
 }
 
 export interface AddTransferredStock {
+  postingDate: string;
   dueDate: string;
   comment?: string;
+  reasonId?: number | null;
   isDraft: boolean;
   warehouseId: number;
   distinationWarehouseId: number;
@@ -34,8 +41,10 @@ export interface AddTransferredStock {
 }
 
 export interface AddTransferredStockWithoutRef {
+  postingDate: string;
   dueDate: string;
   comment?: string;
+  reasonId?: number | null;
   isDraft: boolean;
   warehouseId: number;
   distinationWarehouseId: number;
@@ -43,8 +52,10 @@ export interface AddTransferredStockWithoutRef {
 
 export interface UpdateTransferredStock {
   transferredStockId: number;
+  postingDate?: string;
   dueDate?: string;
   comment?: string;
+  reasonId?: number | null;
   distinationWarehouseId?: number;
   isDraft: boolean;
 }
@@ -52,11 +63,17 @@ export interface UpdateTransferredStock {
 export interface TransferredItem {
   transferredItemId?: number;
   quantity: number;
+  receivedQuantity?: number | null;
+  ReceivedQuantity?: number | null;
   status?: string;
   errorMessage?: string;
   uoMEntry: number;
   barCode?: string;
   unitPrice?: number;
+  vatPercent?: number;
+  vatAmount?: number;
+  lineTotalBeforeVat?: number;
+  lineTotalAfterVat?: number;
   comment?: string;
   transferredStockId?: number;
   itemId: number;
@@ -77,6 +94,8 @@ export interface AddTransferredStockItemRequest {
     transferredStockId: number;
     itemId: number;
     transferredRequestItemId: number;
+    UnitPrice?: number;
+    VatPercent?: number;
   };
 }
 
@@ -84,12 +103,16 @@ export interface UpdateTransferredStockItemRequest {
   transferredItemId: number;
   quantity?: number;
   uoMEntry: number;
+  UnitPrice?: number;
+  VatPercent?: number;
 }
 
 export interface TransferredStockBatch {
   transferredStockBatchId?: number;
   transferredItemId: number;
   quantity: number;
+  receivedQuantity?: number | null;
+  ReceivedQuantity?: number | null;
   comment?: string;
   batchNumber?: string | null;
   expiryDate?: string;
@@ -125,3 +148,33 @@ export interface TransferredStockResponse {
   };
   errors: any;
 }
+
+
+export interface ReceiveTransferredBatchDTO {
+  transferredStockBatchId: number;
+  quantity: number;
+}
+
+export interface ReceiveTransferredItemDTO {
+  transferredItemId: number;
+  quantity: number;
+  batches?: ReceiveTransferredBatchDTO[];
+}
+
+export interface ReceiveTransferredStockDTO {
+  transferredStockId: number;
+  isDraft: boolean;
+  items: ReceiveTransferredItemDTO[];
+}
+
+
+
+
+
+
+
+
+
+
+
+

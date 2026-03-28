@@ -44,21 +44,45 @@
           <label class="form-label">
             Unit Price <span class="text-danger">*</span>
           </label>
-          <input
-            cFormControl
-            type="number"
-            step="0.01"
-            formControlName="unitPrice"
-            placeholder="0.00"
-            class="form-control"
-            [class.is-invalid]="editForm.get('unitPrice')?.invalid && editForm.get('unitPrice')?.touched"
-            required>
+          <div class="position-relative">
+            <input
+              cFormControl
+              type="number"
+              step="0.01"
+              formControlName="unitPrice"
+              placeholder="0.00"
+              class="form-control"
+              [class.is-invalid]="editForm.get('unitPrice')?.invalid && editForm.get('unitPrice')?.touched"
+              (focus)="onUnitPriceFocus()"
+              (blur)="onUnitPriceBlur()"
+              required>
+            @if (showUnitPriceSuggestions && filteredItemPrices.length > 0) {
+              <div class="unit-price-suggestions shadow-sm">
+                @for (price of filteredItemPrices; track price.itemPriceId) {
+                  <button
+                    type="button"
+                    class="unit-price-suggestion-item"
+                    (mousedown)="onSelectUnitPriceSuggestion(price.price)">
+                    <span>{{ price.price ?? 0 }} {{ price.currency }}</span>
+                    <small class="text-muted">
+                      Price List {{ price.priceList }}
+                      @if (price.uomCode) { - {{ price.uomCode }} }
+                    </small>
+                  </button>
+                }
+              </div>
+            }
+          </div>
           @if (editForm.get('unitPrice')?.invalid && editForm.get('unitPrice')?.touched) {
             <div class="invalid-feedback d-block">
               Unit price is required and must be 0 or greater
             </div>
           }
-          <small class="form-text text-muted">Price per unit</small>
+          @if (loadingItemPrices) {
+            <small class="form-text text-muted">Loading prices...</small>
+          } @else {
+            <small class="form-text text-muted">Type price manually or pick from suggestions</small>
+          }
         </c-col>
 
         <!-- UoM Entry -->
@@ -69,23 +93,34 @@
           @if (loadingUomGroups) {
             <div class="text-body-secondary">Loading units...</div>
           } @else {
-            <select
-              cFormControl
-              formControlName="uoMEntry"
-              class="form-select"
-              [class.is-invalid]="editForm.get('uoMEntry')?.invalid && editForm.get('uoMEntry')?.touched"
-              [disabled]="loadingUomGroups"
-              required>
-              <option value="">-- Select Unit --</option>
-              @for (uom of uomGroups; track uom.uomEntry) {
-                <option [value]="uom.uomEntry">
-                  {{ uom.uomCode }} (Entry: {{ uom.uomEntry }}, Base Qty: {{ uom.baseQty }})
-                </option>
+            <input type="hidden" formControlName="uoMEntry" />
+            <div class="position-relative">
+              <input
+                cFormControl
+                type="text"
+                class="form-control"
+                [value]="selectedUomDisplay"
+                placeholder="-- Select Unit --"
+                [class.is-invalid]="editForm.get('uoMEntry')?.invalid && editForm.get('uoMEntry')?.touched"
+                [readonly]="true"
+                [disabled]="loadingUomGroups"
+                (focus)="onUomFocus()"
+                (blur)="onUomBlur()"
+                required>
+              @if (showUomSuggestions && uomGroups.length > 0) {
+                <div class="unit-price-suggestions shadow-sm">
+                  @for (uom of uomGroups; track uom.uomEntry) {
+                    <button
+                      type="button"
+                      class="unit-price-suggestion-item"
+                      (mousedown)="onSelectUom(uom)">
+                      <span>{{ uom.uomCode }}</span>
+                      <small class="text-muted">Entry: {{ uom.uomEntry }}, Base Qty: {{ uom.baseQty }}</small>
+                    </button>
+                  }
+                </div>
               }
-              @if (uomGroups.length === 0) {
-                <option disabled>No units available</option>
-              }
-            </select>
+            </div>
             @if (editForm.get('uoMEntry')?.invalid && editForm.get('uoMEntry')?.touched) {
               <div class="invalid-feedback d-block">
                 Unit of measure is required
@@ -93,6 +128,41 @@
             }
           }
           <small class="form-text text-muted">Select unit of measure</small>
+        </c-col>
+
+        <c-col [md]="6">
+          <label class="form-label">
+            VAT Percent
+          </label>
+          <input
+            cFormControl
+            type="number"
+            step="0.01"
+            formControlName="vatPercent"
+            placeholder="0"
+            class="form-control"
+            [class.is-invalid]="editForm.get('vatPercent')?.invalid && editForm.get('vatPercent')?.touched">
+          @if (editForm.get('vatPercent')?.invalid && editForm.get('vatPercent')?.touched) {
+            <div class="invalid-feedback d-block">
+              VAT percent must be 0 or greater
+            </div>
+          }
+          <small class="form-text text-muted">VAT percentage for this line</small>
+        </c-col>
+
+        <c-col [md]="4">
+          <label class="form-label">Line Total Before VAT</label>
+          <input cFormControl type="number" class="form-control" [value]="lineTotalBeforeVat" readonly>
+        </c-col>
+
+        <c-col [md]="4">
+          <label class="form-label">VAT Amount</label>
+          <input cFormControl type="number" class="form-control" [value]="vatAmount" readonly>
+        </c-col>
+
+        <c-col [md]="4">
+          <label class="form-label">Line Total After VAT</label>
+          <input cFormControl type="number" class="form-control" [value]="lineTotalAfterVat" readonly>
         </c-col>
       </c-row>
     </form>

@@ -4,6 +4,8 @@ export interface DeliveryNote {
   postingDate: string;
   dueDate: string;
   comment: string;
+  reasonId?: number | null;
+  reason?: string | null;
   errorMessage?: string | null;
   customerId?: number;
   customerCode?: string;
@@ -24,6 +26,7 @@ export interface AddDeliveryNote {
   dueDate: string;
   comment: string;
   customerId?: number;
+  reasonId?: number | null;
   warehouseId: number;
   salesOrderId?: number;
   isDraft: boolean;
@@ -35,6 +38,7 @@ export interface UpdateDeliveryNote {
   dueDate?: string;
   comment: string;
   customerId?: number;
+  reasonId?: number | null;
   warehouseId?: number;
   salesOrderId?: number;
   isDraft: boolean;
@@ -47,11 +51,16 @@ export interface DeliveryNoteItem {
   itemId: number;
   uoMEntry: number;
   quantity: number;
+  unitPrice?: number;
   barCode?: string;
   itemName?: string;
   itemCode?: string;
   unitName?: string;
   comment?: string;
+  vatPercent?: number;
+  vatAmount?: number;
+  lineTotalBeforeVat?: number;
+  lineTotalAfterVat?: number;
 }
 
 export interface AddDeliveryNoteItemRequest {
@@ -63,6 +72,9 @@ export interface AddDeliveryNoteItemRequest {
 export interface UpdateDeliveryNoteItemRequest {
   deliveryNoteItemId: number;
   quantity: number;
+  uoMEntry?: number;
+  UnitPrice?: number;
+  VatPercent?: number;
   comment: string;
 }
 
@@ -88,3 +100,4 @@ export interface UpdateDeliveryNoteBatchRequest {
   quantity: number;
   comment?: string;
 }
+

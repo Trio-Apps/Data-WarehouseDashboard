@@ -37,6 +37,9 @@ export function navigateToProcessByCard(
     case 'transferred-stock':
       router.navigate(['/processes/transferred-request/transferred-stock-orders', warehouseId]);
       break;
+    case 'transferred-received-stock':
+      router.navigate(['/processes/transferred-request/transferred-received-stock-orders', warehouseId]);
+      break;
     case 'quantity-adjustment-stock':
       router.navigate(['/processes/quantity-adjustment-stock/quantity-adjustment-stock-orders', warehouseId]);
       break;

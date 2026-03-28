@@ -25,7 +25,18 @@
               <option value="Posting">{{ 'stockCounting.mode.Posting' | translate }}</option>
             </select>
           </div>
-
+          <div class="col-md-4">
+            <label class="form-label">Reason</label>
+            <select cFormControl class="form-select" formControlName="reasonId">
+              <option [ngValue]="null">-- Select Reason --</option>
+              @for (reason of reasons; track reason.reasonId) {
+                <option [ngValue]="reason.reasonId">{{ reason.name }}</option>
+              }
+            </select>
+            @if (loadingReasons) {
+              <small class="form-text text-muted">Loading reasons...</small>
+            }
+          </div>
           <div class="col-md-4 d-flex align-items-end">
             @if (!isEditMode()) {
               <div class="form-check">
@@ -53,3 +64,4 @@
     </c-card-body>
   </c-card>
 </div>
+

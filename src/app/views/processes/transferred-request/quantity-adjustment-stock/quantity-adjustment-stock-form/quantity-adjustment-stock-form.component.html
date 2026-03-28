@@ -43,17 +43,20 @@
                 }
               </c-col>
 
-              <c-col [md]="12">
-                <label class="form-label">{{ 'Comment' | translate }}</label>
-                <textarea
-                  cFormControl
-                  formControlName="comment"
-                  rows="3"
-                  [placeholder]="'Enter any comments for this quantity adjustment stock' | translate"
-                  class="form-control"></textarea>
+              <c-col [md]="6">
+                <label class="form-label">Reason</label>
+                <select cFormControl class="form-select" formControlName="reasonId">
+                  <option [ngValue]="null">-- Select Reason --</option>
+                  @for (reason of reasons; track reason.reasonId) {
+                    <option [ngValue]="reason.reasonId">{{ reason.name }}</option>
+                  }
+                </select>
+                @if (loadingReasons) {
+                  <small class="form-text text-muted">Loading reasons...</small>
+                }
               </c-col>
 
-              <c-col [md]="12">
+              <c-col [md]="12"> 
                 <div class="form-check">
                   <input cFormCheckInput type="checkbox" formControlName="isDraft" id="isDraft" />
                   <label cFormCheckLabel for="isDraft">{{ 'Save as Draft' | translate }}</label>
@@ -84,3 +87,6 @@
     </c-card-footer>
   </c-card>
 </div>
+
+
+

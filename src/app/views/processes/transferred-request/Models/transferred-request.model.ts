@@ -1,5 +1,6 @@
 export interface TransferredRequest {
   transferredRequestId?: number;
+  postingDate?: string;
   dueDate: string;
   comment?: string;
   status: string;
@@ -23,8 +24,10 @@ export interface TransferredRequest {
 }
 
 export interface AddTransferredRequest {
+  postingDate: string;
   dueDate: string;
   comment?: string;
+  reasonId?: number | null;
   isDraft: boolean;
   warehouseId: number;
   distinationWarehouseId: number;
@@ -32,8 +35,10 @@ export interface AddTransferredRequest {
 
 export interface UpdateTransferredRequest {
   transferredRequestId: number;
+  postingDate: string;
   dueDate: string;
   comment?: string;
+  reasonId?: number | null;
   distinationWarehouseId: number;
   isDraft: boolean;
 }
@@ -46,6 +51,10 @@ export interface TransferredRequestItem {
   uoMEntry: number;
   barCode?: string;
   unitPrice?: number;
+  vatPercent?: number;
+  vatAmount?: number;
+  lineTotalBeforeVat?: number;
+  lineTotalAfterVat?: number;
   comment?: string;
   transferredRequestId?: number;
   itemId: number;
@@ -61,6 +70,7 @@ export interface AddTransferredRequestItem {
   transferredRequestId: number;
   itemId: number;
   UnitPrice?: number;
+  VatPercent?: number;
 }
 
 export interface UpdateTransferredRequestItem {
@@ -68,6 +78,7 @@ export interface UpdateTransferredRequestItem {
   quantity?: number;
   uoMEntry: number;
   UnitPrice?: number;
+  VatPercent?: number;
 }
 
 export interface TransferredRequestBatch {
@@ -115,6 +126,7 @@ export interface AddTransferredItemRequest {
     uoMEntry: number;
     quantity: number;
     UnitPrice?: number;
+    VatPercent?: number;
     transferredRequestId: number;
     itemId: number;
   };
@@ -134,4 +146,7 @@ export interface TransferredRequestResponse {
   };
   errors: any;
 }
+
+
+
 

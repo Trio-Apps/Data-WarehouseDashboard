@@ -23,6 +23,8 @@ import {
 import { DestinationWarehouse } from '../../Models/transferred-request.model';
 import { SearchDestinationWarehouseModalComponent } from '../../search-destination-warehouse-modal/search-destination-warehouse-modal.component';
 import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
+import { ReasonService } from '../../../reasons/Services/reason.service';
+import { ReasonDto } from '../../../reasons/Models/reason.model';
 
 @Component({
   selector: 'app-transferred-stock-form',
@@ -50,6 +52,8 @@ export class TransferredStockFormComponent implements OnInit {
   warehouseId = 0;
   selectedDestinationWarehouseDisplay = '';
   showDestinationWarehouseModal = false;
+  reasons: ReasonDto[] = [];
+  loadingReasons = false;
   loading = false;
   saving = false;
 
@@ -60,7 +64,8 @@ export class TransferredStockFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private reasonService: ReasonService
   ) {}
 
   ngOnInit(): void {
@@ -70,6 +75,7 @@ export class TransferredStockFormComponent implements OnInit {
     this.isEditMode = !!this.transferredStockId;
 
     this.initializeForm();
+    this.loadReasons();
 
     if (this.isEditMode && this.transferredStockId) {
       this.loadTransferredStock();
@@ -83,8 +89,10 @@ export class TransferredStockFormComponent implements OnInit {
 
   initializeForm(): void {
     this.form = this.fb.group({
+      postingDate: ['', Validators.required],
       dueDate: ['', Validators.required],
       comment: [''],
+      reasonId: [null],
       distinationWarehouseId: ['', Validators.required],
       isDraft: [true]
     });
@@ -100,14 +108,17 @@ export class TransferredStockFormComponent implements OnInit {
       next: (res: any) => {
         if (res?.data) {
           const stock = res.data as TransferredStock;
+          const postingDateStr = stock.postingDate ? new Date(stock.postingDate).toISOString().split('T')[0] : null;
           const dueDateStr = stock.dueDate ? new Date(stock.dueDate).toISOString().split('T')[0] : null;
 
           this.transferredRequestId = Number(stock.transferredRequestId || 0);
           this.warehouseId = Number(stock.warehouseId || this.warehouseId || 0);
 
           this.form.patchValue({
+            postingDate: postingDateStr,
             dueDate: dueDateStr,
             comment: stock.comment || '',
+            reasonId: stock.reasonId || (stock as any).ReasonId || null,
             distinationWarehouseId: stock.distinationWarehouseId || null,
             isDraft: stock.isDraft !== undefined ? stock.isDraft : true
           });
@@ -139,13 +150,16 @@ export class TransferredStockFormComponent implements OnInit {
       next: (res: any) => {
         if (res?.data) {
           const request = res.data;
+          const postingDateStr = request.postingDate ? new Date(request.postingDate).toISOString().split('T')[0] : null;
           const dueDateStr = request.dueDate ? new Date(request.dueDate).toISOString().split('T')[0] : null;
 
           this.warehouseId = Number(request.warehouseId || this.warehouseId || 0);
 
           this.form.patchValue({
+            postingDate: postingDateStr,
             dueDate: dueDateStr,
             comment: request.comment || '',
+            reasonId: request.reasonId || request.ReasonId || null,
             distinationWarehouseId: request.distinationWarehouseId || null,
             isDraft: false
           });
@@ -204,6 +218,24 @@ export class TransferredStockFormComponent implements OnInit {
     return `${year}-${month}-${day}T00:00:00.000Z`;
   }
 
+  private loadReasons(): void {
+    this.loadingReasons = true;
+
+    this.reasonService.getReasonsByProcessType('TransferredStock').subscribe({
+      next: (res) => {
+        const payload = (res as any)?.data?.data ?? (res as any)?.data ?? res;
+        this.reasons = Array.isArray(payload) ? payload : [];
+        this.loadingReasons = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading reasons:', err);
+        this.reasons = [];
+        this.loadingReasons = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
   onSubmit(): void {
     if (this.form.invalid) {
       this.toastr.error('Please fill in all required fields', 'Validation Error');
@@ -212,11 +244,14 @@ export class TransferredStockFormComponent implements OnInit {
 
     this.saving = true;
     const formValue = this.form.value;
+    const postingDate = this.formatDateToISOString(formValue.postingDate);
     const dueDate = this.formatDateToISOString(formValue.dueDate);
 
     const createRequest: AddTransferredStockWithoutRef = {
+      postingDate,
       dueDate,
       comment: formValue.comment,
+      reasonId: Number(formValue.reasonId) || null,
       isDraft: formValue.isDraft,
       warehouseId: this.warehouseId,
       distinationWarehouseId: +formValue.distinationWarehouseId
@@ -229,8 +264,10 @@ export class TransferredStockFormComponent implements OnInit {
 
     const updateRequest: UpdateTransferredStock = {
       transferredStockId: this.transferredStockId || 0,
+      postingDate,
       dueDate,
       comment: formValue.comment,
+      reasonId: Number(formValue.reasonId) || null,
       distinationWarehouseId: +formValue.distinationWarehouseId,
       isDraft: formValue.isDraft
     };
@@ -302,3 +339,6 @@ export class TransferredStockFormComponent implements OnInit {
     ]);
   }
 }
+
+
+

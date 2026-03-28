@@ -193,6 +193,7 @@ getPurchasesWithFilterationByWarehouse(
     uoMEntry: number;
     quantity: number;
     UnitPrice?: number;
+    VatPercent?: number;
     purchaseOrderId: number;
     itemId: number;
   }): Observable<any> {
@@ -216,6 +217,7 @@ getPurchasesWithFilterationByWarehouse(
     quantity: number;
     uoMEntry: number;
     UnitPrice?: number;
+    VatPercent?: number;
   }): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}PurchaseOrderItem/Purchase-item-order/${id}`, itemData, this.headerOption);
   }

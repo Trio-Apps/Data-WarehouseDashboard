@@ -67,7 +67,8 @@ export class EditReceiptItemModalComponent implements OnInit, OnChanges {
       receiptPurchaseOrderItemId: [0, Validators.required],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
       uoMEntry: ['', [Validators.required]],
-      unitPrice: [0, [Validators.required, Validators.min(0)]]
+      unitPrice: [0, [Validators.required, Validators.min(0)]],
+      vatPercent: [0, [Validators.min(0)]]
     });
   }
 
@@ -80,7 +81,8 @@ export class EditReceiptItemModalComponent implements OnInit, OnChanges {
         receiptPurchaseOrderItemId: itemId,
         quantity: this.item.quantity || 0.01,
         uoMEntry: currentUoMEntry,
-        unitPrice: this.item.unitPrice || 0
+        unitPrice: this.item.unitPrice || 0,
+        vatPercent: this.item.vatPercent || 0
       });
 
       // Load UoM groups for this item
@@ -134,9 +136,25 @@ export class EditReceiptItemModalComponent implements OnInit, OnChanges {
       receiptPurchaseOrderItemId: 0,
       quantity: 0.01,
       uoMEntry: '',
-      unitPrice: 0
+      unitPrice: 0,
+      vatPercent: 0
     });
     this.uomGroups = [];
+  }
+
+  get lineTotalBeforeVat(): number {
+    const quantity = Number(this.editForm?.get('quantity')?.value) || 0;
+    const unitPrice = Number(this.editForm?.get('unitPrice')?.value) || 0;
+    return quantity * unitPrice;
+  }
+
+  get vatAmount(): number {
+    const vatPercent = Number(this.editForm?.get('vatPercent')?.value) || 0;
+    return (this.lineTotalBeforeVat * vatPercent) / 100;
+  }
+
+  get lineTotalAfterVat(): number {
+    return this.lineTotalBeforeVat + this.vatAmount;
   }
 
   onUpdate(): void {
@@ -152,7 +170,8 @@ export class EditReceiptItemModalComponent implements OnInit, OnChanges {
       receiptPurchaseOrderItemId: formValue.receiptPurchaseOrderItemId,
       quantity: formValue.quantity,
       uoMEntry: formValue.uoMEntry,
-      UnitPrice: formValue.unitPrice
+      UnitPrice: formValue.unitPrice,
+      VatPercent: Number(formValue.vatPercent || 0)
     };
      console.log("updating item data",itemData);
     this.receiptService.updateReceiptItem(itemData.receiptPurchaseOrderItemId, itemData).subscribe({

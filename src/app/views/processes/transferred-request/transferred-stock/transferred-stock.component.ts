@@ -55,6 +55,8 @@ export class TransferredStockComponent implements OnInit {
 
   showApprovalModal = false;
   approvalComment = '';
+  isReceivedView = false;
+  receivedWarehouseId = 0;
   approvalSubmitting = false;
 
   constructor(
@@ -68,6 +70,9 @@ export class TransferredStockComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    this.isReceivedView = this.route.snapshot.queryParamMap.get('view') === 'received';
+    this.receivedWarehouseId = +(this.route.snapshot.queryParamMap.get('warehouseId') || 0);
+
     this.route.params.subscribe((params) => {
       const requestId = +(params['transferredRequestId'] || 0);
       const stockId = +(params['transferredStockId'] || 0);
@@ -337,6 +342,11 @@ export class TransferredStockComponent implements OnInit {
   }
 
   onBack(): void {
+    if (this.isReceivedView && this.receivedWarehouseId > 0) {
+      this.router.navigate(['/processes/transferred-request/transferred-received-stock-orders', this.receivedWarehouseId]);
+      return;
+    }
+
     const targetWarehouseId = Number(
       this.transferredStock?.warehouseId ||
       this.transferredRequest?.warehouseId ||
@@ -524,3 +534,4 @@ export class TransferredStockComponent implements OnInit {
     ]);
   }
 }
+

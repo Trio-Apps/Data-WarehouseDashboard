@@ -103,12 +103,19 @@ export class TranslationService {
       return;
     }
 
-    const response = await firstValueFrom(
-      this.http.get<LocalizationApiResponse>(`${this.localizationApiBaseUrl}/Localization/${language}`)
-    );
+    try {
+      const response = await firstValueFrom(
+        this.http.get<LocalizationApiResponse>(`${this.localizationApiBaseUrl}/Localization/${language}`)
+      );
 
-    this.cache.set(language, response.data);
-    this.literalTranslationCache.set(language, response.literalTranslations ?? {});
+      this.cache.set(language, response.data);
+      this.literalTranslationCache.set(language, response.literalTranslations ?? {});
+    } catch (error) {
+      // Do not block app bootstrap when localization endpoint is unavailable.
+      this.cache.set(language, {});
+      this.literalTranslationCache.set(language, {});
+      console.warn(`[i18n] Failed to load localization for "${language}". Falling back to raw text.`, error);
+    }
   }
 
   private resolveKey(dictionary: TranslationDictionary, key: string): string | TranslationDictionary | undefined {

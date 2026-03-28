@@ -82,6 +82,8 @@ export class AddDeliveryNoteItemComponent implements OnInit {
       itemId: ['', Validators.required],
       uoMEntry: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(0.01)]],
+      unitPrice: [0, [Validators.required, Validators.min(0)]],
+      vatPercent: [0, [Validators.min(0)]],
     });
 
     this.manualForm.get('itemId')?.valueChanges.subscribe((itemId) => {
@@ -205,6 +207,8 @@ export class AddDeliveryNoteItemComponent implements OnInit {
     const itemData = {
       uoMEntry: formValue.uoMEntry,
       quantity: formValue.quantity,
+      UnitPrice: formValue.unitPrice,
+      VatPercent: Number(formValue.vatPercent || 0),
       itemId: formValue.itemId
     };
 
@@ -223,5 +227,20 @@ export class AddDeliveryNoteItemComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  get lineTotalBeforeVat(): number {
+    const quantity = Number(this.manualForm?.get('quantity')?.value) || 0;
+    const unitPrice = Number(this.manualForm?.get('unitPrice')?.value) || 0;
+    return quantity * unitPrice;
+  }
+
+  get vatAmount(): number {
+    const vatPercent = Number(this.manualForm?.get('vatPercent')?.value) || 0;
+    return (this.lineTotalBeforeVat * vatPercent) / 100;
+  }
+
+  get lineTotalAfterVat(): number {
+    return this.lineTotalBeforeVat + this.vatAmount;
   }
 }

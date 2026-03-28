@@ -17,6 +17,8 @@ import { SalesService } from '../../Services/sales.service';
 import { AddDeliveryNote, DeliveryNote, UpdateDeliveryNote } from '../../Models/delivery-note-model';
 import { DeliveryNoteService } from '../../Services/delivery-note.service';
 import { SearchCustomerModalComponent } from '../../search-customer-modal/search-customer-modal.component';
+import { ReasonService } from '../../../reasons/Services/reason.service';
+import { ProcessTypeOption, ReasonDto } from '../../../reasons/Models/reason.model';
 
 
 @Component({
@@ -45,7 +47,11 @@ export class DeliveryNoteFormComponent implements OnInit {
   warehouseId: number = 0;
   customers: Customer[] = [];
   selectedCustomerDisplay: string = '';
+  selectedReasonDisplay: string = '';
   showCustomerModal: boolean = false;
+  reasons: ReasonDto[] = [];
+  loadingReasons: boolean = false;
+  showReasonSuggestions: boolean = false;
   loading: boolean = false;
   saving: boolean = false;
   returnOrder: DeliveryNote | null = null;
@@ -57,7 +63,8 @@ export class DeliveryNoteFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private reasonService: ReasonService
   ) {}
 
   ngOnInit(): void {
@@ -67,6 +74,7 @@ export class DeliveryNoteFormComponent implements OnInit {
     this.warehouseId = +(this.route.snapshot.queryParamMap.get('warehouseId') || 0);
 
     this.initializeForm();
+    this.loadReasons();
     this.configureFormForWithoutReference();
 
     if (this.isEditMode && this.deliveryNoteId) {
@@ -83,7 +91,45 @@ export class DeliveryNoteFormComponent implements OnInit {
       dueDate: ['', Validators.required],
       comment: [''],
       customerId: [''],
+      reasonId: [null],
       isDraft: [true]
+    });
+  }
+
+  private loadReasons(): void {
+    this.loadingReasons = true;
+
+    this.reasonService.getProcessTypes().subscribe({
+      next: (typesRes) => {
+        const processTypes = this.extractProcessTypes(typesRes);
+        const processType = this.resolveProcessType(
+          processTypes,
+          ['deliverynote', 'deliverynoteorder'],
+          'DeliveryNote'
+        );
+
+        this.reasonService.getReasonsByProcessType(processType).subscribe({
+          next: (reasonsRes) => {
+            this.reasons = this.extractReasons(reasonsRes);
+            this.loadingReasons = false;
+            const selectedReasonId = this.toNullableNumber(this.form?.get('reasonId')?.value);
+            this.updateSelectedReasonDisplay(selectedReasonId);
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('Error loading reasons:', err);
+            this.reasons = [];
+            this.loadingReasons = false;
+            this.cdr.detectChanges();
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error loading process types:', err);
+        this.reasons = [];
+        this.loadingReasons = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -140,9 +186,14 @@ export class DeliveryNoteFormComponent implements OnInit {
             dueDate: dueDateStr,
             comment: this.returnOrder?.comment || '',
             customerId: this.returnOrder?.customerId || null,
+            reasonId: this.toNullableNumber(this.returnOrder?.reasonId ?? (this.returnOrder as any)?.ReasonId),
             isDraft: this.returnOrder?.isDraft !== undefined ? this.returnOrder?.isDraft : true
           });
           this.syncSelectedCustomerDisplay();
+          this.updateSelectedReasonDisplay(
+            this.toNullableNumber(this.returnOrder?.reasonId ?? (this.returnOrder as any)?.ReasonId),
+            this.returnOrder?.reason || ''
+          );
 
           if (!this.returnOrder?.salesOrderId) {
             this.form.get('customerId')?.setValidators([Validators.required]);
@@ -202,6 +253,40 @@ export class DeliveryNoteFormComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  get selectedReason(): ReasonDto | null {
+    const selectedReasonId = this.toNullableNumber(this.form?.get('reasonId')?.value);
+    if (!selectedReasonId) {
+      return null;
+    }
+
+    return this.reasons.find((reason) => reason.reasonId === selectedReasonId) || null;
+  }
+
+  onReasonFocus(): void {
+    this.showReasonSuggestions = this.reasons.length > 0;
+  }
+
+  onReasonBlur(): void {
+    setTimeout(() => {
+      this.showReasonSuggestions = false;
+      this.cdr.detectChanges();
+    }, 150);
+  }
+
+  onSelectReason(reason: ReasonDto): void {
+    this.form.patchValue({ reasonId: reason.reasonId });
+    this.form.get('reasonId')?.markAsTouched();
+    this.selectedReasonDisplay = reason.name;
+    this.showReasonSuggestions = false;
+  }
+
+  onClearReason(): void {
+    this.form.patchValue({ reasonId: null });
+    this.form.get('reasonId')?.markAsTouched();
+    this.selectedReasonDisplay = '';
+    this.showReasonSuggestions = false;
+  }
+
   private syncSelectedCustomerDisplay(): void {
     const customerIdValue = this.form.get('customerId')?.value;
     const customerId = customerIdValue ? +customerIdValue : null;
@@ -238,6 +323,7 @@ export class DeliveryNoteFormComponent implements OnInit {
       postingDate: this.formatDateToISOString(formValue.postingDate),
       dueDate: this.formatDateToISOString(formValue.dueDate),
       comment: formValue.comment,
+      reasonId: this.toNullableNumber(formValue.reasonId),
       isDraft: formValue.isDraft
     };
 
@@ -311,5 +397,59 @@ export class DeliveryNoteFormComponent implements OnInit {
     }
 
     this.router.navigate(['/inquiries/show-outbound-processes', this.warehouseId || 0]);
+  }
+
+  private extractProcessTypes(response: ProcessTypeOption[] | { data: ProcessTypeOption[] } | any): ProcessTypeOption[] {
+    const payload = response?.data?.data ?? response?.data ?? response;
+    return Array.isArray(payload) ? payload : [];
+  }
+
+  private extractReasons(response: ReasonDto[] | { data: ReasonDto[] } | any): ReasonDto[] {
+    const payload = response?.data?.data ?? response?.data ?? response;
+    return Array.isArray(payload) ? payload : [];
+  }
+
+  private resolveProcessType(
+    processTypes: ProcessTypeOption[],
+    keywords: string[],
+    fallback: string
+  ): string {
+    const normalizedKeywords = keywords.map((x) => this.normalizeText(x));
+    const exactMatch = processTypes.find((x) => normalizedKeywords.includes(this.normalizeText(x.name)));
+    if (exactMatch) {
+      return exactMatch.name;
+    }
+
+    const fuzzyMatch = processTypes.find((x) => {
+      const normalizedName = this.normalizeText(x.name);
+      return normalizedKeywords.some((keyword) => normalizedName.includes(keyword));
+    });
+
+    if (fuzzyMatch) {
+      return fuzzyMatch.name;
+    }
+
+    return fallback;
+  }
+
+  private normalizeText(value: unknown): string {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+  }
+
+  private toNullableNumber(value: unknown): number | null {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  private updateSelectedReasonDisplay(reasonId: number | null, fallbackName: string = ''): void {
+    if (!reasonId) {
+      this.selectedReasonDisplay = '';
+      return;
+    }
+
+    const selectedReason = this.reasons.find((reason) => reason.reasonId === reasonId);
+    this.selectedReasonDisplay = selectedReason?.name || fallbackName || `#${reasonId}`;
   }
 }

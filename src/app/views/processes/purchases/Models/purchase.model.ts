@@ -4,6 +4,7 @@ export interface Purchase {
   dueDate: string;
   comment: string;
   supplierId: number;
+  reasonId?: number | null;
   warehouseId: number;
   itemCount?:number;
   errorMessage?:string,
@@ -32,6 +33,7 @@ export interface AddPurchase {
   dueDate: string;
   comment: string;
   supplierId: number;
+  reasonId?: number | null;
   warehouseId: number;
   isDraft: boolean;
 }
@@ -57,6 +59,10 @@ export interface PurchaseItem {
   perantStatus?: string;
   unitName?: string;
   comment?: string;
+  vatPercent?: number;
+  vatAmount?: number;
+  lineTotalBeforeVat?: number;
+  lineTotalAfterVat?: number;
 }
 
 export interface Item {
@@ -88,6 +94,7 @@ export interface AddItemRequest {
     uoMEntry: number;
     quantity: number;
     UnitPrice?: number;
+    VatPercent?: number;
     purchaseOrderId: number;
     itemId: number;
   };
@@ -98,6 +105,7 @@ export interface UpdateItemRequest {
   quantity: number;
   uoMEntry: number;
   UnitPrice?: number;
+  VatPercent?: number;
 }
 
 

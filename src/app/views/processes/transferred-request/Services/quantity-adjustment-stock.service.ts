@@ -152,6 +152,7 @@ export class QuantityAdjustmentStockService {
       uoMEntry: number;
       quantity?: number;
       unitPrice?: number;
+      vatPercent?: number;
       itemId: number;
       quantityAdjustmentStockId?: number;
     }

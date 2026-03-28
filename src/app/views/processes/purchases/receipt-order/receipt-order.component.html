@@ -167,6 +167,10 @@
                 <th scope="col" class="bg-body-tertiary">Barcode</th>
                 <th scope="col" class="bg-body-tertiary">Quantity</th>
                 <th scope="col" class="bg-body-tertiary">Unit Price</th>
+                <th scope="col" class="bg-body-tertiary">VAT %</th>
+                <th scope="col" class="bg-body-tertiary">VAT Amount</th>
+                <th scope="col" class="bg-body-tertiary">Before VAT</th>
+                <th scope="col" class="bg-body-tertiary">After VAT</th>
                 <th scope="col" class="bg-body-tertiary">Unit</th>
                 <th scope="col" class="bg-body-tertiary text-center">Batches</th>
                 @if (receipt && !isCompletedStatus(receipt)) {
@@ -182,13 +186,13 @@
             <tbody>
               @if (loading) {
                 <tr>
-                  <td [attr.colspan]="receipt ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="receipt ? 13 : 12" class="text-center py-4">
                     <span class="text-body-secondary">Loading...</span>
                   </td>
                 </tr>
               } @else if (!receipt) {
                 <tr>
-                  <td [attr.colspan]="7" class="text-center py-4">
+                  <td [attr.colspan]="12" class="text-center py-4">
                     <span class="text-body-secondary">Please create receipt order first</span>
                   </td>
                 </tr>
@@ -202,6 +206,10 @@
                     <td>{{ item.barCode || 'N/A' }}</td>
                     <td>{{ item.quantity }}</td>
                     <td>{{ item.unitPrice }}</td>
+                    <td>{{ item.vatPercent ?? 'N/A' }}</td>
+                    <td>{{ item.vatAmount ?? 'N/A' }}</td>
+                    <td>{{ item.lineTotalBeforeVat ?? 'N/A' }}</td>
+                    <td>{{ item.lineTotalAfterVat ?? 'N/A' }}</td>
                     <td>{{ item.unitName || 'N/A' }}</td>
                     <td class="text-center">
                       <button cButton color="success" size="sm" (click)="onViewBatches(item)" title="View Batches">
@@ -229,7 +237,7 @@
                 }
               } @else {
                 <tr>
-                  <td [attr.colspan]="receipt ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="receipt ? 13 : 12" class="text-center py-4">
                     <span class="text-body-secondary">No items in this receipt</span>
                   </td>
                 </tr>

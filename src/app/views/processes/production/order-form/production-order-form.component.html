@@ -92,7 +92,18 @@
               <label cFormLabel>Quantity</label>
               <input cFormControl type="number" step="0.000001" min="0.000001" formControlName="plannedQuantity" />
             </c-col>
-
+            <c-col [md]="3">
+              <label cFormLabel>Reason</label>
+              <select cFormControl formControlName="reasonId">
+                <option [ngValue]="null">-- Select Reason --</option>
+                @for (reason of reasons; track reason.reasonId) {
+                  <option [ngValue]="reason.reasonId">{{ reason.name }}</option>
+                }
+              </select>
+              @if (loadingReasons) {
+                <small class="text-body-secondary">Loading reasons...</small>
+              }
+            </c-col>
             <c-col [md]="12">
               <label cFormLabel>Remarks</label>
               <textarea cFormControl rows="2" formControlName="remarks"></textarea>
@@ -176,3 +187,4 @@
     </c-card-body>
   </c-card>
 </div>
+

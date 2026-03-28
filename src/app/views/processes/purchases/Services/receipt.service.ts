@@ -156,6 +156,7 @@ getReceiptsWithFilterationByWarehouse(
     uoMEntry: number;
     quantity: number;
     UnitPrice?: number;
+    VatPercent?: number;
     receiptPurchaseOrderId: number;
     itemId: number;
   }): Observable<any> {

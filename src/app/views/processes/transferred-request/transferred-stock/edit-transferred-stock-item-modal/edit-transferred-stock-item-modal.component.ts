@@ -78,7 +78,9 @@ export class EditTransferredStockItemModalComponent implements OnInit, OnChanges
     this.editForm = this.fb.group({
       transferredItemId: [0, Validators.required],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
-      uoMEntry: ['', Validators.required]
+      uoMEntry: ['', Validators.required],
+      unitPrice: [0, [Validators.min(0)]],
+      vatPercent: [0, [Validators.min(0)]]
     });
   }
 
@@ -93,7 +95,9 @@ export class EditTransferredStockItemModalComponent implements OnInit, OnChanges
     this.editForm.patchValue({
       transferredItemId: itemId,
       quantity: this.item.quantity || 0.01,
-      uoMEntry: currentUoMEntry
+      uoMEntry: currentUoMEntry,
+      unitPrice: this.item.unitPrice || 0,
+      vatPercent: this.item.vatPercent || 0
     });
 
     if (this.item.itemId) {
@@ -134,6 +138,21 @@ export class EditTransferredStockItemModalComponent implements OnInit, OnChanges
     });
   }
 
+  get lineTotalBeforeVat(): number {
+    const quantity = Number(this.editForm?.get('quantity')?.value) || 0;
+    const unitPrice = Number(this.editForm?.get('unitPrice')?.value) || 0;
+    return quantity * unitPrice;
+  }
+
+  get vatAmount(): number {
+    const vatPercent = Number(this.editForm?.get('vatPercent')?.value) || 0;
+    return (this.lineTotalBeforeVat * vatPercent) / 100;
+  }
+
+  get lineTotalAfterVat(): number {
+    return this.lineTotalBeforeVat + this.vatAmount;
+  }
+
   onClose(): void {
     this.visible = false;
     this.visibleChange.emit(false);
@@ -144,7 +163,9 @@ export class EditTransferredStockItemModalComponent implements OnInit, OnChanges
     this.editForm.reset({
       transferredItemId: 0,
       quantity: 0.01,
-      uoMEntry: ''
+      uoMEntry: '',
+      unitPrice: 0,
+      vatPercent: 0
     });
     this.uomGroups = [];
   }
@@ -161,7 +182,9 @@ export class EditTransferredStockItemModalComponent implements OnInit, OnChanges
     const itemData: UpdateTransferredStockItemRequest = {
       transferredItemId: Number(formValue.transferredItemId),
       quantity: Number(formValue.quantity),
-      uoMEntry: Number(formValue.uoMEntry)
+      uoMEntry: Number(formValue.uoMEntry),
+      UnitPrice: Number(formValue.unitPrice || 0),
+      VatPercent: Number(formValue.vatPercent || 0)
     };
 
     this.transferredStockService

@@ -45,6 +45,8 @@ export interface ProductionOrder {
   approval?: boolean;
   approvalStatus?: string;
   canSubmit?: boolean;
+  errorMessage?: string | null;
+  reason?: string | null;
 }
 
 export interface ProductionOrderItem {
@@ -68,6 +70,7 @@ export interface AddProductionOrderPayload {
   postingDate: string;
   dueDate: string;
   remarks?: string;
+  reasonId?: number | null;
   warehouseId: number;
 }
 
@@ -96,3 +99,4 @@ export interface UpdateProductionHeaderBatchPayload {
   batchNumber: string;
   expiryDate?: string;
 }
+

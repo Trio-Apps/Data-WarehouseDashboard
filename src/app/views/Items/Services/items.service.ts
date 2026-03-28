@@ -10,6 +10,15 @@ export interface WarehouseItemLookup {
   itemName?: string;
 }
 
+export interface ItemPriceWithUomResponse {
+  itemPriceId: number;
+  priceList: number;
+  price: number | null;
+  currency: string;
+  uoMEntry: number | null;
+  uomCode: string | null;
+}
+
 export type WarehouseItemLookupSource = 'transferred' | 'purchase' | 'sales';
 
 @Injectable({
@@ -72,6 +81,13 @@ export class ItemsService {
       itemCodeOrItemName,
       pageNumber,
       pageSize
+    );
+  }
+
+  getItemPricesWithUoms(id: number): Observable<ItemPriceWithUomResponse[]> {
+    return this.http.get<ItemPriceWithUomResponse[]>(
+      `${this.baseUrl}Item/${id}/prices-with-uoms`,
+      this.headerOption
     );
   }
 
