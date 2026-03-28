@@ -23,6 +23,26 @@ export class TranslationService {
   private readonly document = inject(DOCUMENT);
   private readonly storageKey = 'warehouse.language';
   private readonly fallbackLanguage: AppLanguage = 'en';
+  private readonly localFallbackTranslations: Record<AppLanguage, TranslationDictionary> = {
+    en: {
+      notifications: {
+        title: 'Notifications',
+        unreadCount: '{{count}} unread',
+        markAllRead: 'Mark all as read',
+        loading: 'Loading notifications...',
+        empty: 'No notifications available'
+      }
+    },
+    ar: {
+      notifications: {
+        title: 'الإشعارات',
+        unreadCount: '{{count}} غير مقروءة',
+        markAllRead: 'تحديد الكل كمقروء',
+        loading: 'جارٍ تحميل الإشعارات...',
+        empty: 'لا توجد إشعارات'
+      }
+    }
+  };
   private readonly cache = new Map<AppLanguage, TranslationDictionary>();
   private readonly literalTranslationCache = new Map<AppLanguage, Record<string, string>>();
   private readonly localizationApiBaseUrl = environment.apiUrl.trim().replace(/\/+$/, '');
@@ -69,13 +89,19 @@ export class TranslationService {
   translate(key: string, params?: Record<string, string | number>): string {
     const value = this.resolveKey(this.translations(), key);
     const fallback = this.resolveKey(this.cache.get(this.fallbackLanguage) ?? {}, key);
+    const localValue = this.resolveLocalFallbackKey(this.currentLanguage(), key);
+    const localFallback = this.resolveLocalFallbackKey(this.fallbackLanguage, key);
     const translatedText = typeof value === 'string'
       ? value
       : typeof fallback === 'string'
         ? fallback
-        : this.currentLanguage() === 'ar'
-          ? this.translateLiteral(key)
-          : key;
+        : typeof localValue === 'string'
+          ? localValue
+          : typeof localFallback === 'string'
+            ? localFallback
+          : this.currentLanguage() === 'ar'
+            ? this.translateLiteral(key)
+            : key;
 
     if (!params) {
       return translatedText;
@@ -126,6 +152,10 @@ export class TranslationService {
 
       return current[part];
     }, dictionary);
+  }
+
+  private resolveLocalFallbackKey(language: AppLanguage, key: string): string | TranslationDictionary | undefined {
+    return this.resolveKey(this.localFallbackTranslations[language] ?? {}, key);
   }
 
   private applyDocumentLanguage(language: AppLanguage): void {
