@@ -393,6 +393,29 @@ export class TransferredRequestComponent implements OnInit, OnDestroy {
     }
   }
 
+  onDuplicateTransferredRequest(request: TransferredRequest): void {
+    if (!request.transferredRequestId) {
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to duplicate transferred request #${request.transferredRequestId}?`)) {
+      return;
+    }
+
+    this.transferredRequestService.duplicateTransferredRequest(request.transferredRequestId).subscribe({
+      next: () => {
+        this.toastr.success('Transferred request duplicated successfully', 'Success');
+        this.loadTransferredRequests();
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error duplicating transferred request:', err);
+        const errorMessage = err.error?.message || 'Error duplicating transferred request. Please try again.';
+        this.toastr.error(errorMessage, 'Error');
+      }
+    });
+  }
+
   onViewTransferredRequestItems(request: TransferredRequest): void {
     if (request.transferredRequestId) {
       this.router.navigate([

@@ -5,6 +5,8 @@
   postingDate: string;
   dueDate: string;
   comment: string;
+  reasonId?: number | null;
+  reason?: string | null;
   errorMessage?: string | null;
   supplierId?: number;
   supplierCode?:string;
@@ -25,6 +27,7 @@ export interface AddReturn {
   postingDate: string;
   dueDate: string;
   comment: string;
+  reasonId?: number | null;
   supplierId?: number;
   warehouseId: number;
   receiptPurchaseOrderId?: number;
@@ -36,6 +39,7 @@ export interface UpdateReturn {
   postingDate?: string;
   dueDate?: string;
   comment: string;
+  reasonId?: number | null;
   supplierId?: number;
   warehouseId?: number;
   receiptPurchaseOrderId?: number;
@@ -51,11 +55,16 @@ export interface ReturnItem {
   itemId: number;
   uoMEntry: number;
   quantity: number;
+  unitPrice?: number;
   barCode?: string;
   itemName?: string;
   itemCode?: string;
   unitName?: string;
   comment?: string;
+  vatPercent?: number;
+  vatAmount?: number;
+  lineTotalBeforeVat?: number;
+  lineTotalAfterVat?: number;
 }
 
 
@@ -68,7 +77,10 @@ export interface AddReturnItemRequest {
 export interface UpdateReturnItemRequest {
   goodsReturnOrderItemId: number;
   quantity: number;
-  comment: number;
+  uoMEntry?: number;
+  UnitPrice?: number;
+  VatPercent?: number;
+  comment: string;
 }
 
 export interface ReturnBatch {
@@ -93,4 +105,6 @@ export interface UpdateReturnBatchRequest {
   quantity: number;
   comment?: string;
 }
+
+
 

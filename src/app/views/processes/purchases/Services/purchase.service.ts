@@ -119,6 +119,10 @@ getPurchasesWithFilterationByWarehouse(
     return this.http.delete<any>(`${this.baseUrl}PurchaseOrder/${purchaseOrderId}`, this.headerOption);
   }
 
+  duplicatePurchase(purchaseOrderId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}PurchaseOrder/${purchaseOrderId}/duplicate`, {}, this.headerOption);
+  }
+
   /**
    * Revert a partially failed purchase order back to processing for SAP sync.
    */
@@ -189,6 +193,7 @@ getPurchasesWithFilterationByWarehouse(
     uoMEntry: number;
     quantity: number;
     UnitPrice?: number;
+    VatPercent?: number;
     purchaseOrderId: number;
     itemId: number;
   }): Observable<any> {
@@ -212,6 +217,7 @@ getPurchasesWithFilterationByWarehouse(
     quantity: number;
     uoMEntry: number;
     UnitPrice?: number;
+    VatPercent?: number;
   }): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}PurchaseOrderItem/Purchase-item-order/${id}`, itemData, this.headerOption);
   }

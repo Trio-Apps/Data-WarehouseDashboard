@@ -39,6 +39,13 @@ export class ShowInventoryProcessesComponent implements OnInit {
       iconClass: 'icon-mint'
     },
     {
+      type: 'transferred-received-stock',
+      title: 'Transferred Received Stock',
+      description: 'Received transferred stock orders',
+      icon: 'cilInbox',
+      iconClass: 'icon-green'
+    },
+    {
       type: 'quantity-adjustment-stock',
       title: 'Quantity Adjustment',
       description: 'Quantity adjustment stock orders',

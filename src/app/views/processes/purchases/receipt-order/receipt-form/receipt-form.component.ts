@@ -17,6 +17,8 @@ import { Receipt } from '../../Models/receipt';
 import { Supplier } from '../../Models/purchase.model';
 import { SearchSupplierModalComponent } from '../../search-supplier-modal/search-supplier-modal.component';
 import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
+import { ReasonService } from '../../../reasons/Services/reason.service';
+import { ProcessTypeOption, ReasonDto } from '../../../reasons/Models/reason.model';
 
 @Component({
   selector: 'app-receipt-form',
@@ -44,6 +46,10 @@ export class ReceiptFormComponent implements OnInit {
   warehouseId: number = 0;
   showSupplierModal: boolean = false;
   selectedSupplierDisplay: string = '';
+  selectedReasonDisplay: string = '';
+  reasons: ReasonDto[] = [];
+  loadingReasons: boolean = false;
+  showReasonSuggestions: boolean = false;
   loading: boolean = false;
   saving: boolean = false;
 
@@ -53,7 +59,8 @@ export class ReceiptFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private reasonService: ReasonService
   ) {}
 
   ngOnInit(): void {
@@ -64,6 +71,7 @@ export class ReceiptFormComponent implements OnInit {
     this.isEditMode = !!this.receiptId;
 
     this.initializeForm();
+    this.loadReasons();
     this.configureFormForWithoutReference();
 
     if (this.isEditMode && this.receiptId) {
@@ -76,9 +84,47 @@ export class ReceiptFormComponent implements OnInit {
       postingDate: ['', Validators.required],
       dueDate: ['', Validators.required],
       comment: [''],
+      reasonId: [null],
       isDraft: [true],
       supplierId: [''],
       warehouseId: [null]
+    });
+  }
+
+  private loadReasons(): void {
+    this.loadingReasons = true;
+
+    this.reasonService.getProcessTypes().subscribe({
+      next: (typesRes) => {
+        const processTypes = this.extractProcessTypes(typesRes);
+        const processType = this.resolveProcessType(
+          processTypes,
+          ['receiptpurchaseorder', 'receiptorder', 'receipt'],
+          'Receipt'
+        );
+
+        this.reasonService.getReasonsByProcessType(processType).subscribe({
+          next: (reasonsRes) => {
+            this.reasons = this.extractReasons(reasonsRes);
+            this.loadingReasons = false;
+            const selectedReasonId = this.toNullableNumber(this.form?.get('reasonId')?.value);
+            this.updateSelectedReasonDisplay(selectedReasonId);
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('Error loading reasons:', err);
+            this.reasons = [];
+            this.loadingReasons = false;
+            this.cdr.detectChanges();
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error loading process types:', err);
+        this.reasons = [];
+        this.loadingReasons = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -115,6 +161,7 @@ export class ReceiptFormComponent implements OnInit {
             postingDate: postingDateStr,
             dueDate: dueDateStr,
             comment: receipt.comment || '',
+            reasonId: this.toNullableNumber(receipt.reasonId ?? receipt.ReasonId),
             isDraft: receipt.isDraft !== undefined ? receipt.isDraft : false,
             supplierId: receipt.supplierId || null,
             warehouseId: receipt.warehouseId || (this.warehouseId > 0 ? this.warehouseId : null)
@@ -124,6 +171,11 @@ export class ReceiptFormComponent implements OnInit {
             this.selectedSupplierDisplay =
               receipt.supplierCode || receipt.supplierName || `#${receipt.supplierId}`;
           }
+
+          this.updateSelectedReasonDisplay(
+            this.toNullableNumber(receipt.reasonId ?? receipt.ReasonId),
+            receipt.reason || ''
+          );
         }
         this.loading = false;
         this.cdr.detectChanges();
@@ -158,6 +210,40 @@ export class ReceiptFormComponent implements OnInit {
     this.selectedSupplierDisplay = '';
     this.showSupplierModal = false;
     this.cdr.detectChanges();
+  }
+
+  get selectedReason(): ReasonDto | null {
+    const selectedReasonId = this.toNullableNumber(this.form?.get('reasonId')?.value);
+    if (!selectedReasonId) {
+      return null;
+    }
+
+    return this.reasons.find((reason) => reason.reasonId === selectedReasonId) || null;
+  }
+
+  onReasonFocus(): void {
+    this.showReasonSuggestions = this.reasons.length > 0;
+  }
+
+  onReasonBlur(): void {
+    setTimeout(() => {
+      this.showReasonSuggestions = false;
+      this.cdr.detectChanges();
+    }, 150);
+  }
+
+  onSelectReason(reason: ReasonDto): void {
+    this.form.patchValue({ reasonId: reason.reasonId });
+    this.form.get('reasonId')?.markAsTouched();
+    this.selectedReasonDisplay = reason.name;
+    this.showReasonSuggestions = false;
+  }
+
+  onClearReason(): void {
+    this.form.patchValue({ reasonId: null });
+    this.form.get('reasonId')?.markAsTouched();
+    this.selectedReasonDisplay = '';
+    this.showReasonSuggestions = false;
   }
 
   private formatDateToISOString(date: string | Date): string {
@@ -200,6 +286,7 @@ export class ReceiptFormComponent implements OnInit {
       postingDate: formattedPostingDate,
       dueDate: formattedDueDate,
       comment: formValue.comment,
+      reasonId: this.toNullableNumber(formValue.reasonId),
       isDraft: formValue.isDraft,
       status: ''
     };
@@ -209,6 +296,7 @@ export class ReceiptFormComponent implements OnInit {
       postingDate: formattedPostingDate,
       dueDate: formattedDueDate,
       comment: formValue.comment,
+      reasonId: this.toNullableNumber(formValue.reasonId),
       isDraft: formValue.isDraft,
       warehouseId: this.warehouseId,
       supplierId: +formValue.supplierId
@@ -257,5 +345,59 @@ export class ReceiptFormComponent implements OnInit {
     }
 
     this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId, this.receiptId]);
+  }
+
+  private extractProcessTypes(response: ProcessTypeOption[] | { data: ProcessTypeOption[] } | any): ProcessTypeOption[] {
+    const payload = response?.data?.data ?? response?.data ?? response;
+    return Array.isArray(payload) ? payload : [];
+  }
+
+  private extractReasons(response: ReasonDto[] | { data: ReasonDto[] } | any): ReasonDto[] {
+    const payload = response?.data?.data ?? response?.data ?? response;
+    return Array.isArray(payload) ? payload : [];
+  }
+
+  private resolveProcessType(
+    processTypes: ProcessTypeOption[],
+    keywords: string[],
+    fallback: string
+  ): string {
+    const normalizedKeywords = keywords.map((x) => this.normalizeText(x));
+    const exactMatch = processTypes.find((x) => normalizedKeywords.includes(this.normalizeText(x.name)));
+    if (exactMatch) {
+      return exactMatch.name;
+    }
+
+    const fuzzyMatch = processTypes.find((x) => {
+      const normalizedName = this.normalizeText(x.name);
+      return normalizedKeywords.some((keyword) => normalizedName.includes(keyword));
+    });
+
+    if (fuzzyMatch) {
+      return fuzzyMatch.name;
+    }
+
+    return fallback;
+  }
+
+  private normalizeText(value: unknown): string {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+  }
+
+  private toNullableNumber(value: unknown): number | null {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  private updateSelectedReasonDisplay(reasonId: number | null, fallbackName: string = ''): void {
+    if (!reasonId) {
+      this.selectedReasonDisplay = '';
+      return;
+    }
+
+    const selectedReason = this.reasons.find((reason) => reason.reasonId === reasonId);
+    this.selectedReasonDisplay = selectedReason?.name || fallbackName || `#${reasonId}`;
   }
 }

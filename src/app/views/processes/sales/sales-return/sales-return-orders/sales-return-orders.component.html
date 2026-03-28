@@ -70,6 +70,9 @@
                       </button>
                     }
                     @if (!isApproved(returnOrder)) {
+                      <button cButton color="secondary" size="sm" class="me-2" (click)="onDuplicateReturnOrder(returnOrder)" [title]="'Duplicate' | translate">
+                        Duplicate
+                      </button>
                       <button cButton color="danger" size="sm" (click)="onDeleteReturnOrder(returnOrder)" [title]="'Delete' | translate">
                         <svg cIcon name="cil-trash"></svg>
                       </button>

@@ -156,6 +156,19 @@ export class TransferredRequestItemsComponent implements OnInit {
     this.loadTransferredRequest();
   }
 
+  onViewBatches(item: TransferredRequestItem): void {
+    if (!item.transferredRequestItemId) {
+      return;
+    }
+
+    this.router.navigate([
+      '/processes/transferred-request/transferred-request-batches',
+      this.transferredRequestId || 0,
+      item.transferredRequestItemId,
+      item.quantity
+    ]);
+  }
+
   onRemoveItem(item: TransferredRequestItem): void {
     if (this.isCompletedStatus(this.transferredRequest)) {
       this.toastr.warning('Cannot remove items when transferred request status is Completed', 'Warning');
@@ -342,9 +355,4 @@ export class TransferredRequestItemsComponent implements OnInit {
       });
   }
 }
-
-
-
-
-
 

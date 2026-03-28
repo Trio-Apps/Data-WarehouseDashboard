@@ -165,6 +165,10 @@
                 <th scope="col" class="bg-body-tertiary">Item Name</th>
                 <th scope="col" class="bg-body-tertiary">Barcode</th>
                 <th scope="col" class="bg-body-tertiary">Quantity</th>
+                <th scope="col" class="bg-body-tertiary">VAT %</th>
+                <th scope="col" class="bg-body-tertiary">VAT Amount</th>
+                <th scope="col" class="bg-body-tertiary">Before VAT</th>
+                <th scope="col" class="bg-body-tertiary">After VAT</th>
                 <th scope="col" class="bg-body-tertiary">Unit</th>
                 <th scope="col" class="bg-body-tertiary text-center">Batches</th>
                @if (return && !isCompletedStatus(return)) { 
@@ -176,13 +180,13 @@
             <tbody>
               @if (loading) {
                 <tr>
-                  <td [attr.colspan]="return && !isCompletedStatus(return) ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="return && !isCompletedStatus(return) ? 12 : 11" class="text-center py-4">
                     <span class="text-body-secondary">Loading...</span>
                   </td>
                 </tr>
               } @else if (!return) {
                 <tr>
-                  <td [attr.colspan]="7" class="text-center py-4">
+                  <td [attr.colspan]="11" class="text-center py-4">
                     <span class="text-body-secondary">Please create return order first</span>
                   </td>
                 </tr>
@@ -195,6 +199,10 @@
                     <td>{{ item.itemName || 'N/A' }}</td>
                     <td>{{ item.barCode || 'N/A' }}</td>
                     <td>{{ item.quantity }}</td>
+                    <td>{{ item.vatPercent ?? 'N/A' }}</td>
+                    <td>{{ item.vatAmount ?? 'N/A' }}</td>
+                    <td>{{ item.lineTotalBeforeVat ?? 'N/A' }}</td>
+                    <td>{{ item.lineTotalAfterVat ?? 'N/A' }}</td>
                     <td>{{ item.unitName || 'N/A' }}</td>
                     <td class="text-center">
                       <button cButton color="success" size="sm" (click)="onViewBatches(item)" title="View Batches">
@@ -216,7 +224,7 @@
                 }
               } @else {
                 <tr>
-                  <td [attr.colspan]="return && !isCompletedStatus(return) ? 8 : 7" class="text-center py-4">
+                  <td [attr.colspan]="return && !isCompletedStatus(return) ? 12 : 11" class="text-center py-4">
                     <span class="text-body-secondary">No items in this return</span>
                   </td>
                 </tr>

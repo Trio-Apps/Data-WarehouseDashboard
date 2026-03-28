@@ -67,6 +67,8 @@ export class EditDeliveryNoteItemModalComponent implements OnInit, OnChanges {
       deliveryNoteOrderItemId: [0, Validators.required],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
       uoMEntry: [0, Validators.required],
+      unitPrice: [0, [Validators.required, Validators.min(0)]],
+      vatPercent: [0, [Validators.min(0)]],
       comment: ['']
     });
   }
@@ -78,6 +80,8 @@ export class EditDeliveryNoteItemModalComponent implements OnInit, OnChanges {
         deliveryNoteOrderItemId: itemId,
         quantity: this.item.quantity || 0.01,
         uoMEntry: this.item.uoMEntry || 0,
+        unitPrice: this.item.unitPrice || 0,
+        vatPercent: this.item.vatPercent || 0,
         comment: this.item.comment || ''
       });
     }
@@ -94,8 +98,25 @@ export class EditDeliveryNoteItemModalComponent implements OnInit, OnChanges {
       deliveryNoteOrderItemId: 0,
       quantity: 0.01,
       uoMEntry: 0,
+      unitPrice: 0,
+      vatPercent: 0,
       comment: ''
     });
+  }
+
+  get lineTotalBeforeVat(): number {
+    const quantity = Number(this.editForm?.get('quantity')?.value) || 0;
+    const unitPrice = Number(this.editForm?.get('unitPrice')?.value) || 0;
+    return quantity * unitPrice;
+  }
+
+  get vatAmount(): number {
+    const vatPercent = Number(this.editForm?.get('vatPercent')?.value) || 0;
+    return (this.lineTotalBeforeVat * vatPercent) / 100;
+  }
+
+  get lineTotalAfterVat(): number {
+    return this.lineTotalBeforeVat + this.vatAmount;
   }
 
   onUpdate(): void {
@@ -111,12 +132,17 @@ export class EditDeliveryNoteItemModalComponent implements OnInit, OnChanges {
     const request$ = this.hasReference
       ? this.returnService.updateDeliveryNoteItem(returnItemId, {
           deliveryNoteItemId: returnItemId,
-          quantity: formValue.quantity,
+          quantity: Number(formValue.quantity),
+          uoMEntry: Number(formValue.uoMEntry),
+          UnitPrice: Number(formValue.unitPrice || 0),
+          VatPercent: Number(formValue.vatPercent || 0),
           comment: formValue.comment
         } as UpdateDeliveryNoteItemRequest)
       : this.returnService.updateDeliveryNoteItemWithoutReference(returnItemId, {
-          quantity: formValue.quantity,
-          uoMEntry: formValue.uoMEntry
+          quantity: Number(formValue.quantity),
+          uoMEntry: Number(formValue.uoMEntry),
+          UnitPrice: Number(formValue.unitPrice || 0),
+          VatPercent: Number(formValue.vatPercent || 0)
         } as UpdateGeneralItemRequest);
 
     request$.subscribe({
@@ -137,4 +163,3 @@ export class EditDeliveryNoteItemModalComponent implements OnInit, OnChanges {
     });
   }
 }
-

@@ -3,8 +3,8 @@ import { inject } from '@angular/core';
 import { AuthService } from '../views/pages/Services/auth.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // Skip auth header for login requests
-  if (req.url.includes('/Auth/login')) {
+  // Public endpoints should not trigger an auth preflight.
+  if (req.url.includes('/Auth/login') || req.url.includes('/Localization/')) {
     return next(req);
   }
 

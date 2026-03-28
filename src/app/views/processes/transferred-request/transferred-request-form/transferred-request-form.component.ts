@@ -20,6 +20,8 @@ import {
 } from '../Models/transferred-request.model';
 import { SearchDestinationWarehouseModalComponent } from '../search-destination-warehouse-modal/search-destination-warehouse-modal.component';
 import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
+import { ReasonService } from '../../reasons/Services/reason.service';
+import { ReasonDto } from '../../reasons/Models/reason.model';
 
 @Component({
   selector: 'app-transferred-request-form',
@@ -46,6 +48,8 @@ export class TransferredRequestFormComponent implements OnInit {
   warehouseId = 0;
   selectedDestinationWarehouseDisplay = '';
   showDestinationWarehouseModal = false;
+  reasons: ReasonDto[] = [];
+  loadingReasons = false;
   loading = false;
   saving = false;
 
@@ -55,7 +59,8 @@ export class TransferredRequestFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private reasonService: ReasonService
   ) {}
 
   ngOnInit(): void {
@@ -65,6 +70,7 @@ export class TransferredRequestFormComponent implements OnInit {
     this.isEditMode = !!this.transferredRequestId;
 
     this.initializeForm();
+    this.loadReasons();
 
     if (this.isEditMode && this.transferredRequestId) {
       this.loadTransferredRequest();
@@ -73,8 +79,10 @@ export class TransferredRequestFormComponent implements OnInit {
 
   initializeForm(): void {
     this.form = this.fb.group({
+      postingDate: ['', Validators.required],
       dueDate: ['', Validators.required],
       comment: [''],
+      reasonId: [null],
       distinationWarehouseId: ['', Validators.required],
       isDraft: [true]
     });
@@ -90,11 +98,14 @@ export class TransferredRequestFormComponent implements OnInit {
       next: (res: any) => {
         if (res.data) {
           const request = res.data;
+          const postingDateStr = request.postingDate ? new Date(request.postingDate).toISOString().split('T')[0] : null;
           const dueDateStr = request.dueDate ? new Date(request.dueDate).toISOString().split('T')[0] : null;
 
           this.form.patchValue({
+            postingDate: postingDateStr,
             dueDate: dueDateStr,
             comment: request.comment || '',
+            reasonId: request.reasonId || request.ReasonId || null,
             distinationWarehouseId: request.distinationWarehouseId || null,
             isDraft: request.isDraft !== undefined ? request.isDraft : true
           });
@@ -163,11 +174,14 @@ export class TransferredRequestFormComponent implements OnInit {
     this.saving = true;
     const formValue = this.form.value;
 
+    const postingDate = this.formatDateToISOString(formValue.postingDate);
     const dueDate = this.formatDateToISOString(formValue.dueDate);
 
     const createRequest: AddTransferredRequest = {
+      postingDate,
       dueDate,
       comment: formValue.comment,
+      reasonId: Number(formValue.reasonId) || null,
       isDraft: formValue.isDraft,
       warehouseId: this.warehouseId,
       distinationWarehouseId: +formValue.distinationWarehouseId
@@ -175,8 +189,10 @@ export class TransferredRequestFormComponent implements OnInit {
 
     const updateRequest: UpdateTransferredRequest = {
       transferredRequestId: this.transferredRequestId || 0,
+      postingDate,
       dueDate,
       comment: formValue.comment,
+      reasonId: Number(formValue.reasonId) || null,
       distinationWarehouseId: +formValue.distinationWarehouseId,
       isDraft: formValue.isDraft
     };
@@ -213,7 +229,28 @@ export class TransferredRequestFormComponent implements OnInit {
     });
   }
 
+  private loadReasons(): void {
+    this.loadingReasons = true;
+
+    this.reasonService.getReasonsByProcessType('TransferredRequest').subscribe({
+      next: (res) => {
+        const payload = (res as any)?.data?.data ?? (res as any)?.data ?? res;
+        this.reasons = Array.isArray(payload) ? payload : [];
+        this.loadingReasons = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading reasons:', err);
+        this.reasons = [];
+        this.loadingReasons = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
   onCancel(): void {
     this.router.navigate(['/processes/transferred-request', this.warehouseId]);
   }
 }
+
+
+

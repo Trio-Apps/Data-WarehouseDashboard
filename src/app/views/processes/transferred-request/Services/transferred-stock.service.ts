@@ -8,6 +8,7 @@ import {
   AddTransferredStockBatchRequest,
   AddTransferredStockItemRequest,
   AddTransferredStockWithoutRef,
+  ReceiveTransferredStockDTO,
   TransferredStockResponse,
   UpdateTransferredStock,
   UpdateTransferredStockBatchRequest,
@@ -80,6 +81,42 @@ export class TransferredStockService {
     });
   }
 
+  getReceivedTransferredStocksWithFilterationByWarehouse(
+    pageNumber: number,
+    pageSize: number,
+    warehouseId: number,
+    sourceWarehouseId?: number,
+    liveStatus?: string,
+    status?: string,
+    postingDate?: string,
+    dueDate?: string
+  ): Observable<TransferredStockResponse> {
+    const url = `${this.baseUrl}ReceivedTransferred/dashboard/warehouse/status/posting-date/due-date/${warehouseId}/${pageNumber}/${pageSize}`;
+
+    let params = new HttpParams();
+
+    if (sourceWarehouseId) {
+      params = params.set('sourceWarehouseId', sourceWarehouseId);
+    }
+    if (status) {
+      params = params.set('status', status);
+    }
+    if (postingDate) {
+      params = params.set('postingDate', postingDate);
+    }
+    if (dueDate) {
+      params = params.set('dueDate', dueDate);
+    }
+    if (liveStatus) {
+      params = params.set('liveStatus', liveStatus);
+    }
+
+    return this.http.get<TransferredStockResponse>(url, {
+      headers: this.headerOption.headers,
+      params
+    });
+  }
+
   getTransferredStockById(transferredStockId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}TransferredStock/${transferredStockId}`, this.headerOption);
   }
@@ -116,6 +153,10 @@ export class TransferredStockService {
 
   deleteTransferredStock(transferredStockId: number): Observable<any> {
     return this.http.delete<any>(`${this.baseUrl}TransferredStock/${transferredStockId}`, this.headerOption);
+  }
+
+  duplicateTransferredStock(transferredStockId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}TransferredStock/${transferredStockId}/duplicate`, {}, this.headerOption);
   }
 
   retryTransferredStockSap(transferredStockId: number): Observable<any> {
@@ -155,6 +196,8 @@ export class TransferredStockService {
       transferredStockId: number;
       itemId: number;
       transferredRequestItemId: number;
+      UnitPrice?: number;
+      VatPercent?: number;
     }
   ): Observable<any> {
     const request: AddTransferredStockItemRequest = {
@@ -238,6 +281,14 @@ export class TransferredStockService {
   deleteTransferredStockBatch(transferredStockBatchId: number): Observable<any> {
     return this.http.delete<any>(
       `${this.baseUrl}TransferredStockBatch/${transferredStockBatchId}`,
+      this.headerOption
+    );
+  }
+
+  updateReceivedQuantities(request: ReceiveTransferredStockDTO): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}ReceivedTransferred/receive-quantities`,
+      request,
       this.headerOption
     );
   }

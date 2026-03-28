@@ -334,6 +334,7 @@ export class MyProcessesComponent implements OnInit, OnDestroy {
     });
   }
 
+  
   get tableColumnCount(): number {
     return this.canActionApprovals ? 8 : 7;
   }

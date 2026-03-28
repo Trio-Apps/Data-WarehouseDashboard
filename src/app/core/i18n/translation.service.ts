@@ -23,6 +23,26 @@ export class TranslationService {
   private readonly document = inject(DOCUMENT);
   private readonly storageKey = 'warehouse.language';
   private readonly fallbackLanguage: AppLanguage = 'en';
+  private readonly localFallbackTranslations: Record<AppLanguage, TranslationDictionary> = {
+    en: {
+      notifications: {
+        title: 'Notifications',
+        unreadCount: '{{count}} unread',
+        markAllRead: 'Mark all as read',
+        loading: 'Loading notifications...',
+        empty: 'No notifications available'
+      }
+    },
+    ar: {
+      notifications: {
+        title: 'الإشعارات',
+        unreadCount: '{{count}} غير مقروءة',
+        markAllRead: 'تحديد الكل كمقروء',
+        loading: 'جارٍ تحميل الإشعارات...',
+        empty: 'لا توجد إشعارات'
+      }
+    }
+  };
   private readonly cache = new Map<AppLanguage, TranslationDictionary>();
   private readonly literalTranslationCache = new Map<AppLanguage, Record<string, string>>();
   private readonly localizationApiBaseUrl = environment.apiUrl.trim().replace(/\/+$/, '');
@@ -69,13 +89,19 @@ export class TranslationService {
   translate(key: string, params?: Record<string, string | number>): string {
     const value = this.resolveKey(this.translations(), key);
     const fallback = this.resolveKey(this.cache.get(this.fallbackLanguage) ?? {}, key);
+    const localValue = this.resolveLocalFallbackKey(this.currentLanguage(), key);
+    const localFallback = this.resolveLocalFallbackKey(this.fallbackLanguage, key);
     const translatedText = typeof value === 'string'
       ? value
       : typeof fallback === 'string'
         ? fallback
-        : this.currentLanguage() === 'ar'
-          ? this.translateLiteral(key)
-          : key;
+        : typeof localValue === 'string'
+          ? localValue
+          : typeof localFallback === 'string'
+            ? localFallback
+          : this.currentLanguage() === 'ar'
+            ? this.translateLiteral(key)
+            : key;
 
     if (!params) {
       return translatedText;
@@ -111,9 +137,10 @@ export class TranslationService {
       this.cache.set(language, response.data);
       this.literalTranslationCache.set(language, response.literalTranslations ?? {});
     } catch (error) {
-      console.warn(`Failed to load ${language} translations from API. Falling back to empty translations.`, error);
+      // Do not block app bootstrap when localization endpoint is unavailable.
       this.cache.set(language, {});
       this.literalTranslationCache.set(language, {});
+      console.warn(`[i18n] Failed to load localization for "${language}". Falling back to raw text.`, error);
     }
   }
 
@@ -125,6 +152,10 @@ export class TranslationService {
 
       return current[part];
     }, dictionary);
+  }
+
+  private resolveLocalFallbackKey(language: AppLanguage, key: string): string | TranslationDictionary | undefined {
+    return this.resolveKey(this.localFallbackTranslations[language] ?? {}, key);
   }
 
   private applyDocumentLanguage(language: AppLanguage): void {
@@ -323,6 +354,23 @@ export class TranslationService {
     const wrappedAllMatch = text.match(/^[\-\u2013\u2014]+\s*(All\s+.+?)\s*[\-\u2013\u2014]+$/i);
     if (wrappedAllMatch) {
       return `-- ${this.translateFragment(wrappedAllMatch[1])} --`;
+    }
+
+    const notificationMessageMatch = text.match(/^(.+?)\s+#(\d+)\s+has been\s+(.+)\.$/i);
+    if (notificationMessageMatch) {
+      return this.formatLiteralTemplate('__pattern.notificationMessage', {
+        entity: this.translateFragment(notificationMessageMatch[1]),
+        value: notificationMessageMatch[2],
+        action: this.translateFragment(notificationMessageMatch[3].toLowerCase())
+      }) ?? text;
+    }
+
+    const notificationTitleMatch = text.match(/^(.+?)\s+(Created|Submitted|Approved|Rejected|Deleted|Completed|Updated|Partially Failed)$/i);
+    if (notificationTitleMatch) {
+      return this.formatLiteralTemplate('__pattern.notificationTitle', {
+        entity: this.translateFragment(notificationTitleMatch[1]),
+        action: this.translateFragment(notificationTitleMatch[2].toLowerCase())
+      }) ?? text;
     }
 
     const warehouseIdHeaderMatch = text.match(/^(.+)\s+-\s+Warehouse ID:\s+(.+)$/i);

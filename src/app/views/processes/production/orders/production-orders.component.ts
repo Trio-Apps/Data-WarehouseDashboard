@@ -61,6 +61,9 @@ export class ProductionOrdersComponent implements OnInit {
   paginatedOrders: ProductionOrder[] = [];
   showAddModal = false;
   showBulkAddModal = false;
+  showErrorModal = false;
+  selectedErrorMessage = '';
+  retryingOrderIds: Set<number> = new Set<number>();
   savingAddOrder = false;
   savingBulkOrders = false;
   loadingWarehouses = false;
@@ -451,6 +454,68 @@ export class ProductionOrdersComponent implements OnInit {
     });
   }
 
+  onDuplicate(order: ProductionOrder): void {
+    if (!confirm(`Duplicate production order #${order.productionOrderId}?`)) {
+      return;
+    }
+
+    this.productionService.duplicateProductionOrder(order.productionOrderId).subscribe({
+      next: () => {
+        this.toastr.success('Production order duplicated successfully.', 'Success');
+        this.loadOrders();
+      },
+      error: (err) => {
+        this.toastr.error(this.extractError(err, 'Failed to duplicate order.'), 'Error');
+      }
+    });
+  }
+
+  hasErrorMessage(order: ProductionOrder): boolean {
+    return !!this.getOrderErrorMessage(order);
+  }
+
+  onOpenErrorModal(order: ProductionOrder): void {
+    this.selectedErrorMessage = this.getOrderErrorMessage(order) || 'No error message available.';
+    this.showErrorModal = true;
+    this.cdr.detectChanges();
+  }
+
+  onErrorModalVisibleChange(visible: boolean): void {
+    this.showErrorModal = visible;
+    if (!visible) {
+      this.selectedErrorMessage = '';
+    }
+  }
+
+  isRetryingSap(order: ProductionOrder): boolean {
+    return !!order.productionOrderId && this.retryingOrderIds.has(order.productionOrderId);
+  }
+
+  onRetrySap(order: ProductionOrder): void {
+    const productionOrderId = order.productionOrderId;
+    if (!productionOrderId || this.retryingOrderIds.has(productionOrderId)) {
+      return;
+    }
+
+    this.retryingOrderIds.add(productionOrderId);
+    this.productionService.retryProductionOrderSap(productionOrderId).subscribe({
+      next: () => {
+        this.toastr.success(`Sync SAP requested for production order #${productionOrderId}`, 'Success');
+
+        setTimeout(() => {
+          this.retryingOrderIds.delete(productionOrderId);
+          this.loadOrders();
+          this.cdr.detectChanges();
+        }, 5000);
+      },
+      error: (err) => {
+        const errorMessage = this.extractError(err, 'Failed to sync SAP. Please try again.');
+        this.toastr.error(errorMessage, 'Error');
+        this.retryingOrderIds.delete(productionOrderId);
+        this.cdr.detectChanges();
+      }
+    });
+  }
   getStatusBadgeClass(status: string): string {
     switch (status) {
       case 'Draft':
@@ -873,6 +938,14 @@ export class ProductionOrdersComponent implements OnInit {
     return `${year}-${month}-${day}T00:00:00.000Z`;
   }
 
+  private getOrderErrorMessage(order: ProductionOrder): string {
+    const errorMessage = order.errorMessage?.trim();
+    if (errorMessage) {
+      return errorMessage;
+    }
+
+    return order.reason?.trim() || '';
+  }
   private extractError(err: any, fallback: string): string {
     const body = err?.error;
 
@@ -957,7 +1030,9 @@ export class ProductionOrdersComponent implements OnInit {
       numberOfProductionItem: Number(this.readProp(raw, 'numberOfProductionItem', 'NumberOfProductionItem') || 0),
       approval: this.toNullableBoolean(this.readProp(raw, 'approval', 'Approval')) ?? false,
       approvalStatus: String(this.readProp(raw, 'approvalStatus', 'ApprovalStatus') || ''),
-      canSubmit: this.toNullableBoolean(this.readProp(raw, 'canSubmit', 'CanSubmit')) ?? undefined
+      canSubmit: this.toNullableBoolean(this.readProp(raw, 'canSubmit', 'CanSubmit')) ?? undefined,
+      errorMessage: this.toNullableString(this.readProp(raw, 'errorMessage', 'ErrorMessage')),
+      reason: this.toNullableString(this.readProp(raw, 'reason', 'Reason'))
     };
   }
 
@@ -1008,5 +1083,14 @@ export class ProductionOrdersComponent implements OnInit {
     }
 
     return null;
+  }
+
+  private toNullableString(value: any): string | null {
+    if (value === undefined || value === null) {
+      return null;
+    }
+
+    const text = String(value).trim();
+    return text ? text : null;
   }
 }

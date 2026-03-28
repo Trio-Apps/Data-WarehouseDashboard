@@ -19,6 +19,8 @@ import {
   UpdateQuantityAdjustmentStock
 } from '../../Models/quantity-adjustment-stock.model';
 import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
+import { ReasonService } from '../../../reasons/Services/reason.service';
+import { ReasonDto } from '../../../reasons/Models/reason.model';
 
 @Component({
   selector: 'app-quantity-adjustment-stock-form',
@@ -42,6 +44,8 @@ export class QuantityAdjustmentStockFormComponent implements OnInit {
   isEditMode = false;
   quantityAdjustmentStockId: number | null = null;
   warehouseId = 0;
+  reasons: ReasonDto[] = [];
+  loadingReasons = false;
   loading = false;
   saving = false;
 
@@ -51,7 +55,8 @@ export class QuantityAdjustmentStockFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private reasonService: ReasonService
   ) {}
 
   ngOnInit(): void {
@@ -61,6 +66,7 @@ export class QuantityAdjustmentStockFormComponent implements OnInit {
     this.isEditMode = !!this.quantityAdjustmentStockId;
 
     this.initializeForm();
+    this.loadReasons();
 
     if (this.isEditMode && this.quantityAdjustmentStockId) {
       this.loadQuantityAdjustmentStock();
@@ -72,10 +78,29 @@ export class QuantityAdjustmentStockFormComponent implements OnInit {
       postingDate: ['', Validators.required],
       dueDate: ['', Validators.required],
       comment: [''],
+      reasonId: [null],
       isDraft: [true]
     });
   }
 
+  private loadReasons(): void {
+    this.loadingReasons = true;
+
+    this.reasonService.getReasonsByProcessType('QuantityAdjustmentStock').subscribe({
+      next: (res) => {
+        const payload = (res as any)?.data?.data ?? (res as any)?.data ?? res;
+        this.reasons = Array.isArray(payload) ? payload : [];
+        this.loadingReasons = false;
+        this.cdr.detectChanges();
+      },
+      error: (err) => {
+        console.error('Error loading reasons:', err);
+        this.reasons = [];
+        this.loadingReasons = false;
+        this.cdr.detectChanges();
+      }
+    });
+  }
   private loadQuantityAdjustmentStock(): void {
     if (!this.quantityAdjustmentStockId) {
       return;
@@ -98,6 +123,7 @@ export class QuantityAdjustmentStockFormComponent implements OnInit {
             postingDate: postingDateStr,
             dueDate: dueDateStr,
             comment: stock.comment || '',
+            reasonId: stock.reasonId || (stock as any).ReasonId || null,
             isDraft: stock.isDraft !== undefined ? stock.isDraft : true
           });
         }
@@ -148,6 +174,7 @@ export class QuantityAdjustmentStockFormComponent implements OnInit {
       postingDate: this.formatDateToISOString(formValue.postingDate),
       dueDate: this.formatDateToISOString(formValue.dueDate),
       comment: formValue.comment,
+      reasonId: Number(formValue.reasonId) || null,
       isDraft: !!formValue.isDraft,
       warehouseId: this.warehouseId
     };
@@ -213,3 +240,4 @@ export class QuantityAdjustmentStockFormComponent implements OnInit {
     ]);
   }
 }
+

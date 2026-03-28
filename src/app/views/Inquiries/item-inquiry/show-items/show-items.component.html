@@ -1,7 +1,13 @@
 <div class="container-fluid h-100 d-flex flex-column p-0 emerald-theme">
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card app-card">
-    <c-card-header class="custom-header">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0 header-title">Items List - Warehouse {{ warehouseId }}</h4>
+      <div class="d-flex align-items-center gap-2">
+        <button cButton color="secondary" class="header-button" (click)="goBackToItemsInquiry()">
+          <svg cIcon name="cil-arrow-left" class="me-2"></svg>
+          Back
+        </button>
+      </div>
     </c-card-header>
 
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">

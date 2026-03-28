@@ -81,7 +81,9 @@ export class AddTransferredStockItemComponent implements OnInit {
       transferredRequestItemId: [0],
       itemId: [0, Validators.required],
       uoMEntry: ['', Validators.required],
-      quantity: [1, [Validators.required, Validators.min(0.01)]]
+      quantity: [1, [Validators.required, Validators.min(0.01)]],
+      unitPrice: [0, [Validators.min(0)]],
+      vatPercent: [0, [Validators.min(0)]]
     });
 
     this.manualForm.get('itemId')?.valueChanges.subscribe((itemId) => {
@@ -277,6 +279,8 @@ export class AddTransferredStockItemComponent implements OnInit {
     const itemData = {
       uoMEntry: Number(formValue.uoMEntry),
       quantity: Number(formValue.quantity),
+      UnitPrice: Number(formValue.unitPrice || 0),
+      VatPercent: Number(formValue.vatPercent || 0),
       transferredStockId: this.transferredStockId,
       itemId: Number(formValue.itemId),
       transferredRequestItemId
@@ -299,6 +303,21 @@ export class AddTransferredStockItemComponent implements OnInit {
           this.cdr.detectChanges();
         }
       });
+  }
+
+  get lineTotalBeforeVat(): number {
+    const quantity = Number(this.manualForm?.get('quantity')?.value) || 0;
+    const unitPrice = Number(this.manualForm?.get('unitPrice')?.value) || 0;
+    return quantity * unitPrice;
+  }
+
+  get vatAmount(): number {
+    const vatPercent = Number(this.manualForm?.get('vatPercent')?.value) || 0;
+    return (this.lineTotalBeforeVat * vatPercent) / 100;
+  }
+
+  get lineTotalAfterVat(): number {
+    return this.lineTotalBeforeVat + this.vatAmount;
   }
 
   onOpenItemSearchModal(): void {
@@ -329,7 +348,9 @@ export class AddTransferredStockItemComponent implements OnInit {
       itemId: 0,
       transferredRequestItemId: 0,
       uoMEntry: '',
-      quantity: 1
+      quantity: 1,
+      unitPrice: 0,
+      vatPercent: 0
     });
     this.manualForm.get('itemId')?.markAsTouched();
     this.selectedItemDisplay = '';

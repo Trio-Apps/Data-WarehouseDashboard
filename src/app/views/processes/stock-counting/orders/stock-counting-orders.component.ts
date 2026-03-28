@@ -1,7 +1,7 @@
 import { CommonModule, DatePipe } from '@angular/common';
 import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { ButtonDirective, CardBodyComponent, CardComponent, CardHeaderComponent, TableModule } from '@coreui/angular';
+import { ButtonDirective, CardBodyComponent, CardComponent, CardHeaderComponent, TableModule, ModalComponent, ModalHeaderComponent, ModalTitleDirective, ModalBodyComponent, ModalFooterComponent } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
 import { catchError, finalize, of, retry, timeout } from 'rxjs';
@@ -26,6 +26,11 @@ type CountStockOrderView = CountStockOrder & {
     CardBodyComponent,
     ButtonDirective,
     TableModule,
+    ModalComponent,
+    ModalHeaderComponent,
+    ModalTitleDirective,
+    ModalBodyComponent,
+    ModalFooterComponent,
     IconDirective,
     TranslatePipe
   ],
@@ -43,6 +48,9 @@ export class StockCountingOrdersComponent implements OnInit {
   hasNext = false;
   hasPrevious = false;
   Math = Math;
+  showErrorModal = false;
+  selectedErrorMessage = '';
+  retryingOrderIds: Set<number> = new Set<number>();
   private loadToken = 0;
 
   constructor(
@@ -106,6 +114,67 @@ export class StockCountingOrdersComponent implements OnInit {
     });
   }
 
+  onDuplicateOrder(order: CountStockOrder): void {
+    if (!confirm(`Duplicate stock counting order #${order.countStockId}?`)) {
+      return;
+    }
+
+    this.stockService.duplicateOrder(order.countStockId).subscribe({
+      next: () => {
+        this.toastr.success('Order duplicated successfully.', 'Success');
+        this.loadOrders();
+      },
+      error: (err) => {
+        this.toastr.error(this.extractError(err, 'Failed to duplicate order.'), 'Error');
+      }
+    });
+  }
+
+  hasErrorMessage(order: CountStockOrder): boolean {
+    return !!this.getOrderErrorMessage(order);
+  }
+
+  onOpenErrorModal(order: CountStockOrder): void {
+    this.selectedErrorMessage = this.getOrderErrorMessage(order) || 'No error message available.';
+    this.showErrorModal = true;
+    this.cdr.detectChanges();
+  }
+
+  onErrorModalVisibleChange(visible: boolean): void {
+    this.showErrorModal = visible;
+    if (!visible) {
+      this.selectedErrorMessage = '';
+    }
+  }
+
+  isRetryingSap(order: CountStockOrder): boolean {
+    return !!order.countStockId && this.retryingOrderIds.has(order.countStockId);
+  }
+
+  onRetrySap(order: CountStockOrder): void {
+    const countStockId = order.countStockId;
+    if (!countStockId || this.retryingOrderIds.has(countStockId)) {
+      return;
+    }
+
+    this.retryingOrderIds.add(countStockId);
+    this.stockService.retryOrderSap(countStockId).subscribe({
+      next: () => {
+        this.toastr.success(`Sync SAP requested for order #${countStockId}`, 'Success');
+
+        setTimeout(() => {
+          this.retryingOrderIds.delete(countStockId);
+          this.loadOrders();
+          this.cdr.detectChanges();
+        }, 5000);
+      },
+      error: (err) => {
+        this.toastr.error(this.extractError(err, 'Failed to sync SAP. Please try again.'), 'Error');
+        this.retryingOrderIds.delete(countStockId);
+        this.cdr.detectChanges();
+      }
+    });
+  }
   onPageChange(page: number, event?: Event): void {
     if (event) {
       event.preventDefault();
@@ -204,6 +273,8 @@ export class StockCountingOrdersComponent implements OnInit {
       )
       .subscribe({
         next: (res) => {
+                        console.log("counting",res.data);
+
           this.runUiUpdate(() => {
             if (currentLoadToken !== this.loadToken) {
               return;
@@ -382,6 +453,14 @@ export class StockCountingOrdersComponent implements OnInit {
     return raw || 'Unknown';
   }
 
+  private getOrderErrorMessage(order: CountStockOrder): string {
+    const errorMessage = order.errorMessage?.trim();
+    if (errorMessage) {
+      return errorMessage;
+    }
+
+    return order.reason?.trim() || '';
+  }
   private extractError(err: any, fallback: string): string {
     const body = err?.error;
     if (typeof body === 'string' && body.trim()) return body;
@@ -406,6 +485,8 @@ export class StockCountingOrdersComponent implements OnInit {
       dueDate: this.toNullableString(this.readProp(raw, 'dueDate', 'DueDate')),
       mode: modeValue,
       warehouseId: Number(this.readProp(raw, 'warehouseId', 'WarehouseId') || this.warehouseId || 0),
+      errorMessage: this.toNullableString(this.readProp(raw, 'errorMessage', 'ErrorMessage')),
+      reason: this.toNullableString(this.readProp(raw, 'reason', 'Reason')),
       statusText,
       statusBadgeClass,
       canSubmit: statusText === 'Draft',

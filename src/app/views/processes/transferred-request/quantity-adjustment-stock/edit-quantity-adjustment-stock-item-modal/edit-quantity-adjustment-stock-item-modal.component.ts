@@ -82,7 +82,8 @@ export class EditQuantityAdjustmentStockItemModalComponent implements OnInit, On
       quantityAdjustmentStockItemId: [0, Validators.required],
       quantity: [0.01, [Validators.required, Validators.min(0.01)]],
       uoMEntry: ['', Validators.required],
-      unitPrice: [0, [Validators.min(0)]]
+      unitPrice: [0, [Validators.min(0)]],
+      vatPercent: [0, [Validators.min(0)]]
     });
   }
 
@@ -98,7 +99,8 @@ export class EditQuantityAdjustmentStockItemModalComponent implements OnInit, On
       quantityAdjustmentStockItemId: itemId,
       quantity: this.item.quantity || 0.01,
       uoMEntry: currentUoMEntry,
-      unitPrice: this.item.unitPrice ?? 0
+      unitPrice: this.item.unitPrice ?? 0,
+      vatPercent: this.item.vatPercent || 0
     });
 
     if (this.item.itemId) {
@@ -139,6 +141,21 @@ export class EditQuantityAdjustmentStockItemModalComponent implements OnInit, On
     });
   }
 
+  get lineTotalBeforeVat(): number {
+    const quantity = Number(this.editForm?.get('quantity')?.value) || 0;
+    const unitPrice = Number(this.editForm?.get('unitPrice')?.value) || 0;
+    return quantity * unitPrice;
+  }
+
+  get vatAmount(): number {
+    const vatPercent = Number(this.editForm?.get('vatPercent')?.value) || 0;
+    return (this.lineTotalBeforeVat * vatPercent) / 100;
+  }
+
+  get lineTotalAfterVat(): number {
+    return this.lineTotalBeforeVat + this.vatAmount;
+  }
+
   onClose(): void {
     this.visible = false;
     this.visibleChange.emit(false);
@@ -150,7 +167,8 @@ export class EditQuantityAdjustmentStockItemModalComponent implements OnInit, On
       quantityAdjustmentStockItemId: 0,
       quantity: 0.01,
       uoMEntry: '',
-      unitPrice: 0
+      unitPrice: 0,
+      vatPercent: 0
     });
     this.uomGroups = [];
   }
@@ -173,7 +191,8 @@ export class EditQuantityAdjustmentStockItemModalComponent implements OnInit, On
       unitPrice:
         unitPriceValue === null || unitPriceValue === undefined || unitPriceValue === ''
           ? undefined
-          : Number(unitPriceValue)
+          : Number(unitPriceValue),
+      vatPercent: Number(formValue.vatPercent || 0)
     };
 
     this.quantityAdjustmentStockService

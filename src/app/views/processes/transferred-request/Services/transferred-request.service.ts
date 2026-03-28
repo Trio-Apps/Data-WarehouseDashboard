@@ -5,9 +5,11 @@ import { environment } from '../../../../environments/environment';
 import {
   AddTransferredItemRequest,
   AddTransferredRequest,
+  AddTransferredRequestBatchRequest,
   DestinationWarehouse,
   TransferredRequestResponse,
   UpdateTransferredRequest,
+  UpdateTransferredRequestBatchRequest,
   UpdateTransferredRequestItem
 } from '../Models/transferred-request.model';
 import { AuthService } from '../../../pages/Services/auth.service';
@@ -74,6 +76,7 @@ export class TransferredRequestService {
       headers: this.headerOption.headers,
       params
     });
+    
   }
 
   getTransferredRequestById(transferredRequestId: number): Observable<any> {
@@ -105,6 +108,14 @@ export class TransferredRequestService {
   deleteTransferredRequest(transferredRequestId: number): Observable<any> {
     return this.http.delete<any>(
       `${this.baseUrl}TransferredRequestOrder/${transferredRequestId}`,
+      this.headerOption
+    );
+  }
+
+  duplicateTransferredRequest(transferredRequestId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}TransferredRequestOrder/${transferredRequestId}/duplicate`,
+      {},
       this.headerOption
     );
   }
@@ -155,6 +166,7 @@ export class TransferredRequestService {
       uoMEntry: number;
       quantity: number;
       UnitPrice?: number;
+      VatPercent?: number;
       transferredRequestId: number;
       itemId: number;
     }
@@ -188,6 +200,41 @@ export class TransferredRequestService {
     );
   }
 
+  getTransferredRequestBatchesByItemId(transferredRequestItemId: number): Observable<any> {
+    return this.http.get<any>(
+      `${this.baseUrl}TransferredRequestBatch/transferred-request-item/${transferredRequestItemId}`,
+      this.headerOption
+    );
+  }
+
+  addTransferredRequestBatch(
+    transferredRequestItemId: number,
+    batchData: AddTransferredRequestBatchRequest
+  ): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}TransferredRequestBatch/transferred-request-item/${transferredRequestItemId}`,
+      batchData,
+      this.headerOption
+    );
+  }
+
+  updateTransferredRequestBatch(
+    transferredRequestBatchId: number,
+    batchData: UpdateTransferredRequestBatchRequest
+  ): Observable<any> {
+    return this.http.put<any>(
+      `${this.baseUrl}TransferredRequestBatch/${transferredRequestBatchId}`,
+      batchData,
+      this.headerOption
+    );
+  }
+
+  deleteTransferredRequestBatch(transferredRequestBatchId: number): Observable<any> {
+    return this.http.delete<any>(
+      `${this.baseUrl}TransferredRequestBatch/${transferredRequestBatchId}`,
+      this.headerOption
+    );
+  }
   getWarehouses(): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}Warehouse`, this.headerOption);
   }

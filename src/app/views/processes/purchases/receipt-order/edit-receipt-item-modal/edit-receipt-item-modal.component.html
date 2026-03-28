@@ -15,7 +15,7 @@
     <form [formGroup]="editForm" (ngSubmit)="onUpdate()">
       <c-row [gutter]="3">
         <!-- Receipt Item ID (Hidden) -->
-        <input type="hidden" formControlName="receiptItemId">
+        <input type="hidden" formControlName="receiptPurchaseOrderItemId">
 
         <!-- Quantity -->
         <c-col [md]="6">
@@ -93,6 +93,41 @@
             }
           }
           <small class="form-text text-muted">Select unit of measure</small>
+        </c-col>
+
+        <c-col [md]="6">
+          <label class="form-label">
+            VAT Percent
+          </label>
+          <input
+            cFormControl
+            type="number"
+            step="0.01"
+            formControlName="vatPercent"
+            placeholder="0"
+            class="form-control"
+            [class.is-invalid]="editForm.get('vatPercent')?.invalid && editForm.get('vatPercent')?.touched">
+          @if (editForm.get('vatPercent')?.invalid && editForm.get('vatPercent')?.touched) {
+            <div class="invalid-feedback d-block">
+              VAT percent must be 0 or greater
+            </div>
+          }
+          <small class="form-text text-muted">VAT percentage for this line</small>
+        </c-col>
+
+        <c-col [md]="4">
+          <label class="form-label">Line Total Before VAT</label>
+          <input cFormControl type="number" class="form-control" [value]="lineTotalBeforeVat" readonly>
+        </c-col>
+
+        <c-col [md]="4">
+          <label class="form-label">VAT Amount</label>
+          <input cFormControl type="number" class="form-control" [value]="vatAmount" readonly>
+        </c-col>
+
+        <c-col [md]="4">
+          <label class="form-label">Line Total After VAT</label>
+          <input cFormControl type="number" class="form-control" [value]="lineTotalAfterVat" readonly>
         </c-col>
       </c-row>
     </form>

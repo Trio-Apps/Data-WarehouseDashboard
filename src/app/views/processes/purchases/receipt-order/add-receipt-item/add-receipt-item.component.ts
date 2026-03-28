@@ -79,6 +79,7 @@ export class AddReceiptItemComponent implements OnInit {
       uoMEntry: ['', Validators.required],
       quantity: [1, [Validators.required, Validators.min(0.01)]],
       unitPrice: [0, [Validators.required, Validators.min(0)]],
+      vatPercent: [0, [Validators.min(0)]],
     });
 
     // Listen to item selection changes
@@ -168,7 +169,7 @@ export class AddReceiptItemComponent implements OnInit {
         console.log('Receipt item added by barcode:', res);
         this.saving = false;
         this.toastr.success('Item added successfully by barcode', 'Success');
-        // العودة لصفحة receipt order
+        // ط§ظ„ط¹ظˆط¯ط© ظ„طµظپط­ط© receipt order
         this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId,this.receiptId]);
         this.cdr.detectChanges();
       },
@@ -195,6 +196,7 @@ export class AddReceiptItemComponent implements OnInit {
       uoMEntry: formValue.uoMEntry,
       quantity: formValue.quantity,
       UnitPrice: formValue.unitPrice,
+      VatPercent: Number(formValue.vatPercent || 0),
       receiptPurchaseOrderId: this.receiptId,
       itemId: formValue.itemId
     };
@@ -204,7 +206,7 @@ export class AddReceiptItemComponent implements OnInit {
         console.log('Receipt item added manually:', res);
         this.saving = false;
         this.toastr.success('Item added successfully', 'Success');
-        // العودة لصفحة receipt order
+        // ط§ظ„ط¹ظˆط¯ط© ظ„طµظپط­ط© receipt order
         this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId,this.receiptId]);
         this.cdr.detectChanges();
       },
@@ -216,6 +218,21 @@ export class AddReceiptItemComponent implements OnInit {
         this.cdr.detectChanges();
       }
     });
+  }
+
+  get lineTotalBeforeVat(): number {
+    const quantity = Number(this.manualForm?.get('quantity')?.value) || 0;
+    const unitPrice = Number(this.manualForm?.get('unitPrice')?.value) || 0;
+    return quantity * unitPrice;
+  }
+
+  get vatAmount(): number {
+    const vatPercent = Number(this.manualForm?.get('vatPercent')?.value) || 0;
+    return (this.lineTotalBeforeVat * vatPercent) / 100;
+  }
+
+  get lineTotalAfterVat(): number {
+    return this.lineTotalBeforeVat + this.vatAmount;
   }
 
   private getItemDisplayLabel(item: WarehouseItemLookup): string {

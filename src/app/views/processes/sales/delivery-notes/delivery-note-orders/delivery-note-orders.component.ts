@@ -433,6 +433,27 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     }
   }
 
+  onDuplicateDeliveryNoteOrder(returnOrder: DeliveryNoteOrderListItem): void {
+    if (!returnOrder.deliveryNoteOrderId) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to duplicate delivery note order #${returnOrder.deliveryNoteOrderId}?`)) {
+      this.returnService.duplicateDeliveryNoteOrder(returnOrder.deliveryNoteOrderId).subscribe({
+        next: () => {
+          this.toastr.success('Delivery note order duplicated successfully', 'Success');
+          this.loadDeliveryNotes();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error duplicating delivery note order:', err);
+          const errorMessage = err.error?.message || 'Error duplicating delivery note order. Please try again.';
+          this.toastr.error(errorMessage, 'Error');
+        }
+      });
+    }
+  }
+
   hasErrorMessage(returnOrder: DeliveryNoteOrderListItem): boolean {
     return !!returnOrder.errorMessage?.trim();
   }

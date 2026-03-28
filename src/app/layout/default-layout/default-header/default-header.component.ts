@@ -1,8 +1,8 @@
 import { NgTemplateOutlet } from '@angular/common';
-import { ChangeDetectorRef, Component, computed, inject, input } from '@angular/core';
+import { ChangeDetectorRef, Component, computed, inject, input, OnDestroy, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { IconDirective } from '@coreui/icons-angular';
-import { catchError, finalize, map, of } from 'rxjs';
+import { Subscription, catchError, finalize, interval, map, of } from 'rxjs';
 
 import {
   BreadcrumbRouterComponent,
@@ -26,6 +26,8 @@ import { SapAuthService } from 'src/app/views/settings/Auth/Services/sap-auth.se
 import { Sap } from 'src/app/views/settings/Auth/Models/sap';
 import { AppLanguage, TranslationService } from 'src/app/core/i18n/translation.service';
 import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
+import { NotificationService } from 'src/app/core/notifications/notification.service';
+import { AppNotification } from 'src/app/core/notifications/notification.model';
 
 
 @Component({
@@ -38,10 +40,11 @@ import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
      NgTemplateOutlet, BreadcrumbRouterComponent, DropdownComponent, DropdownToggleDirective,
       DropdownMenuDirective, DropdownHeaderDirective, DropdownItemDirective, DropdownDividerDirective, TranslatePipe]
 })
-export class DefaultHeaderComponent extends HeaderComponent {
+export class DefaultHeaderComponent extends HeaderComponent implements OnInit, OnDestroy {
 
   readonly #colorModeService = inject(ColorModeService);
   readonly translationService = inject(TranslationService);
+  readonly notificationService = inject(NotificationService);
   readonly colorMode = this.#colorModeService.colorMode;
   readonly currentLanguage = this.translationService.currentLanguage;
   readonly languages: { code: AppLanguage; title: string; subtitle: string }[] = [
@@ -59,6 +62,13 @@ export class DefaultHeaderComponent extends HeaderComponent {
   SapsList: Sap [] = [];
   loadingSaps: boolean = false;
   sapsLoaded: boolean = false;
+  notifications: AppNotification[] = [];
+  loadingNotifications: boolean = false;
+  notificationsLoaded: boolean = false;
+  unreadNotifications: number = 0;
+  private readonly notificationPageSize = 10;
+  private readonly notificationRefreshMs = 15000;
+  private notificationRefreshSubscription?: Subscription;
   readonly icons = computed(() => {
     const currentMode = this.colorMode();
     return this.colorModes.find(mode => mode.name === currentMode)?.icon ?? 'cilSun';
@@ -66,6 +76,17 @@ export class DefaultHeaderComponent extends HeaderComponent {
 
   constructor(private authService: AuthService,private sapAuthService: SapAuthService, private cdr: ChangeDetectorRef  ) {
     super();
+  }
+
+  ngOnInit(): void {
+    this.refreshUnreadCount();
+    this.notificationRefreshSubscription = interval(this.notificationRefreshMs).subscribe(() => {
+      this.refreshUnreadCount();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.notificationRefreshSubscription?.unsubscribe();
   }
 
 
@@ -218,6 +239,90 @@ export class DefaultHeaderComponent extends HeaderComponent {
    
       this.getAllSapsObserve();
     
+  }
+
+  onNotificationsDropdownClick(): void {
+    this.refreshUnreadCount();
+    this.loadNotifications();
+  }
+
+  loadNotifications(): void {
+    if (this.loadingNotifications) {
+      return;
+    }
+
+    this.loadingNotifications = true;
+    this.cdr.detectChanges();
+
+    this.notificationService
+      .getMyNotifications(1, this.notificationPageSize)
+      .pipe(
+        catchError((error) => {
+          console.error('Error fetching notifications:', error);
+          return of(null);
+        }),
+        finalize(() => {
+          this.loadingNotifications = false;
+          this.cdr.detectChanges();
+        })
+      )
+      .subscribe((response) => {
+        this.notifications = response?.data?.data ?? [];
+        this.notificationsLoaded = true;
+        this.cdr.detectChanges();
+      });
+  }
+
+  refreshUnreadCount(): void {
+    this.notificationService
+      .getUnreadCount()
+      .pipe(
+        catchError((error) => {
+          console.error('Error fetching unread notifications count:', error);
+          return of(null);
+        })
+      )
+      .subscribe((response) => {
+        this.unreadNotifications = response?.data ?? 0;
+        this.cdr.detectChanges();
+      });
+  }
+
+  markNotificationAsRead(notification: AppNotification): void {
+    if (notification.isRead) {
+      return;
+    }
+
+    this.notificationService.markAsRead(notification.notificationId).subscribe({
+      next: () => {
+        notification.isRead = true;
+        this.unreadNotifications = Math.max(0, this.unreadNotifications - 1);
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error marking notification as read:', error);
+      }
+    });
+  }
+
+  markAllNotificationsAsRead(): void {
+    if (this.unreadNotifications === 0) {
+      return;
+    }
+
+    this.notificationService.markAllAsRead().subscribe({
+      next: () => {
+        this.notifications = this.notifications.map((notification) => ({
+          ...notification,
+          isRead: true
+        }));
+        this.unreadNotifications = 0;
+        this.cdr.detectChanges();
+      },
+      error: (error) => {
+        console.error('Error marking all notifications as read:', error);
+      }
+    });
   }
 
   async switchLanguage(language: AppLanguage): Promise<void> {

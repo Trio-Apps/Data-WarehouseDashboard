@@ -75,6 +75,9 @@
                       </button>
                     }
                     @if (!isApproved(returnOrder)) {
+                      <button cButton color="secondary" size="sm" class="me-2" (click)="onDuplicateDeliveryNoteOrder(returnOrder)" [title]="'Duplicate' | translate">
+                        Duplicate
+                      </button>
                       <button cButton color="danger" size="sm" (click)="onDeleteDeliveryNoteOrder(returnOrder)" [title]="'Delete' | translate">
                         <svg cIcon name="cil-trash"></svg>
                       </button>
@@ -100,7 +103,7 @@
                     </div>
                     }
                   </td>
-                    <td class="text-center">
+                  <td class="text-center">
                     <button cButton color="warning" size="sm" (click)="onOpenSalesReturn(returnOrder)" [title]="'Open Sales Return' | translate">
                       {{ 'Return' | translate }}
                     </button>

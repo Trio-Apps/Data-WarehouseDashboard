@@ -4,6 +4,7 @@ export interface Sales {
   dueDate: string;
   comment: string;
   customerId: number;
+  reasonId?: number | null;
   warehouseId: number;
   itemCount?:number;
   isDraft: boolean;
@@ -30,6 +31,7 @@ export interface AddSales {
   dueDate: string;
   comment: string;
   customerId: number;
+  reasonId?: number | null;
   warehouseId: number;
   isDraft: boolean;
   

@@ -9,6 +9,8 @@ export interface AddGeneralItemRequest {
   item?: {
     uoMEntry: number;
     quantity: number;
+    UnitPrice?: number;
+    VatPercent?: number;
     itemId: number;
   };
 }
@@ -16,4 +18,6 @@ export interface AddGeneralItemRequest {
 export interface UpdateGeneralItemRequest {
   quantity: number;
   uoMEntry: number;
+  UnitPrice?: number;
+  VatPercent?: number;
 }

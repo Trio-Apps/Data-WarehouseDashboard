@@ -1,5 +1,6 @@
 export interface TransferredRequest {
   transferredRequestId?: number;
+  postingDate?: string;
   dueDate: string;
   comment?: string;
   status: string;
@@ -23,8 +24,10 @@ export interface TransferredRequest {
 }
 
 export interface AddTransferredRequest {
+  postingDate: string;
   dueDate: string;
   comment?: string;
+  reasonId?: number | null;
   isDraft: boolean;
   warehouseId: number;
   distinationWarehouseId: number;
@@ -32,8 +35,10 @@ export interface AddTransferredRequest {
 
 export interface UpdateTransferredRequest {
   transferredRequestId: number;
+  postingDate: string;
   dueDate: string;
   comment?: string;
+  reasonId?: number | null;
   distinationWarehouseId: number;
   isDraft: boolean;
 }
@@ -46,14 +51,18 @@ export interface TransferredRequestItem {
   uoMEntry: number;
   barCode?: string;
   unitPrice?: number;
+  vatPercent?: number;
+  vatAmount?: number;
+  lineTotalBeforeVat?: number;
+  lineTotalAfterVat?: number;
   comment?: string;
   transferredRequestId?: number;
   itemId: number;
   itemCode?: string;
   itemName?: string;
   unitName?: string;
+  batches?: TransferredRequestBatch[];
 }
-
 
 export interface AddTransferredRequestItem {
   uoMEntry: number;
@@ -61,16 +70,41 @@ export interface AddTransferredRequestItem {
   transferredRequestId: number;
   itemId: number;
   UnitPrice?: number;
+  VatPercent?: number;
 }
-
 
 export interface UpdateTransferredRequestItem {
   transferredRequestItemId: number;
   quantity?: number;
   uoMEntry: number;
   UnitPrice?: number;
+  VatPercent?: number;
 }
 
+export interface TransferredRequestBatch {
+  transferredRequestBatchId?: number;
+  transferredRequestItemId: number;
+  quantity: number;
+  comment?: string;
+  batchNumber?: string | null;
+  expiryDate?: string;
+}
+
+export interface AddTransferredRequestBatchRequest {
+  transferredRequestItemId: number;
+  quantity: number;
+  comment?: string;
+  batchNumber?: string;
+  expiryDate?: string;
+}
+
+export interface UpdateTransferredRequestBatchRequest {
+  transferredRequestBatchId: number;
+  quantity: number;
+  comment?: string;
+  batchNumber?: string;
+  expiryDate?: string;
+}
 
 export interface Item {
   itemId: number;
@@ -92,6 +126,7 @@ export interface AddTransferredItemRequest {
     uoMEntry: number;
     quantity: number;
     UnitPrice?: number;
+    VatPercent?: number;
     transferredRequestId: number;
     itemId: number;
   };
@@ -111,3 +146,7 @@ export interface TransferredRequestResponse {
   };
   errors: any;
 }
+
+
+
+

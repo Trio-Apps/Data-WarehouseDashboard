@@ -412,6 +412,27 @@ export class SalesReturnOrdersComponent implements OnInit, OnDestroy {
     }
   }
 
+  onDuplicateReturnOrder(returnOrder: SalesReturnOrderListItem): void {
+    if (!returnOrder.salesReturnOrderId) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to duplicate return order #${returnOrder.salesReturnOrderId}?`)) {
+      this.returnService.duplicateReturnOrder(returnOrder.salesReturnOrderId).subscribe({
+        next: () => {
+          this.toastr.success('Return order duplicated successfully', 'Success');
+          this.loadReturns();
+          this.cdr.detectChanges();
+        },
+        error: (err) => {
+          console.error('Error duplicating return order:', err);
+          const errorMessage = err.error?.message || 'Error duplicating return order. Please try again.';
+          this.toastr.error(errorMessage, 'Error');
+        }
+      });
+    }
+  }
+
   hasErrorMessage(returnOrder: SalesReturnOrderListItem): boolean {
     return !!returnOrder.errorMessage?.trim();
   }

@@ -21,6 +21,8 @@ export interface CountStockOrder {
   dueDate?: string | null;
   mode?: string | null;
   warehouseId: number;
+  errorMessage?: string | null;
+  reason?: string | null;
 }
 
 export interface CountStockItem {
@@ -49,6 +51,7 @@ export interface CountStockBatch {
 export interface AddCountStockOrderPayload {
   isDraft: boolean;
   comment?: string;
+  reasonId?: number | null;
   postingDate: string;
   mode?: 'Counting' | 'Posting';
   warehouseId: number;
@@ -58,6 +61,7 @@ export interface UpdateCountStockOrderPayload {
   countStockId: number;
   postingDate: string;
   comment?: string;
+  reasonId?: number | null;
   mode?: 'Counting' | 'Posting';
 }
 
@@ -89,3 +93,4 @@ export interface UpdateCountStockBatchPayload {
   batchNumber?: string;
   expiryDate?: string;
 }
+

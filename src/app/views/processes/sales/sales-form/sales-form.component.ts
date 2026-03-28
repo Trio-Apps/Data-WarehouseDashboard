@@ -6,6 +6,8 @@ import { ToastrService } from 'ngx-toastr';
 import { Customer, Sales } from '../Models/sales-model';
 import { SalesService } from '../Services/sales.service';
 import { SearchCustomerModalComponent } from '../search-customer-modal/search-customer-modal.component';
+import { ReasonService } from '../../reasons/Services/reason.service';
+import { ProcessTypeOption, ReasonDto } from '../../reasons/Models/reason.model';
 import {
   FormModule,
   CardModule,
@@ -40,7 +42,11 @@ export class SalesFormComponent implements OnInit {
   warehouseId: number = 0;
   customers: Customer[] = [];
   selectedCustomerDisplay: string = '';
+  selectedReasonDisplay: string = '';
   showCustomerModal: boolean = false;
+  reasons: ReasonDto[] = [];
+  loadingReasons: boolean = false;
+  showReasonSuggestions: boolean = false;
   loading: boolean = false;
   saving: boolean = false;
 
@@ -50,7 +56,8 @@ export class SalesFormComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private cdr: ChangeDetectorRef,
-    private toastr: ToastrService
+    private toastr: ToastrService,
+    private reasonService: ReasonService
   ) {}
 
   ngOnInit(): void {
@@ -60,6 +67,7 @@ export class SalesFormComponent implements OnInit {
     this.isEditMode = !!this.salesOrderId;
 
     this.initializeForm();
+    this.loadSalesReasons();
 
     
     if (this.isEditMode && this.salesOrderId) {
@@ -73,7 +81,42 @@ export class SalesFormComponent implements OnInit {
       dueDate: ['', Validators.required],
       comment: [''],
       customerId: ['', Validators.required],
+      reasonId: [null],
       isDraft: [true]
+    });
+  }
+
+  loadSalesReasons(): void {
+    this.loadingReasons = true;
+
+    this.reasonService.getProcessTypes().subscribe({
+      next: (typesRes) => {
+        const processTypes = this.extractProcessTypes(typesRes);
+        const processType = this.resolveProcessType(processTypes, ['sales', 'salesorder'], 'Sales');
+
+        this.reasonService.getReasonsByProcessType(processType).subscribe({
+          next: (reasonsRes) => {
+            this.reasons = this.extractReasons(reasonsRes);
+            this.loadingReasons = false;
+
+            const selectedReasonId = this.toNullableNumber(this.form?.get('reasonId')?.value);
+            this.updateSelectedReasonDisplay(selectedReasonId);
+            this.cdr.detectChanges();
+          },
+          error: (err) => {
+            console.error('Error loading reasons:', err);
+            this.reasons = [];
+            this.loadingReasons = false;
+            this.cdr.detectChanges();
+          }
+        });
+      },
+      error: (err) => {
+        console.error('Error loading process types:', err);
+        this.reasons = [];
+        this.loadingReasons = false;
+        this.cdr.detectChanges();
+      }
     });
   }
 
@@ -100,9 +143,14 @@ export class SalesFormComponent implements OnInit {
             dueDate: dueDateStr,
             comment: sales.comment || '',
             customerId: sales.customerId || null,
+            reasonId: this.toNullableNumber(sales.reasonId ?? sales.ReasonId),
             isDraft: sales.isDraft !== undefined ? sales.isDraft : true
           });
           this.syncSelectedCustomerDisplay();
+          this.updateSelectedReasonDisplay(
+            this.toNullableNumber(sales.reasonId ?? sales.ReasonId),
+            sales.reason || ''
+          );
         }
         this.loading = false;
         this.cdr.detectChanges();
@@ -164,6 +212,40 @@ export class SalesFormComponent implements OnInit {
     this.cdr.detectChanges();
   }
 
+  get selectedReason(): ReasonDto | null {
+    const selectedReasonId = this.toNullableNumber(this.form?.get('reasonId')?.value);
+    if (!selectedReasonId) {
+      return null;
+    }
+
+    return this.reasons.find((reason) => reason.reasonId === selectedReasonId) || null;
+  }
+
+  onReasonFocus(): void {
+    this.showReasonSuggestions = this.reasons.length > 0;
+  }
+
+  onReasonBlur(): void {
+    setTimeout(() => {
+      this.showReasonSuggestions = false;
+      this.cdr.detectChanges();
+    }, 150);
+  }
+
+  onSelectReason(reason: ReasonDto): void {
+    this.form.patchValue({ reasonId: reason.reasonId });
+    this.form.get('reasonId')?.markAsTouched();
+    this.selectedReasonDisplay = reason.name;
+    this.showReasonSuggestions = false;
+  }
+
+  onClearReason(): void {
+    this.form.patchValue({ reasonId: null });
+    this.form.get('reasonId')?.markAsTouched();
+    this.selectedReasonDisplay = '';
+    this.showReasonSuggestions = false;
+  }
+
   private syncSelectedCustomerDisplay(): void {
     const customerIdValue = this.form.get('customerId')?.value;
     const customerId = customerIdValue ? +customerIdValue : null;
@@ -206,6 +288,7 @@ export class SalesFormComponent implements OnInit {
       dueDate: formattedDueDate,
       comment: formValue.comment,
       customerId: formValue.customerId,
+      reasonId: this.toNullableNumber(formValue.reasonId),
       warehouseId: this.warehouseId,
       isDraft: formValue.isDraft,
        status : "ff",
@@ -239,5 +322,59 @@ export class SalesFormComponent implements OnInit {
 
   onCancel(): void {
     this.router.navigate(['/processes/sales', this.warehouseId]);
+  }
+
+  private extractProcessTypes(response: ProcessTypeOption[] | { data: ProcessTypeOption[] } | any): ProcessTypeOption[] {
+    const payload = response?.data?.data ?? response?.data ?? response;
+    return Array.isArray(payload) ? payload : [];
+  }
+
+  private extractReasons(response: ReasonDto[] | { data: ReasonDto[] } | any): ReasonDto[] {
+    const payload = response?.data?.data ?? response?.data ?? response;
+    return Array.isArray(payload) ? payload : [];
+  }
+
+  private resolveProcessType(
+    processTypes: ProcessTypeOption[],
+    keywords: string[],
+    fallback: string
+  ): string {
+    const normalizedKeywords = keywords.map((x) => this.normalizeText(x));
+    const exactMatch = processTypes.find((x) => normalizedKeywords.includes(this.normalizeText(x.name)));
+    if (exactMatch) {
+      return exactMatch.name;
+    }
+
+    const fuzzyMatch = processTypes.find((x) => {
+      const normalizedName = this.normalizeText(x.name);
+      return normalizedKeywords.some((keyword) => normalizedName.includes(keyword));
+    });
+
+    if (fuzzyMatch) {
+      return fuzzyMatch.name;
+    }
+
+    return fallback;
+  }
+
+  private normalizeText(value: unknown): string {
+    return String(value || '')
+      .toLowerCase()
+      .replace(/[^a-z0-9]/g, '');
+  }
+
+  private toNullableNumber(value: unknown): number | null {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+  }
+
+  private updateSelectedReasonDisplay(reasonId: number | null, fallbackName: string = ''): void {
+    if (!reasonId) {
+      this.selectedReasonDisplay = '';
+      return;
+    }
+
+    const selectedReason = this.reasons.find((reason) => reason.reasonId === reasonId);
+    this.selectedReasonDisplay = selectedReason?.name || fallbackName || `#${reasonId}`;
   }
 }

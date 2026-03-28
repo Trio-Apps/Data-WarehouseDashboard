@@ -203,3 +203,51 @@ button[cButton][color="secondary"]:hover{
 c-row{
   row-gap: 12px;
 }
+
+.reason-picker-display{
+  cursor: pointer;
+}
+
+.reason-picker-display:read-only{
+  background: #fff;
+}
+
+.reason-clear-btn{
+  position: absolute;
+  top: 50%;
+  right: 8px;
+  transform: translateY(-50%);
+  height: 30px;
+  padding: 0 10px;
+  font-size: 0.75rem;
+}
+
+.unit-price-suggestions {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: 25;
+  max-height: 220px;
+  overflow-y: auto;
+  background: #fff;
+  border: 1px solid rgba(40, 106, 97, 0.18);
+  border-radius: 12px;
+}
+
+.unit-price-suggestion-item {
+  width: 100%;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  padding: 0.65rem 0.8rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-body);
+}
+
+.unit-price-suggestion-item:hover {
+  background: rgba(0, 235, 181, 0.12);
+}

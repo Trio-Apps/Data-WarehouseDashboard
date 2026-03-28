@@ -17,6 +17,7 @@ import { ProcessCard } from '../../models/process-card.model';
   templateUrl: './process-card-group.component.html',
   styleUrl: './process-card-group.component.scss'
 })
+
 export class ProcessCardGroupComponent {
   @Input({ required: true }) title = '';
   @Input({ required: true }) cards: ProcessCard[] = [];

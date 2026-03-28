@@ -1,0 +1,181 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <h4 class="mb-0 header-title">
+        @if (isDetailsView && selectedProcessType) {
+          Reasons - {{ selectedProcessType.name }}
+        } @else {
+          Reasons Process Types
+        }
+      </h4>
+
+      <div class="d-flex gap-2">
+        @if (isDetailsView) {
+          <button cButton color="secondary" class="header-button" (click)="onBackToProcessTypes()">
+            <svg cIcon name="cil-arrow-left" class="me-1"></svg>
+            Back
+          </button>
+          @if (canCreateReasons) {
+            <button cButton color="primary" class="header-button" (click)="onAddReason()">
+              <svg cIcon name="cil-plus" class="me-1"></svg>
+              Add Reason
+            </button>
+          }
+        }
+      </div>
+    </c-card-header>
+
+    <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
+      @if (!canViewReasons) {
+        <div class="p-4 text-center text-body-secondary">
+          You do not have permission to view reasons.
+        </div>
+      } @else {
+      <div class="table-container">
+        <table [hover]="true" [striped]="true" cTable class="mb-0">
+          <thead class="table-header">
+            @if (!isDetailsView) {
+              <tr>
+                <th scope="col" class="bg-body-tertiary">#</th>
+                <th scope="col" class="bg-body-tertiary">Process Type</th>
+                <th scope="col" class="bg-body-tertiary text-center">Details</th>
+              </tr>
+            } @else {
+              <tr>
+                <th scope="col" class="bg-body-tertiary">#</th>
+                <th scope="col" class="bg-body-tertiary">Reason Name</th>
+                <th scope="col" class="bg-body-tertiary">Status</th>
+                @if (canEditReasons || canDeleteReasons) {
+                  <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+                }
+              </tr>
+            }
+          </thead>
+
+          <tbody>
+            @if (!isDetailsView) {
+              @if (loadingProcessTypes) {
+                <tr>
+                  <td colspan="3" class="text-center py-4">
+                    <span class="text-body-secondary">Loading process types...</span>
+                  </td>
+                </tr>
+              } @else if (processTypes.length > 0) {
+                @for (processType of processTypes; track processType.id; let idx = $index) {
+                  <tr>
+                    <td>{{ idx + 1 }}</td>
+                    <td>{{ processType.name }}</td>
+                    <td class="text-center">
+                      <button cButton color="primary" size="sm" (click)="onViewDetails(processType)">
+                        <svg cIcon name="cil-chevron-right" class="me-1"></svg>
+                        Details
+                      </button>
+                    </td>
+                  </tr>
+                }
+              } @else {
+                <tr>
+                  <td colspan="3" class="text-center py-4">
+                    <span class="text-body-secondary">No process types found.</span>
+                  </td>
+                </tr>
+              }
+            } @else {
+              @if (loadingReasons) {
+                <tr>
+                  <td [attr.colspan]="canEditReasons || canDeleteReasons ? 4 : 3" class="text-center py-4">
+                    <span class="text-body-secondary">Loading reasons...</span>
+                  </td>
+                </tr>
+              } @else if (reasons.length > 0) {
+                @for (reason of reasons; track reason.reasonId; let idx = $index) {
+                  <tr>
+                    <td>{{ idx + 1 }}</td>
+                    <td>{{ reason.name }}</td>
+                    <td>
+                      <span
+                        class="badge"
+                        [class.bg-success]="reason.isActive !== false"
+                        [class.bg-warning]="reason.isActive === false"
+                      >
+                        {{ reason.isActive === false ? 'Inactive' : 'Active' }}
+                      </span>
+                    </td>
+                    @if (canEditReasons || canDeleteReasons) {
+                      <td class="text-center">
+                        @if (canEditReasons) {
+                          <button cButton color="info" size="sm" class="me-2" (click)="onEditReason(reason)">
+                            <svg cIcon name="cil-pencil"></svg>
+                          </button>
+                        }
+                        @if (canDeleteReasons) {
+                          <button cButton color="danger" size="sm" (click)="onDeleteReason(reason)">
+                            <svg cIcon name="cil-trash"></svg>
+                          </button>
+                        }
+                      </td>
+                    }
+                  </tr>
+                }
+              } @else {
+                <tr>
+                  <td [attr.colspan]="canEditReasons || canDeleteReasons ? 4 : 3" class="text-center py-4">
+                    <span class="text-body-secondary">No reasons found for this process type.</span>
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+      }
+    </c-card-body>
+  </c-card>
+
+  <c-modal [visible]="showReasonModal" (visibleChange)="onModalVisibleChange($event)" alignment="center">
+    <c-modal-header>
+      <h5 cModalTitle>{{ isEditMode ? 'Edit Reason' : 'Add Reason' }}</h5>
+    </c-modal-header>
+
+    <c-modal-body>
+      <form [formGroup]="form">
+        <c-row [gutter]="3">
+          <c-col [md]="12">
+            <label cLabel for="reasonName">Reason Name</label>
+            <input
+              cFormControl
+              id="reasonName"
+              type="text"
+              formControlName="name"
+              placeholder="Enter reason name"
+              [class.is-invalid]="isFieldInvalid('name')"
+            />
+            @if (isFieldInvalid('name')) {
+              <div class="invalid-feedback d-block">Reason name is required and must be at least 2 characters.</div>
+            }
+          </c-col>
+
+          <c-col [md]="12">
+            <c-form-check>
+              <input cFormCheckInput type="checkbox" id="reasonIsActive" formControlName="isActive" />
+              <label cFormCheckLabel for="reasonIsActive">Active</label>
+            </c-form-check>
+          </c-col>
+        </c-row>
+      </form>
+    </c-modal-body>
+
+    <c-modal-footer>
+      <button cButton color="secondary" (click)="onCloseModal()" [disabled]="modalLoading">Cancel</button>
+      @if ((!isEditMode && canCreateReasons) || (isEditMode && canEditReasons)) {
+        <button cButton color="primary" (click)="onSaveReason()" [disabled]="modalLoading">
+          @if (modalLoading) {
+            Saving...
+          } @else {
+            {{ isEditMode ? 'Update' : 'Save' }}
+          }
+        </button>
+      }
+    </c-modal-footer>
+  </c-modal>
+</div>

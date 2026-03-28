@@ -95,6 +95,10 @@ export class DeliveryNoteService {
     return this.http.delete<any>(`${this.baseUrl}DeliveryNoteOrder/${deliveryNoteId}`, this.headerOption);
   }
 
+  duplicateDeliveryNoteOrder(deliveryNoteId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}DeliveryNoteOrder/${deliveryNoteId}/duplicate`, {}, this.headerOption);
+  }
+
   /**
    * Revert a partially failed delivery note order back to processing for SAP sync.
    */
@@ -122,6 +126,8 @@ export class DeliveryNoteService {
   addDeliveryNoteItemManually(deliveryNoteOrderId: number, itemData: {
     uoMEntry: number;
     quantity: number;
+    UnitPrice?: number;
+    VatPercent?: number;
     itemId: number;
   }): Observable<any> {
     const request: AddGeneralItemRequest = {
@@ -153,8 +159,10 @@ export class DeliveryNoteService {
   updateDeliveryNoteBatch(batchId: number, batchData: UpdateDeliveryNoteBatchRequest): Observable<any> {
     return this.http.put<any>(`${this.baseUrl}DeliveryNoteBatch/${batchId}`, batchData, this.headerOption);
   }
+  
 
   deleteDeliveryNoteBatch(batchId: number): Observable<any> {
     return this.http.delete<any>(`${this.baseUrl}DeliveryNoteBatch/${batchId}`, this.headerOption);
   }
+  
 }

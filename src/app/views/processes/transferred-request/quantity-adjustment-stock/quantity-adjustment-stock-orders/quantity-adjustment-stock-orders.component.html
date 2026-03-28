@@ -72,6 +72,15 @@
                       [title]="'View Stock' | translate">
                       <svg cIcon name="cil-list"></svg>
                     </button>
+                    <button
+                      cButton
+                      color="secondary"
+                      size="sm"
+                      class="me-2"
+                      (click)="onDuplicateQuantityAdjustmentStock(stock)"
+                      [title]="'Duplicate' | translate">
+                      Duplicate
+                    </button>
 
                     @if (!isApproved(stock)) {
                       <!-- <button

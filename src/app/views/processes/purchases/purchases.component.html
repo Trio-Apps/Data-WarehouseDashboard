@@ -31,7 +31,6 @@
               <th scope="col" class="bg-body-tertiary">Items Count</th>
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
               <th scope="col" class="bg-body-tertiary text-center"></th>
-
               <th scope="col" class="bg-body-tertiary text-center">Receipt</th>
             </tr>
           </thead>
@@ -73,6 +72,9 @@
                 <!-- <button cButton color="warning" size="sm" class="me-2" (click)="onEditPurchase(purchase)" title="Edit">
                   <svg cIcon name="cil-pencil"></svg>
                 </button> -->
+                <button cButton color="secondary" size="sm" class="me-2" (click)="onDuplicatePurchase(purchase)" title="Duplicate">
+                  Duplicate
+                </button>
                 <button cButton color="danger" size="sm" (click)="onDeletePurchase(purchase)" title="Delete">
                   <svg cIcon name="cil-trash"></svg>
                 </button>

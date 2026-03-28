@@ -56,6 +56,7 @@
     </c-header-nav> -->
 
     <c-header-nav class="mx-0">
+      <ng-container *ngTemplateOutlet="notificationsDropdown" />
       <ng-container *ngTemplateOutlet="languageDropdown" />
       <ng-container *ngTemplateOutlet="userDropdown" />
     </c-header-nav>
@@ -98,6 +99,79 @@
           {{ 'common.logout' | translate }}
         </a>
       </li>
+    </ul>
+  </c-dropdown>
+</ng-template>
+
+<ng-template #notificationsDropdown>
+  <c-dropdown alignment="end" variant="nav-item" class="notification-dropdown">
+    <button
+      [caret]="false"
+      cDropdownToggle
+      class="notification-toggle d-inline-flex align-items-center justify-content-center"
+      type="button"
+      [attr.aria-label]="'notifications.title' | translate"
+      (click)="onNotificationsDropdownClick()"
+    >
+      <svg cIcon name="cilBell" size="lg"></svg>
+      @if (unreadNotifications > 0) {
+        <span class="notification-badge">{{ unreadNotifications > 99 ? '99+' : unreadNotifications }}</span>
+      }
+    </button>
+
+    <ul cDropdownMenu class="notification-dropdown-menu pt-0">
+      <li class="notification-dropdown-top">
+        <div class="notification-dropdown-copy">
+          <h6 cDropdownHeader class="notification-dropdown-header fw-semibold rounded-top">
+            {{ 'notifications.title' | translate }}
+          </h6>
+          <small class="notification-dropdown-subtitle">
+            {{ 'notifications.unreadCount' | translate:{ count: unreadNotifications } }}
+          </small>
+        </div>
+        <button
+          cDropdownItem
+          class="notification-mark-read"
+          type="button"
+          (click)="markAllNotificationsAsRead()"
+        >
+          {{ 'notifications.markAllRead' | translate }}
+        </button>
+      </li>
+
+      @if (loadingNotifications) {
+        <li>
+          <div class="notification-dropdown-empty">
+            {{ 'notifications.loading' | translate }}
+          </div>
+        </li>
+      } @else if (notifications.length === 0) {
+        <li>
+          <div class="notification-dropdown-empty">
+            {{ 'notifications.empty' | translate }}
+          </div>
+        </li>
+      } @else {
+        @for (notification of notifications; track notification.notificationId) {
+          <li>
+            <button
+              cDropdownItem
+              type="button"
+              class="notification-item"
+              [class.notification-item-unread]="!notification.isRead"
+              (click)="markNotificationAsRead(notification)"
+            >
+              <span class="notification-item-icon" aria-hidden="true">
+                <svg cIcon name="cilDescription"></svg>
+              </span>
+              <span class="notification-item-copy">
+                <span class="notification-item-title">{{ notification.title }}</span>
+                <small class="notification-item-message">{{ notification.message }}</small>
+              </span>
+            </button>
+          </li>
+        }
+      }
     </ul>
   </c-dropdown>
 </ng-template>

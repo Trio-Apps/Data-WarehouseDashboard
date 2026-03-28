@@ -162,6 +162,7 @@ export class TransferredStockOrdersComponent implements OnInit, OnDestroy {
         next: (res: any) => {
           if (res.data) {
             this.transferredStocks = res.data.data || [];
+            console.log("Transferred",res.data);
             this.filteredTransferredStocks = this.transferredStocks;
             this.currentPage = res.data.pageNumber || this.currentPage;
             this.itemsPerPage = res.data.pageSize || this.itemsPerPage;
@@ -269,7 +270,7 @@ export class TransferredStockOrdersComponent implements OnInit, OnDestroy {
     this.form.patchValue({ destinationWarehouseId: warehouse.warehouseId });
     this.filterDestinationWarehouseId = warehouse.warehouseId;
     this.selectedDestinationWarehouseDisplay =
-      warehouse.warehouseCode || warehouse.warehouseName || `#${warehouse.warehouseId}`;
+      warehouse.warehouseName || warehouse.warehouseCode || `#${warehouse.warehouseId}`;
     this.showDestinationWarehouseModal = false;
 
     if (!this.destinationWarehouses.some((w) => w.warehouseId === warehouse.warehouseId)) {
@@ -300,7 +301,7 @@ export class TransferredStockOrdersComponent implements OnInit, OnDestroy {
       (w) => w.warehouseId === destinationWarehouseId
     );
     this.selectedDestinationWarehouseDisplay = selectedWarehouse
-      ? selectedWarehouse.warehouseCode || selectedWarehouse.warehouseName || `#${destinationWarehouseId}`
+      ? selectedWarehouse.warehouseName || selectedWarehouse.warehouseCode || `#${destinationWarehouseId}`
       : `#${destinationWarehouseId}`;
   }
 
@@ -384,6 +385,30 @@ export class TransferredStockOrdersComponent implements OnInit, OnDestroy {
     });
   }
 
+  onDuplicateTransferredStock(stock: TransferredStock): void {
+    if (!stock.transferredStockId) {
+      return;
+    }
+
+    if (!confirm(`Are you sure you want to duplicate transferred stock #${stock.transferredStockId}?`)) {
+      return;
+    }
+
+    this.transferredStockService.duplicateTransferredStock(stock.transferredStockId).subscribe({
+      next: () => {
+        this.toastr.success('Transferred stock duplicated successfully', 'Success');
+        this.loadTransferredStocks();
+        this.cdr.markForCheck();
+      },
+      error: (err) => {
+        console.error('Error duplicating transferred stock:', err);
+        const errorMessage =
+          err?.error?.message || 'Error duplicating transferred stock. Please try again.';
+        this.toastr.error(errorMessage, 'Error');
+      }
+    });
+  }
+
   onAddTransferredStock(): void {
     this.router.navigate(['/processes/transferred-request/transferred-stock-form', this.warehouseId, 0]);
   }
@@ -411,6 +436,54 @@ export class TransferredStockOrdersComponent implements OnInit, OnDestroy {
 
   getStatusText(stock: TransferredStock): string {
     return stock.status || 'Unknown';
+  }
+
+  getReceivingStatusText(stock: TransferredStock): string {
+    const rawStatus = stock.receivingStatus ?? stock.ReceivingStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return 'Unknown';
+    }
+
+    const normalized = String(rawStatus).trim().toLowerCase();
+    switch (normalized) {
+      case '1':
+      case 'noprocessing':
+        return 'NoProcessing';
+      case '2':
+      case 'intransit':
+        return 'InTransit';
+      case '3':
+      case 'draft':
+        return 'Draft';
+      case '4':
+      case 'completed':
+        return 'Completed';
+      case '5':
+      case 'partiallyreceived':
+        return 'PartiallyReceived';
+      default:
+        return String(rawStatus);
+    }
+  }
+
+  getReceivingStatusBadgeClass(stock: TransferredStock): string {
+    const status = this.getReceivingStatusText(stock).toLowerCase();
+    if (status === 'draft') {
+      return 'badge bg-warning';
+    }
+    if (status === 'intransit') {
+      return 'badge bg-info';
+    }
+    if (status === 'completed') {
+      return 'badge bg-success';
+    }
+    if (status === 'partiallyreceived') {
+      return 'badge bg-warning';
+    }
+    if (status === 'noprocessing') {
+      return 'badge bg-secondary';
+    }
+    return 'badge bg-secondary';
   }
 
   private mapApprovalStatusText(value: string): string {
@@ -519,3 +592,5 @@ export class TransferredStockOrdersComponent implements OnInit, OnDestroy {
     return stock.reason?.trim() || '';
   }
 }
+
+

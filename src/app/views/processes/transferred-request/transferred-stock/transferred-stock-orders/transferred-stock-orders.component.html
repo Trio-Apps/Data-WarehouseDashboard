@@ -27,6 +27,7 @@
               <th scope="col" class="bg-body-tertiary">{{ 'Created At' | translate }}</th>
               <th scope="col" class="bg-body-tertiary">{{ 'Due Date' | translate }}</th>
               <th scope="col" class="bg-body-tertiary">{{ 'Status' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Receiving Status' | translate }}</th>
               <th scope="col" class="bg-body-tertiary">{{ 'Approval Status' | translate }}</th>
               <th scope="col" class="bg-body-tertiary">{{ 'Comment' | translate }}</th>
               <th scope="col" class="bg-body-tertiary">{{ 'Items Count' | translate }}</th>
@@ -38,7 +39,7 @@
           <tbody>
             @if (loading) {
               <tr>
-                <td colspan="13" class="text-center py-4">
+                <td colspan="14" class="text-center py-4">
                   <span class="text-body-secondary">{{ 'Loading...' | translate }}</span>
                 </td>
               </tr>
@@ -48,13 +49,18 @@
                   <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
                   <td>{{ stock.transferredStockId || ('N/A' | translate) }}</td>
                   <td>{{ stock.transferredRequestId || 0 }}</td>
-                  <td>{{ stock.warehouseCode || ('#' + stock.warehouseId) }}</td>
+                  <td>{{ stock.warehouseName || stock.warehouseCode || ('#' + stock.warehouseId) }}</td>
                   <td>{{ stock.distinationWarehouseName || ('#' + stock.distinationWarehouseId) }}</td>
                   <td>{{ stock.createdAt | date:'short' }}</td>
                   <td>{{ stock.dueDate | date:'short' }}</td>
                   <td>
                     <span [class]="getStatusBadgeClass(stock)">
                       {{ getStatusText(stock) | translate }}
+                    </span>
+                  </td>
+                  <td>
+                    <span [class]="getReceivingStatusBadgeClass(stock)">
+                      {{ getReceivingStatusText(stock) | translate }}
                     </span>
                   </td>
                   <td>
@@ -73,6 +79,15 @@
                       (click)="onViewTransferredStock(stock)"
                       [title]="'View Stock' | translate">
                       <svg cIcon name="cil-list"></svg>
+                    </button>
+                    <button
+                      cButton
+                      color="secondary"
+                      size="sm"
+                      class="me-2"
+                      (click)="onDuplicateTransferredStock(stock)"
+                      [title]="'Duplicate' | translate">
+                      Duplicate
                     </button>
 
                     @if (!isApproved(stock)) {
@@ -118,7 +133,7 @@
               }
             } @else {
               <tr>
-                <td colspan="13" class="text-center py-4">
+                <td colspan="14" class="text-center py-4">
                   <span class="text-body-secondary">{{ 'No transferred stock orders found' | translate }}</span>
                 </td>
               </tr>
@@ -259,3 +274,7 @@
     </button>
   </c-modal-footer>
 </c-modal>
+
+
+
+

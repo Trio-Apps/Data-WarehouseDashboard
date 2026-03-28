@@ -114,6 +114,14 @@ export class QuantityAdjustmentStockService {
     );
   }
 
+  duplicateQuantityAdjustmentStock(quantityAdjustmentStockId: number): Observable<any> {
+    return this.http.post<any>(
+      `${this.baseUrl}QuantityAdjustmentStock/${quantityAdjustmentStockId}/duplicate`,
+      {},
+      this.headerOption
+    );
+  }
+
   getQuantityAdjustmentItemsByStockId(quantityAdjustmentStockId: number): Observable<any> {
     return this.http.get<any>(
       `${this.baseUrl}QuantityAdjustmentStockItem/quantity-adjustment-stock/${quantityAdjustmentStockId}`,
@@ -144,6 +152,7 @@ export class QuantityAdjustmentStockService {
       uoMEntry: number;
       quantity?: number;
       unitPrice?: number;
+      vatPercent?: number;
       itemId: number;
       quantityAdjustmentStockId?: number;
     }

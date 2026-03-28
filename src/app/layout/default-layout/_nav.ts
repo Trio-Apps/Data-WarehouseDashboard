@@ -96,12 +96,19 @@ export const navItems: NavItemWithPermissions[] = [
         icon: 'nav-icon-bullet',
         permissions: ['Approvals.GetMy']
       },
+      {
+        name: 'Reasons Management',
+        url: '/processes/reasons',
+        icon: 'nav-icon-bullet',
+        permissions: ['reason_get', 'Reason.Get']
+      },
 
  
    {
     title: true,
     name: 'Setting',
-    translationKey: 'nav.setting'
+    translationKey: 'nav.setting',
+    permissions: ['Saps.Get']
   },
    {
         name: 'SAP Auth Settings',

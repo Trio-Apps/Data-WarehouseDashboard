@@ -94,6 +94,10 @@ export class SalesReturnService {
     return this.http.delete<any>(`${this.baseUrl}SalesReturnOrder/${returnId}`, this.headerOption);
   }
 
+  duplicateReturnOrder(returnId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}SalesReturnOrder/${returnId}/duplicate`, {}, this.headerOption);
+  }
+
   /**
    * Revert a partially failed sales return order back to processing for SAP sync.
    */
@@ -121,6 +125,8 @@ export class SalesReturnService {
   addReturnItemManually(returnOrderId: number, itemData: {
     uoMEntry: number;
     quantity: number;
+    UnitPrice?: number;
+    VatPercent?: number;
     itemId: number;
   }): Observable<any> {
     const request: AddGeneralItemRequest = {

@@ -72,6 +72,9 @@
                 <!-- <button cButton color="warning" size="sm" class="me-2" (click)="onEditSale(sale)" title="Edit">
                   <svg cIcon name="cil-pencil"></svg>
                 </button> -->
+                <button cButton color="secondary" size="sm" class="me-2" (click)="onDuplicateSale(sale)" [title]="'Duplicate' | translate">
+                  Duplicate
+                </button>
                 <button cButton color="danger" size="sm" (click)="onDeleteSale(sale)" [title]="'Delete' | translate">
                   <svg cIcon name="cil-trash"></svg>
                 </button>

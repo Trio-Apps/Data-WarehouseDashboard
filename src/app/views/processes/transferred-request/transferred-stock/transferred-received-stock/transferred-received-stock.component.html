@@ -1,0 +1,206 @@
+<div class="container-fluid h-100 d-flex flex-column p-0">
+  <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
+    <c-card-header class="custom-header d-flex justify-content-between align-items-center">
+      <h4 class="mb-0 header-title">{{ 'Transferred Received Stock Orders' | translate }} - {{ 'Warehouse' | translate }} #{{ warehouseId }}</h4>
+      <div class="d-flex align-items-center gap-2">
+        <button cButton color="secondary" class="header-button" (click)="onBackToShowProcesses()">
+          <svg cIcon name="cil-arrow-left" class="me-2"></svg>
+          {{ 'Back' | translate }}
+        </button>
+      </div>
+    </c-card-header>
+
+    <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
+      <div class="table-container">
+        <table [hover]="true" [striped]="true" cTable class="mb-0">
+          <thead class="table-header">
+            <tr>
+              <th scope="col" class="bg-body-tertiary">#</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Stock ID' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Request ID' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'To Warehouse' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'From Warehouse' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Created At' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Due Date' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Status' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Receiving Status' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Approval Status' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Comment' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary">{{ 'Items Count' | translate }}</th>
+              <th scope="col" class="bg-body-tertiary text-center">{{ 'Actions' | translate }}</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @if (loading) {
+              <tr>
+                <td colspan="13" class="text-center py-4">
+                  <span class="text-body-secondary">{{ 'Loading...' | translate }}</span>
+                </td>
+              </tr>
+            } @else if (paginatedTransferredStocks.length > 0) {
+              @for (stock of paginatedTransferredStocks; track stock.transferredStockId || $index) {
+                <tr>
+                  <td>{{ (currentPage - 1) * itemsPerPage + $index + 1 }}</td>
+                  <td>{{ stock.transferredStockId || ('N/A' | translate) }}</td>
+                  <td>{{ stock.transferredRequestId || 0 }}</td>
+                  <td>{{ stock.distinationWarehouseName || ('#' + stock.distinationWarehouseId) }}</td>
+                  <td>{{ stock.warehouseName || stock.warehouseCode || ('#' + stock.warehouseId) }}</td>
+                  <td>{{ stock.createdAt | date:'short' }}</td>
+                  <td>{{ stock.dueDate | date:'short' }}</td>
+                  <td>
+                    <span [class]="getStatusBadgeClass(stock)">
+                      {{ getStatusText(stock) | translate }}
+                    </span>
+                  </td>
+                  <td>
+                    <span [class]="getReceivingStatusBadgeClass(stock)">
+                      {{ getReceivingStatusText(stock) | translate }}
+                    </span>
+                  </td>
+                  <td>
+                    <span [class]="getApprovalBadgeClass(stock)">
+                      {{ getApprovalStatusText(stock) | translate }}
+                    </span>
+                  </td>
+                  <td>{{ stock.comment || ('No comment' | translate) }}</td>
+                  <td>{{ stock.itemCount || 0 }}</td>
+                  <td class="text-center">
+                    <button
+                      cButton
+                      color="info"
+                      size="sm"
+                      (click)="onOpenReceiveModal(stock)"
+                      [title]="'Receive' | translate">
+                      {{ 'Action' | translate }}
+                    </button>
+                  </td>
+                </tr>
+              }
+            } @else {
+              <tr>
+                <td colspan="13" class="text-center py-4">
+                  <span class="text-body-secondary">{{ 'No transferred stock orders found' | translate }}</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      @if (totalPages > 0) {
+        <div class="pagination-container p-3 border-top">
+          <nav [attr.aria-label]="'Page navigation' | translate">
+            <ul class="pagination justify-content-center mb-2">
+              <li class="page-item" [class.disabled]="!hasPrevious">
+                <a
+                  class="page-link"
+                  (click)="onPreviousPage($event)"
+                  [attr.aria-label]="'Previous' | translate"
+                  [attr.tabindex]="!hasPrevious ? -1 : null"
+                  [class.disabled]="!hasPrevious"
+                  href="#">
+                  <span aria-hidden="true">&laquo;</span>
+                </a>
+              </li>
+
+              @for (page of getPageNumbers(); track page) {
+                <li class="page-item" [class.active]="page === currentPage">
+                  <a class="page-link" (click)="onPageChange(page, $event)" href="#">{{ page }}</a>
+                </li>
+              }
+
+              <li class="page-item" [class.disabled]="!hasNext">
+                <a
+                  class="page-link"
+                  (click)="onNextPage($event)"
+                  [attr.aria-label]="'Next' | translate"
+                  [attr.tabindex]="!hasNext ? -1 : null"
+                  [class.disabled]="!hasNext"
+                  href="#">
+                  <span aria-hidden="true">&raquo;</span>
+                </a>
+              </li>
+            </ul>
+          </nav>
+
+          <div class="text-body-secondary small text-center">
+            {{ ('Showing ' + ((currentPage - 1) * itemsPerPage + 1) + ' to ' + Math.min(currentPage * itemsPerPage, totalItems) + ' of ' + totalItems + ' transferred stock orders') | translate }}
+          </div>
+        </div>
+      }
+    </c-card-body>
+
+    <div class="form-section p-3 border-top">
+      <form [formGroup]="form" (ngSubmit)="onSearch()">
+        <c-row [gutter]="3">
+          <c-col [md]="2">
+            <label class="form-label">{{ 'Status' | translate }}</label>
+            <select cFormControl formControlName="status" class="form-select">
+              <option value="">{{ '-- All Statuses --' | translate }}</option>
+              <option value="Draft">{{ 'Draft' | translate }}</option>
+              <option value="Processing">{{ 'Processing' | translate }}</option>
+              <option value="Completed">{{ 'Completed' | translate }}</option>
+              <option value="PartiallyFailed">{{ 'PartiallyFailed' | translate }}</option>
+            </select>
+          </c-col>
+
+          <c-col [md]="2">
+            <label class="form-label">{{ 'Source Warehouse' | translate }}</label>
+            <input
+              cFormControl
+              type="text"
+              class="form-control supplier-picker-display"
+              [value]="selectedSourceWarehouseDisplay"
+              [placeholder]="'-- All Warehouses --' | translate"
+              readonly
+              (click)="onOpenSourceWarehouseModal()" />
+            <input type="hidden" formControlName="sourceWarehouseId" />
+          </c-col>
+
+          <c-col [md]="2">
+            <label class="form-label">{{ 'Posting Date' | translate }}</label>
+            <input cFormControl type="date" formControlName="postingDate" class="form-control" />
+          </c-col>
+
+          <c-col [md]="2">
+            <label class="form-label">{{ 'Due Date' | translate }}</label>
+            <input cFormControl type="date" formControlName="dueDate" class="form-control" />
+          </c-col>
+
+          <c-col [md]="2">
+            <label class="form-label" for="liveStatus">{{ 'Live Status' | translate }}</label>
+            <input
+              id="liveStatus"
+              cFormControl
+              class="form-control"
+              formControlName="liveStatus"
+              [placeholder]="'Any live status' | translate" />
+          </c-col>
+
+          <c-col [md]="2" class="d-flex align-items-end">
+            <button cButton color="primary" type="submit" class="w-100">
+              {{ 'Search' | translate }}
+            </button>
+          </c-col>
+        </c-row>
+      </form>
+    </div>
+  </c-card>
+</div>
+
+<app-search-destination-warehouse-modal
+  [visible]="showSourceWarehouseModal"
+  [sourceWarehouseId]="warehouseId"
+  (visibleChange)="onSourceWarehouseModalVisibleChange($event)"
+  (destinationWarehouseSelected)="onSourceWarehouseSelected($event)"
+  (clearSelected)="onSourceWarehouseCleared()">
+</app-search-destination-warehouse-modal>
+
+<app-received-modal
+  [visible]="showReceivedModal"
+  [stock]="selectedStockForReceive"
+  (visibleChange)="onReceiveModalVisibleChange($event)"
+  (saved)="onReceivedSaved()">
+</app-received-modal>
+

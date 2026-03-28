@@ -61,6 +61,17 @@ export class StockCountingService {
     return this.http.delete<any>(`${this.baseUrl}CountStock/${id}`, this.headerOption);
   }
 
+  retryOrderSap(id: number): Observable<any> {
+    return this.http.patch<any>(
+      `${this.baseUrl}CountStock/${id}/revert-partially-failed`,
+      {},
+      this.headerOption
+    );
+  }
+  duplicateOrder(id: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}CountStock/${id}/duplicate`, {}, this.headerOption);
+  }
+
   submitOrder(id: number, note?: string): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}CountStock/${id}/submit`, { note }, this.headerOption);
   }

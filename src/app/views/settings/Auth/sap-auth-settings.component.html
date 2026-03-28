@@ -2,10 +2,12 @@
   <c-card class="flex-grow-1 d-flex flex-column m-0 full-height-card">
     <c-card-header class="custom-header d-flex justify-content-between align-items-center">
       <h4 class="mb-0 header-title">SAP Authentication Settings</h4>
+      @if (canCreateSaps) {
       <button cButton color="primary" class="header-button" (click)="onAddSap()">
         <svg cIcon name="cil-plus" class="me-2"></svg>
         Add Sap
       </button>
+      }
     </c-card-header>
     <c-card-body class="flex-grow-1 d-flex flex-column p-0 card-body-container">
       <!-- Error Message -->
@@ -96,13 +98,21 @@
               <th scope="col" class="bg-body-tertiary">Company DB</th>
               <th scope="col" class="bg-body-tertiary">User Name</th>
               <th scope="col" class="bg-body-tertiary">Status</th>
+              @if (canManageRows) {
               <th scope="col" class="bg-body-tertiary text-center">Actions</th>
+              }
             </tr>
           </thead>
           <tbody>
-            @if (loadingSaps) {
+            @if (!canViewSaps) {
               <tr>
-                <td colspan="7" class="text-center py-4">
+                <td [attr.colspan]="tableColumnCount" class="text-center py-4">
+                  <span class="text-danger">You do not have permission to view SAP settings.</span>
+                </td>
+              </tr>
+            } @else if (loadingSaps) {
+              <tr>
+                <td [attr.colspan]="tableColumnCount" class="text-center py-4">
                   <span class="text-body-secondary">Loading...</span>
                 </td>
               </tr>
@@ -121,23 +131,28 @@
                       <span class="badge bg-danger">Inactive</span>
                     }
                   </td>
+                  @if (canManageRows) {
                   <td class="text-center">
+                    @if (canEditSaps) {
                     <button cButton color="info" size="sm" class="me-2" (click)="onEditSap(sap)">
                       <svg cIcon name="cil-pencil"></svg>
                     </button>
                     <button cButton color="warning" size="sm" class="me-2" (click)="onAction(sap)">
                       <svg cIcon name="cil-star"></svg>
                     </button>
+                    }
+                    @if (canDeleteSaps) {
                     <button cButton color="secondary" size="sm" (click)="onDeleteSap(sap)">
-                  <svg cIcon name="cil-check"></svg>
+                      <svg cIcon name="cil-check"></svg>
                     </button>
-                  
+                    }
                   </td>
+                  }
                 </tr>
               }
             } @else {
               <tr>
-                <td colspan="7" class="text-center py-4">
+                <td [attr.colspan]="tableColumnCount" class="text-center py-4">
                   <span class="text-body-secondary">No SAP connections found</span>
                 </td>
               </tr>

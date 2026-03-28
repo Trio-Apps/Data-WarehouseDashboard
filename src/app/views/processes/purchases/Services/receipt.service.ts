@@ -116,6 +116,10 @@ getReceiptsWithFilterationByWarehouse(
     return this.http.delete<any>(`${this.baseUrl}ReceiptPurchaseOrder/${receiptId}`, this.headerOption);
   }
 
+  duplicateReceipt(receiptId: number): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}ReceiptPurchaseOrder/${receiptId}/duplicate`, {}, this.headerOption);
+  }
+
   /**
    * Revert a partially failed receipt order back to processing for SAP sync.
    */
@@ -152,6 +156,7 @@ getReceiptsWithFilterationByWarehouse(
     uoMEntry: number;
     quantity: number;
     UnitPrice?: number;
+    VatPercent?: number;
     receiptPurchaseOrderId: number;
     itemId: number;
   }): Observable<any> {
