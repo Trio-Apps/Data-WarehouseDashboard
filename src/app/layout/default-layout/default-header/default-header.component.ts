@@ -329,6 +329,106 @@ export class DefaultHeaderComponent extends HeaderComponent implements OnInit, O
     await this.translationService.setLanguage(language);
   }
 
+  getNotificationTitle(notification: AppNotification): string {
+    if (this.currentLanguage() === 'ar') {
+      return notification.title;
+    }
 
+    const processName = this.getLocalizedProcessName(notification.processType, 'en');
+    const action = this.getNotificationAction(notification);
+    const isDraft = this.isDraftNotification(notification);
+
+    switch (action) {
+      case 'approved':
+        return `${processName} approved`;
+      case 'rejected':
+        return `${processName} rejected`;
+      case 'created':
+        return isDraft ? `${processName} saved as draft` : `${processName} created`;
+      default:
+        return `${processName} updated`;
+    }
+  }
+
+  getNotificationMessage(notification: AppNotification): string {
+    if (this.currentLanguage() === 'ar') {
+      return notification.message;
+    }
+
+    const processName = this.getLocalizedProcessName(notification.processType, 'en');
+    const referenceId = notification.referenceId ?? '';
+    const action = this.getNotificationAction(notification);
+    const isDraft = this.isDraftNotification(notification);
+
+    switch (action) {
+      case 'approved':
+        return `${processName} #${referenceId} has been approved.`;
+      case 'rejected':
+        return `${processName} #${referenceId} has been rejected.`;
+      case 'created':
+        return isDraft
+          ? `${processName} #${referenceId} has been saved as a draft.`
+          : `${processName} #${referenceId} has been created successfully.`;
+      default:
+        return `${processName} #${referenceId} has been updated.`;
+    }
+  }
+
+  private getNotificationAction(notification: AppNotification): 'created' | 'approved' | 'rejected' | 'updated' {
+    const value = `${notification.actionType} ${notification.title} ${notification.message}`.toLowerCase();
+
+    if (value.includes('approved') || value.includes('الموافقة')) {
+      return 'approved';
+    }
+
+    if (value.includes('rejected') || value.includes('الرفض')) {
+      return 'rejected';
+    }
+
+    if (value.includes('create') || value.includes('created') || value.includes('إنشاء')) {
+      return 'created';
+    }
+
+    return 'updated';
+  }
+
+  private isDraftNotification(notification: AppNotification): boolean {
+    const value = `${notification.title} ${notification.message}`.toLowerCase();
+    return value.includes('draft') || value.includes('مسودة');
+  }
+
+  private getLocalizedProcessName(processType?: string | null, language: AppLanguage = this.currentLanguage()): string {
+    const key = (processType ?? '').toLowerCase();
+
+    const processNames: Record<string, { ar: string; en: string }> = {
+      purchase: { ar: 'أمر الشراء', en: 'Purchase Order' },
+      sales: { ar: 'أمر البيع', en: 'Sales Order' },
+      production: { ar: 'أمر الإنتاج', en: 'Production Order' },
+      counting: { ar: 'أمر الجرد', en: 'Stock Count Order' },
+      receipt: { ar: 'أمر الاستلام', en: 'Receipt Order' },
+      goodsreturn: { ar: 'أمر مرتجع المشتريات', en: 'Goods Return Order' },
+      salesreturn: { ar: 'أمر المرتجع', en: 'Sales Return Order' },
+      deliverynote: { ar: 'أمر التسليم', en: 'Delivery Note Order' },
+      transferredrequest: { ar: 'طلب تحويل', en: 'Transfer Request' },
+      transferred: { ar: 'أمر التحويل', en: 'Transferred Stock Order' },
+      received: { ar: 'أمر الاستلام المخزني', en: 'Received Stock Order' },
+      quantityadjustment: { ar: 'أمر تسوية الكمية', en: 'Quantity Adjustment Order' }
+    };
+
+    const names = processNames[key];
+    if (names) {
+      return names[language];
+    }
+
+    return language === 'ar'
+      ? (notificationFallback(processType) || 'إشعار')
+      : (processType || 'Notification');
+  }
+
+
+}
+
+function notificationFallback(processType?: string | null): string {
+  return processType?.trim() || '';
 }
 

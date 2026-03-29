@@ -125,7 +125,7 @@
           <h6 cDropdownHeader class="notification-dropdown-header fw-semibold rounded-top">
             {{ 'notifications.title' | translate }}
           </h6>
-          <small class="notification-dropdown-subtitle">
+          <small class="notification-dropdown-subtitle" data-no-localize="true">
             {{ 'notifications.unreadCount' | translate:{ count: unreadNotifications } }}
           </small>
         </div>
@@ -164,9 +164,9 @@
               <span class="notification-item-icon" aria-hidden="true">
                 <svg cIcon name="cilDescription"></svg>
               </span>
-              <span class="notification-item-copy">
-                <span class="notification-item-title">{{ notification.title }}</span>
-                <small class="notification-item-message">{{ notification.message }}</small>
+              <span class="notification-item-copy" data-no-localize="true">
+                <span class="notification-item-title">{{ getNotificationTitle(notification) }}</span>
+                <small class="notification-item-message">{{ getNotificationMessage(notification) }}</small>
               </span>
             </button>
           </li>

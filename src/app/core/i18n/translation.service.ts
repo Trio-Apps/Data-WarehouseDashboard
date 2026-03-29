@@ -206,6 +206,10 @@ export class TranslationService {
       return;
     }
 
+    if (node instanceof Element && this.shouldSkipLocalization(node)) {
+      return;
+    }
+
     if (node.nodeType === Node.TEXT_NODE) {
       this.localizeTextNode(node as Text);
       return;
@@ -225,6 +229,11 @@ export class TranslationService {
 
   private localizeTextNode(textNode: Text): void {
     if (!this.shouldLocalizeDom()) {
+      return;
+    }
+
+    const parentElement = textNode.parentElement;
+    if (parentElement && this.shouldSkipLocalization(parentElement)) {
       return;
     }
 
@@ -263,6 +272,10 @@ export class TranslationService {
 
   private localizeElementAttributes(element: Element): void {
     if (!this.shouldLocalizeDom()) {
+      return;
+    }
+
+    if (this.shouldSkipLocalization(element)) {
       return;
     }
 
@@ -652,5 +665,9 @@ export class TranslationService {
     const location = this.document.defaultView?.location;
     const href = `${location?.pathname ?? ''}${location?.hash ?? ''}`.toLowerCase();
     return href.includes('/login');
+  }
+
+  private shouldSkipLocalization(element: Element): boolean {
+    return element.closest('[data-no-localize="true"]') !== null;
   }
 }
