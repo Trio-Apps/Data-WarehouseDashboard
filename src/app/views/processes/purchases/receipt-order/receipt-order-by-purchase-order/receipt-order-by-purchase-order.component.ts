@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, ChangeDetectorRef } from '@angular/core';
+import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -14,13 +14,16 @@ import {
   ModalModule
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
-import { PurchaseService } from './Services/purchase.service';
-import { Purchase, Supplier } from './Models/purchase.model';
+import { ReceiptService } from '../../Services/receipt.service';
+import { PurchaseService } from '../../Services/purchase.service';
+import { Receipt } from '../../Models/receipt';
+import { Supplier } from '../../Models/purchase.model';
 import { ToastrService } from 'ngx-toastr';
-import { SearchSupplierModalComponent } from './search-supplier-modal/search-supplier-modal.component';
+import { SearchSupplierModalComponent } from '../../search-supplier-modal/search-supplier-modal.component';
+import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
 @Component({
-  selector: 'app-purchases',
+  selector: 'app-receipt-order-by-purchase-order',
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -34,24 +37,25 @@ import { SearchSupplierModalComponent } from './search-supplier-modal/search-sup
     ModalModule,
     IconDirective,
     DatePipe,
-    SearchSupplierModalComponent
+    SearchSupplierModalComponent,
+    TranslatePipe
   ],
-  templateUrl: './purchases.component.html',
-  styleUrl: './purchases.component.scss',
+  templateUrl: './receipt-order-by-purchase-order.component.html',
+  styleUrl: './receipt-order-by-purchase-order.component.scss',
 })
-export class PurchasesComponent implements OnInit, OnDestroy {
+export class ReceiptOrderByPurchaseOrderComponent implements OnInit, OnDestroy {
   form!: FormGroup;
-  purchases: Purchase[] = [];
-  filteredPurchases: Purchase[] = [];
+  receipts: Receipt[] = [];
+  filteredReceipts: Receipt[] = [];
   suppliers: Supplier[] = [];
+  purchaseOrderId: number = 0;
   warehouseId: number = 0;
   selectedSupplierDisplay: string = '';
   showSupplierModal: boolean = false;
   showErrorModal: boolean = false;
   selectedErrorMessage: string = '';
-  retryingPurchaseIds: Set<number> = new Set<number>();
+  retryingReceiptIds: Set<number> = new Set<number>();
 
-  // Pagination
   currentPage: number = 1;
   itemsPerPage: number = 10;
   totalPages: number = 0;
@@ -60,25 +64,21 @@ export class PurchasesComponent implements OnInit, OnDestroy {
   hasNext: boolean = false;
   hasPrevious: boolean = false;
 
-  // Filter fields
   filterStatus: string = '';
   filterSupplierId: number | null = null;
   filterPostingDate: Date | null = null;
   filterDueDate: Date | null = null;
   filterLiveStatus: string = '';
-  // Flag to prevent double loading
+
   private isSearching: boolean = false;
-
-  // Expose Math to template
-  Math = Math;
-
-  // Subscriptions
   private queryParamsSubscription?: Subscription;
+  Math = Math;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
+    private receiptService: ReceiptService,
     private purchaseService: PurchaseService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
@@ -88,17 +88,16 @@ export class PurchasesComponent implements OnInit, OnDestroy {
       supplierId: [''],
       postingDate: [null],
       dueDate: [null],
-       liveStatus: ['']
+      liveStatus: ['']
     });
   }
 
   ngOnInit(): void {
-    this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
-  //  this.loadSuppliers();
+    this.purchaseOrderId = +this.route.snapshot.paramMap.get('purchaseOrderId')!;
+    this.warehouseId = +(this.route.snapshot.queryParamMap.get('warehouseId') || 0);
+   // this.loadSuppliers();
 
-    // Read pagination and filters from URL query params
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
-      // Skip loading if we're in the middle of a search operation
       if (this.isSearching) {
         return;
       }
@@ -118,9 +117,7 @@ export class PurchasesComponent implements OnInit, OnDestroy {
       this.filterPostingDate = postingDate ? new Date(postingDate) : null;
       this.filterDueDate = dueDate ? new Date(dueDate) : null;
       this.filterLiveStatus = liveStatus;
-        
 
-      // Update form values (for date inputs, use YYYY-MM-DD format)
       this.form.patchValue({
         status: status,
         supplierId: supplierId ?? '',
@@ -130,8 +127,8 @@ export class PurchasesComponent implements OnInit, OnDestroy {
       });
       this.syncSelectedSupplierDisplay();
 
-      if (this.warehouseId) {
-        this.loadPurchases();
+      if (this.purchaseOrderId) {
+        this.loadReceipts();
       }
     });
   }
@@ -142,25 +139,21 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     }
   }
 
-  loadPurchases(): void {
-    if (!this.warehouseId) return;
+  loadReceipts(): void {
+    if (!this.purchaseOrderId) return;
 
     this.loading = true;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
 
-    // Get form values for dates (input type="date" returns YYYY-MM-DD string)
     const formValue = this.form.value;
     const supplierId = formValue.supplierId ? +formValue.supplierId : undefined;
     const postingDateStr = formValue.postingDate || undefined;
     const dueDateStr = formValue.dueDate || undefined;
-   console.log('Loading purchases with filters:', {
 
-      liveStatus: this.filterLiveStatus
-    });
-    this.purchaseService.getPurchasesWithFilterationByWarehouse(
+    this.receiptService.getReceiptsWithFilterationByPurchaseOrder(
       this.currentPage,
       this.itemsPerPage,
-      this.warehouseId,
+      this.purchaseOrderId,
       supplierId,
       this.filterLiveStatus || undefined,
       this.filterStatus || undefined,
@@ -168,15 +161,10 @@ export class PurchasesComponent implements OnInit, OnDestroy {
       dueDateStr
     ).subscribe({
       next: (res: any) => {
-        //console.log(res);
-
-        // Extract data from response
         if (res.data) {
-          console.log(res.data);
-          this.purchases = res.data.data || [];
-          this.filteredPurchases = this.purchases;
-          //console.log(this.purchases)
-          // Get pagination info from backend
+          this.receipts = res.data.data || [];
+          console.log("Receipts",this.receipts);
+          this.filteredReceipts = this.receipts;
           this.currentPage = res.data.pageNumber || this.currentPage;
           this.itemsPerPage = res.data.pageSize || this.itemsPerPage;
           this.totalPages = res.data.totalPages || 0;
@@ -184,41 +172,31 @@ export class PurchasesComponent implements OnInit, OnDestroy {
           this.hasNext = res.data.hasNext || false;
           this.hasPrevious = res.data.hasPrevious || false;
 
-          if (this.purchases.length > 0) {
-            this.toastr.success(`Loaded ${this.purchases.length} purchase(s) successfully`, 'Success');
+          if (this.receipts.length > 0) {
+            this.toastr.success(`Loaded ${this.receipts.length} receipt(s) successfully`, 'Success');
           }
         }
 
         this.loading = false;
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
-        console.error('Error loading purchases:', err);
+        console.error('Error loading receipts:', err);
         this.loading = false;
-        this.purchases = [];
-        this.filteredPurchases = [];
+        this.receipts = [];
+        this.filteredReceipts = [];
         this.totalItems = 0;
         this.totalPages = 0;
         this.hasNext = false;
         this.hasPrevious = false;
-        this.toastr.error('Failed to load purchases. Please try again.', 'Error');
-        this.cdr.detectChanges();
+        this.toastr.error('Failed to load receipts. Please try again.', 'Error');
+        this.cdr.markForCheck();
       }
     });
   }
 
-  /**
-   * Format date to ISO string for API
-   */
-  private formatDateToISOString(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
-  }
-
-  get paginatedPurchases(): Purchase[] {
-    return this.filteredPurchases;
+  get paginatedReceipts(): Receipt[] {
+    return this.filteredReceipts;
   }
 
   onPageChange(page: number, event?: Event): void {
@@ -226,50 +204,34 @@ export class PurchasesComponent implements OnInit, OnDestroy {
       event.preventDefault();
     }
     this.loading = true;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
 
-    // Validate page number
     if (page < 1) page = 1;
     if (page > this.totalPages) page = this.totalPages;
 
     if (page !== this.currentPage) {
-      // Update URL with new page and filters - this will trigger queryParams subscription and loadPurchases
       this.updateUrlWithFilters(page, this.itemsPerPage);
     }
   }
 
   onSearch(): void {
-    // Set flag to prevent queryParams subscription from loading
     this.isSearching = true;
 
-    // Get form values
     const formValue = this.form.value;
-    
-    // Update search filters
     this.filterStatus = formValue.status || '';
     this.filterSupplierId = formValue.supplierId ? +formValue.supplierId : null;
     this.filterPostingDate = formValue.postingDate ? new Date(formValue.postingDate) : null;
     this.filterDueDate = formValue.dueDate ? new Date(formValue.dueDate) : null;
     this.filterLiveStatus = formValue.liveStatus || '';
-     
-
-    // Reset to first page when searching
     this.currentPage = 1;
 
-    
-    // Update URL with filters
     this.updateUrlWithFilters(1, this.itemsPerPage);
-    
-    // Load purchases directly (like users component)
-    this.loadPurchases();
-    
-    // Reset flag after a short delay to allow URL update
+    this.loadReceipts();
+
     setTimeout(() => {
       this.isSearching = false;
     }, 100);
   }
-
-  
 
   private updateUrlWithFilters(page: number, pageSize: number): void {
     const formValue = this.form.value;
@@ -278,26 +240,22 @@ export class PurchasesComponent implements OnInit, OnDestroy {
       pageSize: pageSize
     };
 
-    // Only add filters if they have values (empty filters should be removed from URL)
     if (formValue.status) {
       queryParams.status = formValue.status;
     }
     if (formValue.supplierId) {
       queryParams.supplierId = formValue.supplierId;
     }
-    // input type="date" already returns YYYY-MM-DD format
     if (formValue.postingDate) {
       queryParams.postingDate = formValue.postingDate;
     }
-
     if (formValue.dueDate) {
       queryParams.dueDate = formValue.dueDate;
     }
-
     if (formValue.liveStatus) {
       queryParams.liveStatus = formValue.liveStatus;
     }
-    // Use replace instead of merge to remove empty filters from URL
+
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams: queryParams,
@@ -321,12 +279,12 @@ export class PurchasesComponent implements OnInit, OnDestroy {
           .filter((s: Supplier) => !!s.supplierId);
         this.syncSelectedSupplierDisplay();
 
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       },
       error: (err) => {
         console.error('Error loading suppliers:', err);
         this.toastr.error('Failed to load suppliers. Please try again.', 'Error');
-        this.cdr.detectChanges();
+        this.cdr.markForCheck();
       }
     });
   }
@@ -349,7 +307,7 @@ export class PurchasesComponent implements OnInit, OnDestroy {
       this.suppliers = [...this.suppliers, supplier];
     }
 
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   onSupplierCleared(): void {
@@ -357,7 +315,7 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     this.filterSupplierId = null;
     this.selectedSupplierDisplay = '';
     this.showSupplierModal = false;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   private mapSupplier(s: any): Supplier {
@@ -382,7 +340,6 @@ export class PurchasesComponent implements OnInit, OnDestroy {
       ? (selectedSupplier.supplierCode || selectedSupplier.supplierName || `#${supplierId}`)
       : `#${supplierId}`;
   }
-
 
   onNextPage(event?: Event): void {
     if (event) {
@@ -419,90 +376,86 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     return pages;
   }
 
-  onAddPurchase(): void {
-    this.router.navigate(['/processes/purchases/purchase-form', this.warehouseId]);
-  }
-
-  onBackToShowProcesses(): void {
-    this.router.navigate(['inquiries/show-purchasing-processes', this.warehouseId]);
-  }
-
-  onEditPurchase(purchase: Purchase): void {
-    //console.log(purchase.purchaseOrderId);
-    if (purchase.purchaseOrderId) {
-      this.router.navigate(['/processes/purchases/purchase-form', this.warehouseId, purchase.purchaseOrderId]);
+  onViewReceiptOrder(receipt: Receipt): void {
+    if (receipt.receiptPurchaseOrderId) {
+      this.router.navigate([
+        '/processes/purchases/receipt-order',
+        this.purchaseOrderId,
+        receipt.receiptPurchaseOrderId
+      ]);
     }
   }
 
-  onDuplicatePurchase(purchase: Purchase): void {
-    if (!purchase.purchaseOrderId) {
-      return;
-    }
+  onViewReturnOrder(receipt: Receipt): void {
+  
+ this.router.navigate([
+        '/processes/purchases/goods-return-order', this.purchaseOrderId, receipt.receiptPurchaseOrderId, receipt.returnOrderId],);
+    
+  }
 
-    if (!confirm(`Are you sure you want to duplicate purchase #${purchase.purchaseOrderId}?`)) {
-      return;
-    }
-
-    this.purchaseService.duplicatePurchase(purchase.purchaseOrderId).subscribe({
-      next: () => {
-        this.toastr.success('Purchase duplicated successfully', 'Success');
-        this.loadPurchases();
-        this.cdr.detectChanges();
-      },
-      error: (err) => {
-        console.error('Error duplicating purchase:', err);
-        const errorMessage = err.error?.message || 'Error duplicating purchase. Please try again.';
-        this.toastr.error(errorMessage, 'Error');
-      }
+  onAddReceipt(): void {
+    this.router.navigate(['/processes/purchases/receipt-form', this.purchaseOrderId], {
+      queryParams: this.warehouseId ? { warehouseId: this.warehouseId } : {}
     });
   }
 
-  onDeletePurchase(purchase: Purchase): void {
-    if (confirm(`Are you sure you want to delete purchase #${purchase.purchaseOrderId}?`)) {
-      if (purchase.purchaseOrderId) {
-        this.purchaseService.deletePurchase(purchase.purchaseOrderId).subscribe({
-          next: () => {
-            //console.log('Purchase deleted');
-            this.toastr.success(`Purchase deleted successfully`, 'Success');
-            this.loadPurchases();
-            this.cdr.detectChanges();
-          },
-          error: (err) => {
-            console.error('Error deleting purchase:', err);
-            const errorMessage = err.error?.message || 'Error deleting purchase. Please try again.';
-            this.toastr.error(errorMessage, 'Error');
-          }
-        });
-      }
+  onBackToShowProcesses(): void {
+    if (this.warehouseId) {
+      this.router.navigate(['/processes/purchases', this.warehouseId]);
+      return;
+    }
+    this.router.navigate(['/processes/purchases', 0]);
+  }
+
+  onDeleteReceipt(receipt: Receipt): void {
+    if (!receipt.receiptPurchaseOrderId) {
+      return;
+    }
+    if (confirm(`Are you sure you want to delete receipt #${receipt.receiptPurchaseOrderId}?`)) {
+      this.receiptService.deleteReceipt(receipt.receiptPurchaseOrderId).subscribe({
+        next: () => {
+          this.toastr.success('Receipt deleted successfully', 'Success');
+          this.loadReceipts();
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Error deleting receipt:', err);
+          const errorMessage = err.error?.message || 'Error deleting receipt. Please try again.';
+          this.toastr.error(errorMessage, 'Error');
+        }
+      });
     }
   }
 
-  onViewPurchaseItems(purchase: Purchase): void {
-    if (purchase.purchaseOrderId) {
-      this.router.navigate(['/processes/purchases/purchase-items', purchase.purchaseOrderId]);
+  onDuplicateReceipt(receipt: Receipt): void {
+    if (!receipt.receiptPurchaseOrderId) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to duplicate receipt #${receipt.receiptPurchaseOrderId}?`)) {
+      this.receiptService.duplicateReceipt(receipt.receiptPurchaseOrderId).subscribe({
+        next: () => {
+          this.toastr.success('Receipt duplicated successfully', 'Success');
+          this.loadReceipts();
+          this.cdr.markForCheck();
+        },
+        error: (err) => {
+          console.error('Error duplicating receipt:', err);
+          const errorMessage = err.error?.message || 'Error duplicating receipt. Please try again.';
+          this.toastr.error(errorMessage, 'Error');
+        }
+      });
     }
   }
-  
 
-  onViewReceiptOrder(purchase: Purchase): void {
-    if (purchase.purchaseOrderId) {
-      this.router.navigate(
-        ['/processes/purchases/receipt-order-by-purchase-order', purchase.purchaseOrderId],
-        { queryParams: { warehouseId: this.warehouseId } }
-      );
-    }
+  hasErrorMessage(receipt: Receipt): boolean {
+    return !!receipt.errorMessage?.trim();
   }
 
-
-  hasErrorMessage(purchase: Purchase): boolean {
-    return !!purchase.errorMessage?.trim();
-   // return true;
-  }
-
-  onOpenErrorModal(purchase: Purchase): void {
-    this.selectedErrorMessage = purchase.errorMessage?.trim() || 'No error message available.';
+  onOpenErrorModal(receipt: Receipt): void {
+    this.selectedErrorMessage = receipt.errorMessage?.trim() || 'No error message available.';
     this.showErrorModal = true;
-    this.cdr.detectChanges();
+    this.cdr.markForCheck();
   }
 
   onErrorModalVisibleChange(visible: boolean): void {
@@ -512,109 +465,102 @@ export class PurchasesComponent implements OnInit, OnDestroy {
     }
   }
 
-  isRetryingSap(purchase: Purchase): boolean {
-    return !!purchase.purchaseOrderId && this.retryingPurchaseIds.has(purchase.purchaseOrderId);
+  isRetryingSap(receipt: Receipt): boolean {
+    return !!receipt.receiptPurchaseOrderId && this.retryingReceiptIds.has(receipt.receiptPurchaseOrderId);
   }
 
-  onRetrySap(purchase: Purchase): void {
-    const purchaseOrderId = purchase.purchaseOrderId;
-    if (!purchaseOrderId || this.retryingPurchaseIds.has(purchaseOrderId)) {
+  onRetrySap(receipt: Receipt): void {
+    const receiptPurchaseOrderId = receipt.receiptPurchaseOrderId;
+    if (!receiptPurchaseOrderId || this.retryingReceiptIds.has(receiptPurchaseOrderId)) {
       return;
     }
 
-    this.retryingPurchaseIds.add(purchaseOrderId);
-    this.purchaseService.retryPurchaseSap(purchaseOrderId).subscribe({
+    this.retryingReceiptIds.add(receiptPurchaseOrderId);
+    this.receiptService.retryReceiptSap(receiptPurchaseOrderId).subscribe({
       next: () => {
-        this.toastr.success(`Sync SAP requested for order #${purchaseOrderId}`, 'Success');
-       
-
+        this.toastr.success(`Sync SAP requested for receipt #${receiptPurchaseOrderId}`, 'Success');
         setTimeout(() => {
-          this.retryingPurchaseIds.delete(purchaseOrderId);
-          this.loadPurchases();
-          this.cdr.detectChanges();
-        }, 5000);
-      
-
+          this.retryingReceiptIds.delete(receiptPurchaseOrderId);
+          this.loadReceipts();
+          this.cdr.markForCheck();
+        }, 10000);
       },
       error: (err) => {
         console.error('Error syncing SAP:', err);
         const errorMessage = err.error?.message || 'Failed to sync SAP. Please try again.';
         this.toastr.error(errorMessage, 'Error');
-        this.retryingPurchaseIds.delete(purchaseOrderId);
-        this.cdr.detectChanges();
+        this.retryingReceiptIds.delete(receiptPurchaseOrderId);
+        this.cdr.markForCheck();
       }
     });
   }
 
+  getStatusBadgeClass(receipt: Receipt): string {
+    switch (receipt.status) {
+      case 'Draft':
+        return 'badge bg-warning';
+      case 'Processing':
+        return 'badge bg-info';
+      case 'Completed':
+      case 'Final':
+        return 'badge bg-success';
+      case 'PartiallyFailed':
+        return 'badge bg-danger';
+      default:
+        return 'badge bg-secondary';
+    }
+  }
 
+  getStatusText(receipt: Receipt): string {
+    return receipt.status;
+  }
 
-//type PurchaseStatus = 'Draft' | 'Processing' | 'Final';
+  private mapApprovalStatusText(value: string): string {
+    const normalized = value.trim();
+    switch (normalized) {
+      case '1':
+        return 'InProgress';
+      case '2':
+        return 'Approved';
+      case '3':
+        return 'Rejected';
+      default:
+        return normalized;
+    }
+  }
 
-getStatusBadgeClass(purchase: Purchase): string {
-  switch (purchase.status) {
-    case 'Draft':
-      return 'badge bg-warning';
-    case 'Processing':
-      return 'badge bg-info';
-    case 'Completed':
-      return 'badge bg-success';
-       case 'PartiallyFailed':
-      return 'badge bg-danger';
-    default:
+  isApproved(receipt: Receipt): boolean {
+    const rawStatus = receipt.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return false;
+    }
+    return this.mapApprovalStatusText(String(rawStatus)) === 'Approved';
+  }
+
+  getApprovalStatusText(receipt: Receipt): string {
+    const rawStatus = receipt.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
+      return 'not found';
+    }
+    return this.mapApprovalStatusText(String(rawStatus));
+  }
+
+  getApprovalBadgeClass(receipt: Receipt): string {
+    const rawStatus = receipt.approvalStatus;
+    if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
       return 'badge bg-secondary';
+    }
+    const statusText = this.mapApprovalStatusText(String(rawStatus));
+    switch (statusText) {
+      case 'Approved':
+        return 'badge bg-success';
+      case 'Rejected':
+        return 'badge bg-danger';
+      case 'InProgress':
+        return 'badge bg-info';
+      default:
+        return 'badge bg-secondary';
+    }
   }
 }
 
-getStatusText(purchase: Purchase): string {
-  return purchase.status;
-}
-
-private mapApprovalStatusText(value: string): string {
-  const normalized = value.trim();
-  switch (normalized) {
-    case '1':
-      return 'InProgress';
-    case '2':
-      return 'Approved';
-    case '3':
-      return 'Rejected';
-    default:
-      return normalized;
-  }
-}
-
-isApproved(purchase: Purchase): boolean {
-  const rawStatus = purchase.approvalStatus;
-  if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
-    return false;
-  }
-  return this.mapApprovalStatusText(String(rawStatus)) === 'Approved';
-}
-
-getApprovalStatusText(purchase: Purchase): string {
-  const rawStatus = purchase.approvalStatus;
-  if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
-    return 'not found';
-  }
-  return this.mapApprovalStatusText(String(rawStatus));
-}
-
-getApprovalBadgeClass(purchase: Purchase): string {
-  const rawStatus = purchase.approvalStatus;
-  if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
-    return 'badge bg-secondary';
-  }
-  const statusText = this.mapApprovalStatusText(String(rawStatus));
-  switch (statusText) {
-    case 'Approved':
-      return 'badge bg-success';
-    case 'Rejected':
-      return 'badge bg-danger';
-    case 'InProgress':
-      return 'badge bg-info';
-    default:
-      return 'badge bg-secondary';
-  }
-}
-
-}

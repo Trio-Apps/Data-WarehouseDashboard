@@ -53,6 +53,13 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'receipt-order-by-purchase-order/:purchaseOrderId',
+        loadComponent: () => import('./receipt-order/receipt-order-by-purchase-order/receipt-order-by-purchase-order.component').then(m => m.ReceiptOrderByPurchaseOrderComponent),
+        data: {
+          title: 'Receipt Orders'
+        }
+      },
+      {
         path: 'receipt-form/:purchaseOrderId',
         loadComponent: () => import('./receipt-order/receipt-form/receipt-form.component').then(m => m.ReceiptFormComponent),
         data: { 

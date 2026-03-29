@@ -74,6 +74,41 @@ getReceiptsWithFilterationByWarehouse(
   });
 }
 
+getReceiptsWithFilterationByPurchaseOrder(
+  pageNumber: number,
+  pageSize: number,
+  purchaseOrderId: number,
+  supplierId?: number,
+  liveStatus?: string,
+  status?: string,
+  postingDate?: string,
+  dueDate?: string
+): Observable<ReceiptResponse> {
+  const baseUrl = `${this.baseUrl}ReceiptPurchaseOrder/dashboard/purchase-order/status/posting-date/due-date/${purchaseOrderId}/${pageNumber}/${pageSize}`;
+  let params = new HttpParams();
+
+  if (supplierId) {
+    params = params.set('supplierId', supplierId);
+  }
+  if (status) {
+    params = params.set('status', status);
+  }
+  if (postingDate) {
+    params = params.set('postingDate', postingDate);
+  }
+  if (dueDate) {
+    params = params.set('dueDate', dueDate);
+  }
+  if (liveStatus) {
+    params = params.set('liveStatus', liveStatus);
+  }
+
+  return this.http.get<ReceiptResponse>(baseUrl, {
+    headers: this.headerOption.headers,
+    params: params
+  });
+}
+
   /**
    * Get receipt by purchase order ID
    */
