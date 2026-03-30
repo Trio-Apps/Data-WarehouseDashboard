@@ -63,6 +63,44 @@ export class GoodsReturnService {
   }
 
   /**
+   * Get all Goods Return orders for a receipt purchase order with pagination
+   * @param receiptPurchaseOrderId Receipt Purchase Order ID
+   * @param pageNumber Page number (1-based)
+   * @param pageSize Number of items per page
+   */
+  getGoodsReturnOrdersWithFilterationByReceiptPurchaseOrder(
+    pageNumber: number,
+    pageSize: number,
+    receiptPurchaseOrderId: number,
+    supplierId?: number,
+    status?: string,
+    postingDate?: string,
+    dueDate?: string
+  ): Observable<any> {
+    const baseUrl = `${this.baseUrl}GoodsReturnOrder/dashboard/warehouse/status/posting-date/due-date/${receiptPurchaseOrderId}/${pageNumber}/${pageSize}`;
+
+    let params = new HttpParams();
+
+    if (supplierId) {
+      params = params.set('supplierId', supplierId);
+    }
+    if (status) {
+      params = params.set('status', status);
+    }
+    if (postingDate) {
+      params = params.set('postingDate', postingDate);
+    }
+    if (dueDate) {
+      params = params.set('dueDate', dueDate);
+    }
+
+    return this.http.get<any>(baseUrl, {
+      headers: this.headerOption.headers,
+      params: params
+    });
+  }
+
+  /**
    * Get Return by Receipt order ID
    */
 

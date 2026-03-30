@@ -81,6 +81,42 @@ export class TransferredStockService {
     });
   }
 
+  getTransferredStocksWithFilterationByTransferredRequest(
+    pageNumber: number,
+    pageSize: number,
+    transferredRequestId: number,
+    destinationWarehouseId?: number,
+    liveStatus?: string,
+    status?: string,
+    postingDate?: string,
+    dueDate?: string
+  ): Observable<TransferredStockResponse> {
+    const url = `${this.baseUrl}TransferredStock/dashboard/transferred-request/status/posting-date/due-date/${transferredRequestId}/${pageNumber}/${pageSize}`;
+
+    let params = new HttpParams();
+
+    if (destinationWarehouseId) {
+      params = params.set('destinationWarehouseId', destinationWarehouseId);
+    }
+    if (status) {
+      params = params.set('status', status);
+    }
+    if (postingDate) {
+      params = params.set('postingDate', postingDate);
+    }
+    if (dueDate) {
+      params = params.set('dueDate', dueDate);
+    }
+    if (liveStatus) {
+      params = params.set('liveStatus', liveStatus);
+    }
+
+    return this.http.get<TransferredStockResponse>(url, {
+      headers: this.headerOption.headers,
+      params
+    });
+  }
+
   getReceivedTransferredStocksWithFilterationByWarehouse(
     pageNumber: number,
     pageSize: number,

@@ -1,0 +1,635 @@
+/* ===== Emerald Mint Theme (from JSON) ===== */
+:host{
+  display:block;
+  height:100%;
+  width:100%;
+  overflow:hidden;
+
+  --gradient-main: linear-gradient(135deg, #286A61 0%, #00EBB5 100%);
+  --primary-brand: #286A61;
+  --accent-mint: #00EBB5;
+
+  --bg: #F0F7F5;
+  --surface: #FFFFFF;
+
+  --text-heading: #1B3D38;
+  --text-body: #3A524E;
+  --text-muted: #7A928E;
+
+  --card-radius: 24px;
+  --card-shadow: 0 12px 30px rgba(40, 106, 97, 0.08);
+  --card-border: 1px solid rgba(40, 106, 97, 0.05);
+
+  --btn-radius: 12px;
+
+  font-family:'Inter','Plus Jakarta Sans',sans-serif;
+}
+
+/* ===== Background ===== */
+.container-fluid{
+  height:calc(100vh - 60px);
+  overflow:hidden;
+  padding:0 !important;
+  background: var(--bg);
+  position:relative;
+}
+
+.container-fluid::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background:
+    radial-gradient(circle at 14% 20%, rgba(0,235,181,0.05) 0 140px, transparent 141px),
+    radial-gradient(circle at 88% 18%, rgba(0,235,181,0.05) 0 180px, transparent 181px),
+    radial-gradient(circle at 75% 82%, rgba(0,235,181,0.05) 0 160px, transparent 161px);
+}
+
+/* ===== Card ===== */
+c-card{
+  height:100%;
+  display:flex;
+  flex-direction:column;
+
+  background:var(--surface);
+  border-radius:var(--card-radius);
+  border:var(--card-border);
+  box-shadow:var(--card-shadow);
+}
+
+c-card.full-height-card{
+  height:100%;
+  min-height:100%;
+}
+
+/* ===== Header ===== */
+.custom-header{
+  background:var(--gradient-main);
+  border:none;
+  padding:1.25rem 1.5rem;
+  color:#fff;
+
+  border-top-left-radius:var(--card-radius);
+  border-top-right-radius:var(--card-radius);
+
+  box-shadow:0 12px 24px rgba(40,106,97,0.14);
+}
+
+.custom-header .header-title{
+  color:#fff;
+  font-weight:700;
+  letter-spacing:-0.02em;
+  margin:0;
+}
+
+.custom-header .header-button{
+  border-radius:var(--btn-radius);
+  background:rgba(255,255,255,0.18);
+  border:1px solid rgba(255,255,255,0.35);
+  color:#fff;
+  padding:0.6rem 0.95rem;
+  font-weight:600;
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+.custom-header .header-button:hover{
+  background:rgba(255,255,255,0.26);
+  border-color:rgba(255,255,255,0.5);
+  transform:translateY(-1px);
+  box-shadow:0 12px 20px rgba(0,0,0,0.18);
+  color:#fff;
+}
+
+.custom-header .header-button:active{
+  transform:translateY(0);
+  box-shadow:none;
+}
+
+.custom-header .header-button svg{
+  color:#fff;
+}
+
+/* ===== Body container ===== */
+.card-body-container{
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+}
+
+/* ===== Table container ===== */
+.table-container{
+  flex:1;
+  overflow-y:auto;
+  overflow-x:auto;
+  min-height:0;
+  max-height:calc(100vh - 320px);
+  padding:14px 14px 0 14px;
+}
+
+.table-container table{
+  width:100%;
+  table-layout:auto;
+  margin-bottom:0;
+
+  background:var(--surface);
+  border-radius:18px;
+  border:1px solid rgba(40,106,97,0.06);
+  overflow:hidden;
+}
+
+/* sticky header */
+.table-container thead{
+  position:sticky;
+  top:0;
+  z-index:10;
+  background:var(--surface);
+}
+
+.table-container thead th{
+  background:rgba(40,106,97,0.06) !important;
+  border-bottom:1px solid rgba(40,106,97,0.12);
+  color:var(--text-heading);
+  white-space:nowrap;
+  padding:0.85rem 0.9rem;
+  font-weight:700;
+  letter-spacing:-0.01em;
+}
+
+/* rows */
+.table-container tbody tr{
+  transition: background .12s ease;
+}
+
+.table-container tbody tr:hover{
+  background:rgba(0,235,181,0.08);
+}
+
+.table-container tbody td{
+  vertical-align:middle;
+  white-space:nowrap;
+  padding:0.85rem 0.9rem;
+  color:var(--text-body);
+  border-bottom:1px solid rgba(40,106,97,0.06);
+}
+
+/* ===== Badges ===== */
+.badge{
+  padding:0.35rem 0.6rem;
+  font-size:0.82rem;
+  border-radius:999px;
+  font-weight:700;
+  border:1px solid transparent;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 14px rgba(40,106,97,0.08);
+}
+
+.badge.bg-warning{
+  background: rgba(255, 193, 7, 0.22) !important;
+  color: #7a5b00 !important;
+  border-color: rgba(255, 193, 7, 0.45);
+}
+
+.badge.bg-info{
+  background: rgba(124, 199, 232, 0.22) !important;
+  color: var(--text-heading) !important;
+  border: 1px solid rgba(124, 199, 232, 0.45);
+}
+
+.badge.bg-success{
+  background: rgba(25, 135, 84, 0.2) !important;
+  color: #0f5132 !important;
+  border-color: rgba(25, 135, 84, 0.42);
+}
+
+.badge.bg-danger{
+  background: rgba(220, 53, 69, 0.2) !important;
+  color: #842029 !important;
+  border-color: rgba(220, 53, 69, 0.4);
+}
+
+.badge.bg-secondary{
+  background: rgba(108, 117, 125, 0.2) !important;
+  color: #495057 !important;
+  border-color: rgba(108, 117, 125, 0.36);
+}
+
+.status-action-button{
+  border:1px solid transparent;
+  border-radius:999px;
+  background:rgba(255,255,255,0.25);
+  padding:0.25rem 0.65rem;
+  font-size:0.78rem;
+  font-weight:700;
+  line-height:1.2;
+  backdrop-filter: blur(8px);
+  box-shadow: 0 6px 12px rgba(40,106,97,0.08);
+  transition:transform .12s ease, box-shadow .12s ease, opacity .12s ease, filter .12s ease;
+}
+
+.status-action-button:not(:disabled):hover{
+  transform:translateY(-1px);
+  box-shadow:0 10px 18px rgba(40,106,97,0.13);
+  filter:saturate(1.05);
+}
+
+.status-action-button:disabled{
+  opacity:.7;
+  cursor:not-allowed;
+}
+
+.status-action-button-error{
+  background:rgba(220,53,69,0.18);
+  color:#dc3545;
+  border-color:rgba(220,53,69,0.4);
+}
+
+.status-action-button-sync{
+  background:rgba(255,193,7,0.2);
+  color:#997404;
+  border-color:rgba(255,193,7,0.45);
+}
+
+/* ===== Error Modal ===== */
+c-modal.purchase-error-modal .modal-content{
+  border-radius: var(--card-radius);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+c-modal.purchase-error-modal c-modal-header{
+  background: var(--gradient-main);
+  color: #fff;
+  border: none;
+  padding: 1.1rem 1.25rem;
+}
+
+c-modal.purchase-error-modal c-modal-header h5[cModalTitle],
+c-modal.purchase-error-modal c-modal-header h5{
+  margin: 0;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+c-modal.purchase-error-modal c-modal-body{
+  background: var(--surface);
+  padding: 1.25rem;
+}
+
+c-modal.purchase-error-modal c-modal-footer{
+  background: rgba(240, 247, 245, 0.75);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(40, 106, 97, 0.08);
+  padding: 1rem 1.25rem;
+}
+
+.purchase-error-title{
+  color: #dc3545;
+  font-weight: 700;
+  margin-bottom: 0.65rem;
+}
+
+.purchase-error-content{
+  white-space: pre-wrap;
+  border: 1px solid rgba(220, 53, 69, 0.2);
+  background: rgba(220, 53, 69, 0.06);
+  border-radius: 12px;
+  padding: 0.85rem 0.9rem;
+  color: var(--text-body);
+}
+
+c-modal.purchase-error-modal .purchase-error-close-btn{
+  border-radius: var(--btn-radius);
+  font-weight: 700;
+  background: rgba(40, 106, 97, 0.1);
+  border: 1px solid rgba(40, 106, 97, 0.16);
+  color: var(--text-heading);
+}
+
+c-modal.purchase-error-modal .purchase-error-close-btn:hover{
+  background: rgba(0, 235, 181, 0.14);
+  border-color: rgba(0, 235, 181, 0.3);
+  box-shadow: 0 12px 22px rgba(40, 106, 97, 0.1);
+  transform: translateY(-1px);
+}
+
+/* action buttons */
+.table-container button[cButton]{
+  border-radius:10px;
+  border:1px solid rgba(255,255,255,0.38);
+  background: rgba(255,255,255,0.22);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 8px 16px rgba(40,106,97,0.1);
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease, background .12s ease, border-color .12s ease;
+}
+
+.table-container button[cButton]:hover{
+  transform:translateY(-1px);
+  box-shadow:0 12px 20px rgba(40,106,97,0.15);
+  filter:saturate(1.05);
+}
+
+.table-container button[cButton]:active{
+  transform:translateY(0);
+  box-shadow:none;
+}
+
+.table-container button[cButton] svg{
+  color: currentColor;
+}
+
+.table-container button[cButton][color="info"]{
+  background: rgba(13, 202, 240, 0.2);
+  border-color: rgba(13, 202, 240, 0.45);
+  color: #055160;
+}
+
+.table-container button[cButton][color="danger"]{
+  background: rgba(220, 53, 69, 0.2);
+  border-color: rgba(220, 53, 69, 0.4);
+  color: #842029;
+}
+
+.table-container button[cButton][color="success"]{
+  background: rgba(25, 135, 84, 0.2);
+  border-color: rgba(25, 135, 84, 0.4);
+  color: #0f5132;
+}
+
+.table-container button[cButton][color="warning"]{
+  background: rgba(255, 193, 7, 0.2);
+  border-color: rgba(255, 193, 7, 0.45);
+  color: #7a5b00;
+}
+
+.table-container button[cButton]:disabled{
+  opacity: 0.7;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ===== Pagination ===== */
+.pagination-container{
+  background:transparent;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0.6rem;
+  padding:12px 16px 8px;
+  border-top:1px solid rgba(40,106,97,0.08) !important;
+}
+
+.pagination-container .text-body-secondary{
+  color:var(--text-muted) !important;
+}
+
+.pagination .page-item{
+  margin:0 3px;
+}
+
+.pagination .page-link{
+  border-radius:12px;
+  border:1px solid rgba(40,106,97,0.10);
+  color:var(--text-body);
+  background:rgba(255,255,255,0.78);
+  backdrop-filter: blur(6px);
+  padding:0.45rem 0.75rem;
+  transition: background .12s ease, box-shadow .12s ease, transform .12s ease;
+}
+
+.pagination .page-item:not(.disabled) .page-link:hover{
+  background:rgba(0,235,181,0.12);
+  transform:translateY(-1px);
+  box-shadow:0 10px 18px rgba(40,106,97,0.10);
+}
+
+.pagination .page-item.active .page-link{
+  background:var(--gradient-main);
+  color:#fff;
+  border-color:transparent;
+  box-shadow:0 12px 22px rgba(40,106,97,0.18);
+}
+
+.pagination .page-item.disabled .page-link{
+  opacity:0.5;
+}
+
+/* ===== Search / Filter Form Section ===== */
+.form-section{
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(8px);
+  border-top:1px solid rgba(40,106,97,0.08) !important;
+}
+
+/* labels */
+.form-section .form-label{
+  color:var(--text-heading);
+  font-weight:600;
+  letter-spacing:-0.01em;
+  margin-bottom:0.5rem;
+  display:block;
+}
+
+/* inputs/selects */
+.form-section .form-control,
+.form-section .form-select{
+  border-radius:14px;
+  border:1px solid rgba(40,106,97,0.12);
+  padding:0.75rem 0.85rem;
+  background:#fff;
+  color:var(--text-body);
+  box-shadow:0 8px 18px rgba(40,106,97,0.06);
+  transition: box-shadow .12s ease, border-color .12s ease;
+}
+
+.form-section .form-control:focus,
+.form-section .form-select:focus{
+  outline:none;
+  border-color: rgba(0,235,181,0.75);
+  box-shadow:0 0 0 4px rgba(0,235,181,0.16);
+}
+
+/* primary button in form */
+.form-section button[cButton][color="primary"]{
+  border-radius:var(--btn-radius);
+  background:var(--gradient-main);
+  border:none;
+  padding:0.75rem 0.85rem;
+  color:#fff;
+  font-weight:700;
+  box-shadow:0 12px 22px rgba(40,106,97,0.16);
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+
+.form-section button[cButton][color="primary"]:hover{
+  transform:translateY(-1px);
+  box-shadow:0 14px 26px rgba(40,106,97,0.22);
+  filter:saturate(1.05);
+}
+
+.form-section button[cButton][color="primary"]:active{
+  transform:translateY(0);
+  box-shadow:none;
+}
+
+/* ===== Scrollbars ===== */
+.table-container::-webkit-scrollbar{
+  width:10px;
+  height:10px;
+}
+
+.table-container::-webkit-scrollbar-track{
+  background:rgba(40,106,97,0.06);
+  border-radius:999px;
+}
+
+.table-container::-webkit-scrollbar-thumb{
+  background:rgba(40,106,97,0.25);
+  border-radius:999px;
+}
+
+.table-container::-webkit-scrollbar-thumb:hover{
+  background:rgba(40,106,97,0.38);
+}
+
+.customer-picker-display{
+  cursor:pointer;
+}
+
+.customer-picker-display:read-only{
+  background:#fff;
+}
+
+.customer-modal-table-container{
+  max-height:360px;
+  overflow:auto;
+  border:1px solid rgba(40,106,97,0.08);
+  border-radius:12px;
+}
+
+.customer-modal-table thead{
+  position:sticky;
+  top:0;
+  z-index:5;
+}
+
+.customer-select-row{
+  cursor:pointer;
+  transition: background .12s ease;
+}
+
+.customer-select-row:hover{
+  background:rgba(0,235,181,0.12);
+}
+
+/* ===== Customer Modal Style (match add-return-item-modal) ===== */
+c-modal .modal-content{
+  border-radius: var(--card-radius);
+  border: var(--card-border);
+  box-shadow: var(--card-shadow);
+  overflow: hidden;
+  background: var(--surface);
+}
+
+c-modal-header{
+  background: var(--gradient-main);
+  color: #fff;
+  border: none;
+  padding: 1.1rem 1.25rem;
+}
+
+c-modal-header h5[cModalTitle],
+c-modal-header h5{
+  margin: 0;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+c-modal-body{
+  background: var(--surface);
+  padding: 1.25rem;
+}
+
+c-modal-footer{
+  background: rgba(240, 247, 245, 0.75);
+  backdrop-filter: blur(8px);
+  border-top: 1px solid rgba(40, 106, 97, 0.08);
+  padding: 1rem 1.25rem;
+}
+
+c-modal .form-label{
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  display: block;
+  color: var(--text-heading);
+  letter-spacing: -0.01em;
+}
+
+c-modal .form-control,
+c-modal .form-select{
+  border-radius: 14px;
+  border: 1px solid rgba(40, 106, 97, 0.12);
+  padding: 0.75rem 0.85rem;
+  background: #fff;
+  color: var(--text-body);
+  box-shadow: 0 8px 18px rgba(40, 106, 97, 0.06);
+  transition: box-shadow .12s ease, border-color .12s ease, transform .12s ease;
+}
+
+c-modal .form-control:focus,
+c-modal .form-select:focus{
+  outline: none;
+  border-color: rgba(0, 235, 181, 0.75);
+  box-shadow: 0 0 0 4px rgba(0, 235, 181, 0.16);
+}
+
+c-modal button[cButton]{
+  border-radius: var(--btn-radius);
+  font-weight: 700;
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease, opacity .12s ease;
+}
+
+c-modal button[cButton]:active{
+  transform: translateY(1px);
+}
+
+c-modal button[cButton][color="primary"]{
+  background: var(--gradient-main);
+  border: none;
+  color: #fff;
+  box-shadow: 0 12px 22px rgba(40, 106, 97, 0.16);
+}
+
+c-modal button[cButton][color="primary"]:hover{
+  transform: translateY(-1px);
+  box-shadow: 0 14px 26px rgba(40, 106, 97, 0.22);
+}
+
+c-modal button[cButton][color="secondary"]{
+  background: rgba(40, 106, 97, 0.10);
+  border: 1px solid rgba(40, 106, 97, 0.16);
+  color: var(--text-heading);
+}
+
+c-modal button[cButton][color="secondary"]:hover{
+  background: rgba(0, 235, 181, 0.14);
+  border-color: rgba(0, 235, 181, 0.30);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 22px rgba(40, 106, 97, 0.10);
+}
+
+c-modal c-row{
+  row-gap: 12px;
+}
+
+c-modal .customer-modal-search-btn{
+  width: 100%;
+  min-height: 50px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}

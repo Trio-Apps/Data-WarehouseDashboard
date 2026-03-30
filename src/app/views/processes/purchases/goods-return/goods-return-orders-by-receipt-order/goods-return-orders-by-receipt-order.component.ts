@@ -1,4 +1,4 @@
-import { Component, OnDestroy, OnInit, ChangeDetectorRef } from '@angular/core';
+import { ChangeDetectorRef, Component, OnDestroy, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { CommonModule, DatePipe } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule } from '@angular/forms';
@@ -14,16 +14,29 @@ import {
   ModalModule
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
-import { ReceiptService } from '../../Services/receipt.service';
-import { PurchaseService } from '../../Services/purchase.service';
-import { Receipt } from '../../Models/receipt';
-import { Supplier } from '../../Models/purchase.model';
 import { ToastrService } from 'ngx-toastr';
+import { GoodsReturnService } from '../../Services/goods-return.service';
+import { Return } from '../../Models/retrun-model';
+import { PurchaseService } from '../../Services/purchase.service';
+import { Supplier } from '../../Models/purchase.model';
 import { SearchSupplierModalComponent } from '../../search-supplier-modal/search-supplier-modal.component';
 import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
+type GoodsReturnOrderListItem = Return & {
+  purchaseOrderId?: number;
+  receiptOrderId?: number;
+  returnReceiptOrderId?: number;
+  receiptPurchaseOrderId?: number | null;
+  supplierName?: string | null;
+  itemCount?: number | null;
+  approvalStatus?: string | null;
+  canApprove?: boolean | null;
+  processApprovalId?: number | null;
+};
+
 @Component({
-  selector: 'app-receipt-orders',
+  selector: 'app-goods-return-orders-by-receipt-order',
+  standalone: true,
   imports: [
     CommonModule,
     ReactiveFormsModule,
@@ -40,20 +53,22 @@ import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
     SearchSupplierModalComponent,
     TranslatePipe
   ],
-  templateUrl: './receipt-orders.component.html',
-  styleUrl: './receipt-orders.component.scss',
+  templateUrl: './goods-return-orders-by-receipt-order.component.html',
+  styleUrl: './goods-return-orders-by-receipt-order.component.scss',
 })
-export class ReceiptOrdersComponent implements OnInit, OnDestroy {
+export class GoodsReturnOrdersByReceiptOrderComponent implements OnInit, OnDestroy {
   form!: FormGroup;
-  receipts: Receipt[] = [];
-  filteredReceipts: Receipt[] = [];
+  returns: GoodsReturnOrderListItem[] = [];
+  filteredReturns: GoodsReturnOrderListItem[] = [];
   suppliers: Supplier[] = [];
+  receiptOrderId: number = 0;
+  purchaseOrderId: number = 0;
   warehouseId: number = 0;
   selectedSupplierDisplay: string = '';
   showSupplierModal: boolean = false;
   showErrorModal: boolean = false;
   selectedErrorMessage: string = '';
-  retryingReceiptIds: Set<number> = new Set<number>();
+  retryingReturnIds: Set<number> = new Set<number>();
 
   currentPage: number = 1;
   itemsPerPage: number = 10;
@@ -67,17 +82,17 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
   filterSupplierId: number | null = null;
   filterPostingDate: Date | null = null;
   filterDueDate: Date | null = null;
-  filterLiveStatus: string = '';
 
   private isSearching: boolean = false;
-  private queryParamsSubscription?: Subscription;
   Math = Math;
+
+  private queryParamsSubscription?: Subscription;
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
-    private receiptService: ReceiptService,
+    private returnService: GoodsReturnService,
     private purchaseService: PurchaseService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
@@ -86,14 +101,25 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
       status: [''],
       supplierId: [''],
       postingDate: [null],
-      dueDate: [null],
-      liveStatus: ['']
+      dueDate: [null]
     });
   }
 
   ngOnInit(): void {
-    this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
-   // this.loadSuppliers();
+    const receiptIdParam =
+      this.route.snapshot.paramMap.get('receiptOrderId') ||
+      this.route.snapshot.paramMap.get('receiptPurchaseOrderId') ||
+      '';
+    this.receiptOrderId = receiptIdParam ? +receiptIdParam : 0;
+
+    const purchaseOrderParam =
+      this.route.snapshot.paramMap.get('purchaseOrderId') ||
+      this.route.snapshot.queryParamMap.get('purchaseOrderId') ||
+      '';
+    this.purchaseOrderId = purchaseOrderParam ? +purchaseOrderParam : 0;
+
+    this.warehouseId = +(this.route.snapshot.queryParamMap.get('warehouseId') || 0);
+    // this.loadSuppliers();
 
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
       if (this.isSearching) {
@@ -106,7 +132,6 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
       const supplierId = params['supplierId'] ? +params['supplierId'] : null;
       const postingDate = params['postingDate'] || '';
       const dueDate = params['dueDate'] || '';
-      const liveStatus = params['liveStatus'] || '';
 
       this.currentPage = page >= 1 ? page : 1;
       this.itemsPerPage = pageSize >= 1 ? pageSize : 10;
@@ -114,19 +139,17 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
       this.filterSupplierId = supplierId;
       this.filterPostingDate = postingDate ? new Date(postingDate) : null;
       this.filterDueDate = dueDate ? new Date(dueDate) : null;
-      this.filterLiveStatus = liveStatus;
 
       this.form.patchValue({
         status: status,
         supplierId: supplierId ?? '',
         postingDate: postingDate || null,
-        dueDate: dueDate || null,
-        liveStatus: liveStatus
+        dueDate: dueDate || null
       });
       this.syncSelectedSupplierDisplay();
 
-      if (this.warehouseId) {
-        this.loadReceipts();
+      if (this.receiptOrderId) {
+        this.loadReturns();
       }
     });
   }
@@ -137,8 +160,8 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
     }
   }
 
-  loadReceipts(): void {
-    if (!this.warehouseId) return;
+  loadReturns(): void {
+    if (!this.receiptOrderId) return;
 
     this.loading = true;
     this.cdr.markForCheck();
@@ -148,21 +171,19 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
     const postingDateStr = formValue.postingDate || undefined;
     const dueDateStr = formValue.dueDate || undefined;
 
-    this.receiptService.getReceiptsWithFilterationByWarehouse(
+    this.returnService.getGoodsReturnOrdersWithFilterationByReceiptPurchaseOrder(
       this.currentPage,
       this.itemsPerPage,
-      this.warehouseId,
+      this.receiptOrderId,
       supplierId,
-      this.filterLiveStatus || undefined,
       this.filterStatus || undefined,
       postingDateStr,
       dueDateStr
     ).subscribe({
       next: (res: any) => {
         if (res.data) {
-          this.receipts = res.data.data || [];
-          console.log("Receipts",this.receipts);
-          this.filteredReceipts = this.receipts;
+          this.returns = res.data.data || [];
+          this.filteredReturns = this.returns;
           this.currentPage = res.data.pageNumber || this.currentPage;
           this.itemsPerPage = res.data.pageSize || this.itemsPerPage;
           this.totalPages = res.data.totalPages || 0;
@@ -170,8 +191,8 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
           this.hasNext = res.data.hasNext || false;
           this.hasPrevious = res.data.hasPrevious || false;
 
-          if (this.receipts.length > 0) {
-            this.toastr.success(`Loaded ${this.receipts.length} receipt(s) successfully`, 'Success');
+          if (this.returns.length > 0) {
+            this.toastr.success(`Loaded ${this.returns.length} return order(s) successfully`, 'Success');
           }
         }
 
@@ -179,22 +200,22 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
         this.cdr.markForCheck();
       },
       error: (err) => {
-        console.error('Error loading receipts:', err);
+        console.error('Error loading return orders:', err);
         this.loading = false;
-        this.receipts = [];
-        this.filteredReceipts = [];
+        this.returns = [];
+        this.filteredReturns = [];
         this.totalItems = 0;
         this.totalPages = 0;
         this.hasNext = false;
         this.hasPrevious = false;
-        this.toastr.error('Failed to load receipts. Please try again.', 'Error');
+        this.toastr.error('Failed to load return orders. Please try again.', 'Error');
         this.cdr.markForCheck();
       }
     });
   }
 
-  get paginatedReceipts(): Receipt[] {
-    return this.filteredReceipts;
+  get paginatedReturns(): GoodsReturnOrderListItem[] {
+    return this.filteredReturns;
   }
 
   onPageChange(page: number, event?: Event): void {
@@ -220,11 +241,10 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
     this.filterSupplierId = formValue.supplierId ? +formValue.supplierId : null;
     this.filterPostingDate = formValue.postingDate ? new Date(formValue.postingDate) : null;
     this.filterDueDate = formValue.dueDate ? new Date(formValue.dueDate) : null;
-    this.filterLiveStatus = formValue.liveStatus || '';
     this.currentPage = 1;
 
     this.updateUrlWithFilters(1, this.itemsPerPage);
-    this.loadReceipts();
+    this.loadReturns();
 
     setTimeout(() => {
       this.isSearching = false;
@@ -249,9 +269,6 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
     }
     if (formValue.dueDate) {
       queryParams.dueDate = formValue.dueDate;
-    }
-    if (formValue.liveStatus) {
-      queryParams.liveStatus = formValue.liveStatus;
     }
 
     this.router.navigate([], {
@@ -374,89 +391,106 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
     return pages;
   }
 
-  onViewReceiptOrder(receipt: Receipt): void {
-    if (receipt.receiptPurchaseOrderId) {
-      this.router.navigate([
-        '/processes/purchases/receipt-order',
-        0,
-        receipt.receiptPurchaseOrderId
-      ]);
+  onViewReturnOrder(returnOrder: GoodsReturnOrderListItem): void {
+    const receiptId =
+      returnOrder.returnReceiptOrderId ??
+      returnOrder.receiptOrderId ??
+      returnOrder.receiptPurchaseOrderId ??
+      this.receiptOrderId ??
+      0;
+    const purchaseOrderId = returnOrder.purchaseOrderId ?? this.purchaseOrderId ?? 0;
+
+    if (returnOrder.goodsReturnOrderId) {
+      this.router.navigate(['/processes/purchases/goods-return-order', purchaseOrderId, receiptId, returnOrder.goodsReturnOrderId]);
     }
   }
 
-  onViewReturnOrder(receipt: Receipt): void {
-    if (!receipt.receiptPurchaseOrderId) {
-      return;
-    }
-
-    this.router.navigate(
-      ['/processes/purchases/goods-return-orders-by-receipt-order', receipt.receiptPurchaseOrderId],
-      {
-        queryParams: {
-          purchaseOrderId: receipt.purchaseOrderId || 0,
-          warehouseId: receipt.warehouseId ?? this.warehouseId ?? 0
-        }
-      }
-    );
-  }
-
-  onAddReceipt(): void {
-    this.router.navigate(['/processes/purchases/receipt-form', 0, 0], {
-      queryParams: { warehouseId: this.warehouseId }
+  onAddGoodsReturn(): void {
+    this.router.navigate(['/processes/purchases/goods-return-form', this.purchaseOrderId || 0, this.receiptOrderId || 0], {
+      queryParams: this.warehouseId ? { warehouseId: this.warehouseId } : {}
     });
   }
 
-  onBackToShowProcesses(): void {
-    this.router.navigate(['inquiries/show-purchasing-processes', this.warehouseId]);
-  }
-
-  onDeleteReceipt(receipt: Receipt): void {
-    if (!receipt.receiptPurchaseOrderId) {
+  onBackToReceipt(): void {
+    if (this.purchaseOrderId && this.receiptOrderId) {
+      this.router.navigate(['/processes/purchases/receipt-order', this.purchaseOrderId, this.receiptOrderId]);
       return;
     }
-    if (confirm(`Are you sure you want to delete receipt #${receipt.receiptPurchaseOrderId}?`)) {
-      this.receiptService.deleteReceipt(receipt.receiptPurchaseOrderId).subscribe({
+    if (this.warehouseId) {
+      this.router.navigate(['/processes/purchases/receipt-orders', this.warehouseId]);
+      return;
+    }
+    this.router.navigate(['/processes/purchases/receipt-orders', 0]);
+  }
+
+  getStatusBadgeClass(returnOrder: GoodsReturnOrderListItem): string {
+    switch (returnOrder.status) {
+      case 'Draft':
+        return 'badge bg-warning';
+      case 'Processing':
+        return 'badge bg-info';
+      case 'PartiallyFailed':
+        return 'badge bg-danger';
+      case 'Completed':
+      case 'Final':
+        return 'badge bg-success';
+      default:
+        return 'badge bg-secondary';
+    }
+  }
+
+  getStatusText(returnOrder: GoodsReturnOrderListItem): string {
+    return returnOrder.status;
+  }
+
+  onDeleteReturnOrder(returnOrder: GoodsReturnOrderListItem): void {
+    if (!returnOrder.goodsReturnOrderId) {
+      return;
+    }
+
+    if (confirm(`Are you sure you want to delete return order #${returnOrder.goodsReturnOrderId}?`)) {
+      this.returnService.deleteReturnOrder(returnOrder.goodsReturnOrderId).subscribe({
         next: () => {
-          this.toastr.success('Receipt deleted successfully', 'Success');
-          this.loadReceipts();
+          this.toastr.success('Return order deleted successfully', 'Success');
+          this.loadReturns();
           this.cdr.markForCheck();
         },
         error: (err) => {
-          console.error('Error deleting receipt:', err);
-          const errorMessage = err.error?.message || 'Error deleting receipt. Please try again.';
+          console.error('Error deleting return order:', err);
+          const errorMessage = err.error?.message || 'Error deleting return order. Please try again.';
           this.toastr.error(errorMessage, 'Error');
         }
       });
     }
   }
 
-  onDuplicateReceipt(receipt: Receipt): void {
-    if (!receipt.receiptPurchaseOrderId) {
+  onDuplicateReturnOrder(returnOrder: GoodsReturnOrderListItem): void {
+    if (!returnOrder.goodsReturnOrderId) {
       return;
     }
 
-    if (confirm(`Are you sure you want to duplicate receipt #${receipt.receiptPurchaseOrderId}?`)) {
-      this.receiptService.duplicateReceipt(receipt.receiptPurchaseOrderId).subscribe({
+    if (confirm(`Are you sure you want to duplicate return order #${returnOrder.goodsReturnOrderId}?`)) {
+      this.returnService.duplicateReturnOrder(returnOrder.goodsReturnOrderId).subscribe({
         next: () => {
-          this.toastr.success('Receipt duplicated successfully', 'Success');
-          this.loadReceipts();
+          this.toastr.success('Return order duplicated successfully', 'Success');
+          this.loadReturns();
           this.cdr.markForCheck();
         },
         error: (err) => {
-          console.error('Error duplicating receipt:', err);
-          const errorMessage = err.error?.message || 'Error duplicating receipt. Please try again.';
+          console.error('Error duplicating return order:', err);
+          const errorMessage = err.error?.message || 'Error duplicating return order. Please try again.';
           this.toastr.error(errorMessage, 'Error');
         }
       });
     }
   }
 
-  hasErrorMessage(receipt: Receipt): boolean {
-    return !!receipt.errorMessage?.trim();
+  hasErrorMessage(returnOrder: GoodsReturnOrderListItem): boolean {
+    return !!returnOrder.errorMessage?.trim();
   }
 
-  onOpenErrorModal(receipt: Receipt): void {
-    this.selectedErrorMessage = receipt.errorMessage?.trim() || 'No error message available.';
+  onOpenErrorModal(returnOrder: GoodsReturnOrderListItem): void {
+    this.selectedErrorMessage = returnOrder.errorMessage?.trim() || 'No error message available.';
     this.showErrorModal = true;
     this.cdr.markForCheck();
   }
@@ -466,25 +500,26 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
     if (!visible) {
       this.selectedErrorMessage = '';
     }
+    this.cdr.markForCheck();
   }
 
-  isRetryingSap(receipt: Receipt): boolean {
-    return !!receipt.receiptPurchaseOrderId && this.retryingReceiptIds.has(receipt.receiptPurchaseOrderId);
+  isRetryingSap(returnOrder: GoodsReturnOrderListItem): boolean {
+    return !!returnOrder.goodsReturnOrderId && this.retryingReturnIds.has(returnOrder.goodsReturnOrderId);
   }
 
-  onRetrySap(receipt: Receipt): void {
-    const receiptPurchaseOrderId = receipt.receiptPurchaseOrderId;
-    if (!receiptPurchaseOrderId || this.retryingReceiptIds.has(receiptPurchaseOrderId)) {
+  onRetrySap(returnOrder: GoodsReturnOrderListItem): void {
+    const goodsReturnOrderId = returnOrder.goodsReturnOrderId;
+    if (!goodsReturnOrderId || this.retryingReturnIds.has(goodsReturnOrderId)) {
       return;
     }
 
-    this.retryingReceiptIds.add(receiptPurchaseOrderId);
-    this.receiptService.retryReceiptSap(receiptPurchaseOrderId).subscribe({
+    this.retryingReturnIds.add(goodsReturnOrderId);
+    this.returnService.retryReturnSap(goodsReturnOrderId).subscribe({
       next: () => {
-        this.toastr.success(`Sync SAP requested for receipt #${receiptPurchaseOrderId}`, 'Success');
+        this.toastr.success(`Sync SAP requested for return #${goodsReturnOrderId}`, 'Success');
         setTimeout(() => {
-          this.retryingReceiptIds.delete(receiptPurchaseOrderId);
-          this.loadReceipts();
+          this.retryingReturnIds.delete(goodsReturnOrderId);
+          this.loadReturns();
           this.cdr.markForCheck();
         }, 10000);
       },
@@ -492,30 +527,10 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
         console.error('Error syncing SAP:', err);
         const errorMessage = err.error?.message || 'Failed to sync SAP. Please try again.';
         this.toastr.error(errorMessage, 'Error');
-        this.retryingReceiptIds.delete(receiptPurchaseOrderId);
+        this.retryingReturnIds.delete(goodsReturnOrderId);
         this.cdr.markForCheck();
       }
     });
-  }
-
-  getStatusBadgeClass(receipt: Receipt): string {
-    switch (receipt.status) {
-      case 'Draft':
-        return 'badge bg-warning';
-      case 'Processing':
-        return 'badge bg-info';
-      case 'Completed':
-      case 'Final':
-        return 'badge bg-success';
-      case 'PartiallyFailed':
-        return 'badge bg-danger';
-      default:
-        return 'badge bg-secondary';
-    }
-  }
-
-  getStatusText(receipt: Receipt): string {
-    return receipt.status;
   }
 
   private mapApprovalStatusText(value: string): string {
@@ -532,24 +547,24 @@ export class ReceiptOrdersComponent implements OnInit, OnDestroy {
     }
   }
 
-  isApproved(receipt: Receipt): boolean {
-    const rawStatus = receipt.approvalStatus;
+  isApproved(returnOrder: GoodsReturnOrderListItem): boolean {
+    const rawStatus = returnOrder.approvalStatus;
     if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
       return false;
     }
     return this.mapApprovalStatusText(String(rawStatus)) === 'Approved';
   }
 
-  getApprovalStatusText(receipt: Receipt): string {
-    const rawStatus = receipt.approvalStatus;
+  getApprovalStatusText(returnOrder: GoodsReturnOrderListItem): string {
+    const rawStatus = returnOrder.approvalStatus;
     if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
       return 'not found';
     }
     return this.mapApprovalStatusText(String(rawStatus));
   }
 
-  getApprovalBadgeClass(receipt: Receipt): string {
-    const rawStatus = receipt.approvalStatus;
+  getApprovalBadgeClass(returnOrder: GoodsReturnOrderListItem): string {
+    const rawStatus = returnOrder.approvalStatus;
     if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
       return 'badge bg-secondary';
     }

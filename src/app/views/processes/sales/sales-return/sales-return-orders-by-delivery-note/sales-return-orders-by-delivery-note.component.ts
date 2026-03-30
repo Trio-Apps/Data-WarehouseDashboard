@@ -15,17 +15,15 @@ import {
 } from '@coreui/angular';
 import { IconDirective } from '@coreui/icons-angular';
 import { ToastrService } from 'ngx-toastr';
-import { DeliveryNoteService } from '../../Services/delivery-note.service';
-import { DeliveryNote } from '../../Models/delivery-note-model';
+import { SalesReturnService } from '../../Services/sales-return.service';
+import { Return } from '../../Models/sales-return-model';
 import { Customer } from '../../Models/sales-model';
 import { ApprovalService } from '../../../approval-process/Services/approval.service';
 import { SearchCustomerModalComponent } from '../../search-customer-modal/search-customer-modal.component';
 import { TranslatePipe } from 'src/app/core/i18n/translate.pipe';
 
-type DeliveryNoteOrderListItem = DeliveryNote & {
+type SalesReturnOrderListItem = Return & {
   salesOrderId?: number;
-  returnOrderId?: number | null;
-  salesReturnOrderId?: number | null;
   customerName?: string | null;
   itemCount?: number | null;
   approvalStatus?: string | null;
@@ -34,7 +32,7 @@ type DeliveryNoteOrderListItem = DeliveryNote & {
 };
 
 @Component({
-  selector: 'app-delivery-note-orders',
+  selector: 'app-sales-return-orders-by-delivery-note',
   standalone: true,
   imports: [
     CommonModule,
@@ -52,21 +50,22 @@ type DeliveryNoteOrderListItem = DeliveryNote & {
     SearchCustomerModalComponent,
     TranslatePipe
   ],
-  templateUrl: './delivery-note-orders.component.html',
-  styleUrl: './delivery-note-orders.component.scss',
+  templateUrl: './sales-return-orders-by-delivery-note.component.html',
+  styleUrl: './sales-return-orders-by-delivery-note.component.scss',
 })
-export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
+export class SalesReturnOrdersByDeliveryNoteComponent implements OnInit, OnDestroy {
   form!: FormGroup;
-  returns: DeliveryNoteOrderListItem[] = [];
-  filteredDeliveryNotes: DeliveryNoteOrderListItem[] = [];
+  returns: SalesReturnOrderListItem[] = [];
+  filteredReturns: SalesReturnOrderListItem[] = [];
   customers: Customer[] = [];
+  deliveryNoteOrderId: number = 0;
+  salesOrderId: number = 0;
   warehouseId: number = 0;
   selectedCustomerDisplay: string = '';
   showErrorModal: boolean = false;
   selectedErrorMessage: string = '';
-  retryingDeliveryNoteIds: Set<number> = new Set<number>();
+  retryingReturnIds: Set<number> = new Set<number>();
 
-  // Customer picker modal
   showCustomerModal: boolean = false;
 
   currentPage: number = 1;
@@ -79,7 +78,7 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
   showApprovalModal: boolean = false;
   approvalComment: string = '';
   approvalSubmitting: boolean = false;
-  selectedDeliveryNoteForApproval: DeliveryNoteOrderListItem | null = null;
+  selectedReturnForApproval: SalesReturnOrderListItem | null = null;
 
   filterStatus: string = '';
   filterCustomerId: number | null = null;
@@ -95,7 +94,7 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private fb: FormBuilder,
-    private returnService: DeliveryNoteService,
+    private returnService: SalesReturnService,
     private approvalService: ApprovalService,
     private cdr: ChangeDetectorRef,
     private toastr: ToastrService
@@ -109,15 +108,26 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.warehouseId = +this.route.snapshot.paramMap.get('warehouseId')!;
-    //this.loadCustomers();
+    const deliveryParam =
+      this.route.snapshot.paramMap.get('deliveryNoteId') ||
+      this.route.snapshot.paramMap.get('deliveryNoteOrderId') ||
+      '';
+    this.deliveryNoteOrderId = deliveryParam ? +deliveryParam : 0;
+
+    const salesOrderParam =
+      this.route.snapshot.paramMap.get('salesOrderId') ||
+      this.route.snapshot.queryParamMap.get('salesOrderId') ||
+      '';
+    this.salesOrderId = salesOrderParam ? +salesOrderParam : 0;
+
+    this.warehouseId = +(this.route.snapshot.queryParamMap.get('warehouseId') || 0);
+    // this.loadCustomers();
 
     this.queryParamsSubscription = this.route.queryParams.subscribe(params => {
       if (this.isSearching) {
         return;
       }
 
-      
       const page = params['page'] ? +params['page'] : 1;
       const pageSize = params['pageSize'] ? +params['pageSize'] : 10;
       const status = params['status'] || '';
@@ -140,8 +150,8 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
       });
       this.syncSelectedCustomerDisplay();
 
-      if (this.warehouseId) {
-        this.loadDeliveryNotes();
+      if (this.deliveryNoteOrderId) {
+        this.loadReturns();
       }
     });
   }
@@ -152,8 +162,8 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     }
   }
 
-  loadDeliveryNotes(): void {
-    if (!this.warehouseId) return;
+  loadReturns(): void {
+    if (!this.deliveryNoteOrderId) return;
 
     this.loading = true;
     this.cdr.detectChanges();
@@ -163,10 +173,10 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     const postingDateStr = formValue.postingDate || undefined;
     const dueDateStr = formValue.dueDate || undefined;
 
-    this.returnService.getSalesDeliveryNoteOrdersWithFilterationByWarehouse(
+    this.returnService.getSalesReturnOrdersWithFilterationByDeliveryNote(
       this.currentPage,
       this.itemsPerPage,
-      this.warehouseId,
+      this.deliveryNoteOrderId,
       customerId,
       this.filterStatus || undefined,
       postingDateStr,
@@ -175,7 +185,7 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
       next: (res: any) => {
         if (res.data) {
           this.returns = res.data.data || [];
-          this.filteredDeliveryNotes = this.returns;
+          this.filteredReturns = this.returns;
           this.currentPage = res.data.pageNumber || this.currentPage;
           this.itemsPerPage = res.data.pageSize || this.itemsPerPage;
           this.totalPages = res.data.totalPages || 0;
@@ -184,7 +194,7 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
           this.hasPrevious = res.data.hasPrevious || false;
 
           if (this.returns.length > 0) {
-            this.toastr.success(`Loaded ${this.returns.length} delivery note order(s) successfully`, 'Success');
+            this.toastr.success(`Loaded ${this.returns.length} return order(s) successfully`, 'Success');
           }
         }
 
@@ -192,22 +202,22 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
         this.cdr.detectChanges();
       },
       error: (err) => {
-        console.error('Error loading delivery note orders:', err);
+        console.error('Error loading return orders:', err);
         this.loading = false;
         this.returns = [];
-        this.filteredDeliveryNotes = [];
+        this.filteredReturns = [];
         this.totalItems = 0;
         this.totalPages = 0;
         this.hasNext = false;
         this.hasPrevious = false;
-        this.toastr.error('Failed to load delivery note orders. Please try again.', 'Error');
+        this.toastr.error('Failed to load return orders. Please try again.', 'Error');
         this.cdr.detectChanges();
       }
     });
   }
 
-  get paginatedDeliveryNotes(): DeliveryNoteOrderListItem[] {
-    return this.filteredDeliveryNotes;
+  get paginatedReturns(): SalesReturnOrderListItem[] {
+    return this.filteredReturns;
   }
 
   onPageChange(page: number, event?: Event): void {
@@ -237,7 +247,7 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     this.currentPage = 1;
 
     this.updateUrlWithFilters(1, this.itemsPerPage);
-    this.loadDeliveryNotes();
+    this.loadReturns();
 
     setTimeout(() => {
       this.isSearching = false;
@@ -349,43 +359,49 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     return pages;
   }
 
-  onViewDeliveryNoteOrder(returnOrder: DeliveryNoteOrderListItem): void {
-    this.router.navigate(
-      ['/processes/sales/delivery-note-order', 0, returnOrder.deliveryNoteOrderId],
-      { queryParams: { warehouseId: this.warehouseId } }
+  onViewReturnOrder(returnOrder: SalesReturnOrderListItem): void {
+    const deliveryNoteOrderId = Number(
+      returnOrder.deliveryNoteOrderId || this.deliveryNoteOrderId || 0
     );
-  }
-
-  onOpenSalesReturn(returnOrder: DeliveryNoteOrderListItem): void {
-    const deliveryNoteOrderId = Number(returnOrder.deliveryNoteOrderId || 0);
-    if (!deliveryNoteOrderId) {
-      this.toastr.warning('Delivery note reference is missing', 'Warning');
-      return;
-    }
+    const salesOrderId = returnOrder.salesOrderId || this.salesOrderId || 0;
 
     this.router.navigate(
-      ['/processes/sales/sales-return-orders-by-delivery-note', deliveryNoteOrderId],
+      ['/processes/sales/sales-return-order', salesOrderId, returnOrder.salesReturnOrderId],
       {
         queryParams: {
           warehouseId: this.warehouseId,
-          salesOrderId: returnOrder.salesOrderId || undefined
+          deliveryNoteOrderId: deliveryNoteOrderId || undefined
         }
       }
     );
   }
 
-  onAddSalesDeliveryNote(): void {
+  onAddSalesReturn(): void {
+    const salesOrderId = this.salesOrderId || 0;
     this.router.navigate(
-      ['/processes/sales/delivery-note-form', 0],
-      { queryParams: { warehouseId: this.warehouseId } }
+      ['/processes/sales/sales-return-form', salesOrderId],
+      {
+        queryParams: {
+          warehouseId: this.warehouseId,
+          deliveryNoteOrderId: this.deliveryNoteOrderId || undefined
+        }
+      }
     );
   }
 
-  onBackToShowProcesses(): void {
-    this.router.navigate(['inquiries/show-outbound-processes', this.warehouseId]);
+  onBackToDeliveryNote(): void {
+    if (this.salesOrderId && this.deliveryNoteOrderId) {
+      this.router.navigate(['/processes/sales/delivery-note-order', this.salesOrderId, this.deliveryNoteOrderId]);
+      return;
+    }
+    if (this.warehouseId) {
+      this.router.navigate(['/processes/sales/delivery-note-orders', this.warehouseId]);
+      return;
+    }
+    this.router.navigate(['/processes/sales/delivery-note-orders', 0]);
   }
 
-  getStatusBadgeClass(returnOrder: DeliveryNoteOrderListItem): string {
+  getStatusBadgeClass(returnOrder: SalesReturnOrderListItem): string {
     switch (returnOrder.status) {
       case 'Draft':
         return 'badge bg-warning';
@@ -401,57 +417,57 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     }
   }
 
-  getStatusText(returnOrder: DeliveryNoteOrderListItem): string {
+  getStatusText(returnOrder: SalesReturnOrderListItem): string {
     return returnOrder.status;
   }
 
-  onDeleteDeliveryNoteOrder(returnOrder: DeliveryNoteOrderListItem): void {
-    if (!returnOrder.deliveryNoteOrderId) {
+  onDeleteReturnOrder(returnOrder: SalesReturnOrderListItem): void {
+    if (!returnOrder.salesReturnOrderId) {
       return;
     }
 
-    if (confirm(`Are you sure you want to delete delivery note order #${returnOrder.deliveryNoteOrderId}?`)) {
-      this.returnService.deleteDeliveryNoteOrder(returnOrder.deliveryNoteOrderId).subscribe({
+    if (confirm(`Are you sure you want to delete return order #${returnOrder.salesReturnOrderId}?`)) {
+      this.returnService.deleteReturnOrder(returnOrder.salesReturnOrderId).subscribe({
         next: () => {
-          this.toastr.success('DeliveryNote order deleted successfully', 'Success');
-          this.loadDeliveryNotes();
+          this.toastr.success('Return order deleted successfully', 'Success');
+          this.loadReturns();
           this.cdr.detectChanges();
         },
         error: (err) => {
-          console.error('Error deleting delivery note order:', err);
-          const errorMessage = err.error?.message || 'Error deleting delivery note order. Please try again.';
+          console.error('Error deleting return order:', err);
+          const errorMessage = err.error?.message || 'Error deleting return order. Please try again.';
           this.toastr.error(errorMessage, 'Error');
         }
       });
     }
   }
 
-  onDuplicateDeliveryNoteOrder(returnOrder: DeliveryNoteOrderListItem): void {
-    if (!returnOrder.deliveryNoteOrderId) {
+  onDuplicateReturnOrder(returnOrder: SalesReturnOrderListItem): void {
+    if (!returnOrder.salesReturnOrderId) {
       return;
     }
 
-    if (confirm(`Are you sure you want to duplicate delivery note order #${returnOrder.deliveryNoteOrderId}?`)) {
-      this.returnService.duplicateDeliveryNoteOrder(returnOrder.deliveryNoteOrderId).subscribe({
+    if (confirm(`Are you sure you want to duplicate return order #${returnOrder.salesReturnOrderId}?`)) {
+      this.returnService.duplicateReturnOrder(returnOrder.salesReturnOrderId).subscribe({
         next: () => {
-          this.toastr.success('Delivery note order duplicated successfully', 'Success');
-          this.loadDeliveryNotes();
+          this.toastr.success('Return order duplicated successfully', 'Success');
+          this.loadReturns();
           this.cdr.detectChanges();
         },
         error: (err) => {
-          console.error('Error duplicating delivery note order:', err);
-          const errorMessage = err.error?.message || 'Error duplicating delivery note order. Please try again.';
+          console.error('Error duplicating return order:', err);
+          const errorMessage = err.error?.message || 'Error duplicating return order. Please try again.';
           this.toastr.error(errorMessage, 'Error');
         }
       });
     }
   }
 
-  hasErrorMessage(returnOrder: DeliveryNoteOrderListItem): boolean {
+  hasErrorMessage(returnOrder: SalesReturnOrderListItem): boolean {
     return !!returnOrder.errorMessage?.trim();
   }
 
-  onOpenErrorModal(returnOrder: DeliveryNoteOrderListItem): void {
+  onOpenErrorModal(returnOrder: SalesReturnOrderListItem): void {
     this.selectedErrorMessage = returnOrder.errorMessage?.trim() || 'No error message available.';
     this.showErrorModal = true;
     this.cdr.detectChanges();
@@ -465,23 +481,23 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     this.cdr.detectChanges();
   }
 
-  isRetryingSap(returnOrder: DeliveryNoteOrderListItem): boolean {
-    return !!returnOrder.deliveryNoteOrderId && this.retryingDeliveryNoteIds.has(returnOrder.deliveryNoteOrderId);
+  isRetryingSap(returnOrder: SalesReturnOrderListItem): boolean {
+    return !!returnOrder.salesReturnOrderId && this.retryingReturnIds.has(returnOrder.salesReturnOrderId);
   }
 
-  onRetrySap(returnOrder: DeliveryNoteOrderListItem): void {
-    const deliveryNoteOrderId = returnOrder.deliveryNoteOrderId;
-    if (!deliveryNoteOrderId || this.retryingDeliveryNoteIds.has(deliveryNoteOrderId)) {
+  onRetrySap(returnOrder: SalesReturnOrderListItem): void {
+    const salesReturnOrderId = returnOrder.salesReturnOrderId;
+    if (!salesReturnOrderId || this.retryingReturnIds.has(salesReturnOrderId)) {
       return;
     }
 
-    this.retryingDeliveryNoteIds.add(deliveryNoteOrderId);
-    this.returnService.retryDeliveryNoteSap(deliveryNoteOrderId).subscribe({
+    this.retryingReturnIds.add(salesReturnOrderId);
+    this.returnService.retrySalesReturnSap(salesReturnOrderId).subscribe({
       next: () => {
-        this.toastr.success(`Sync SAP requested for delivery note #${deliveryNoteOrderId}`, 'Success');
+        this.toastr.success(`Sync SAP requested for return #${salesReturnOrderId}`, 'Success');
         setTimeout(() => {
-          this.retryingDeliveryNoteIds.delete(deliveryNoteOrderId);
-          this.loadDeliveryNotes();
+          this.retryingReturnIds.delete(salesReturnOrderId);
+          this.loadReturns();
           this.cdr.detectChanges();
         }, 10000);
       },
@@ -489,7 +505,7 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
         console.error('Error syncing SAP:', err);
         const errorMessage = err.error?.message || 'Failed to sync SAP. Please try again.';
         this.toastr.error(errorMessage, 'Error');
-        this.retryingDeliveryNoteIds.delete(deliveryNoteOrderId);
+        this.retryingReturnIds.delete(salesReturnOrderId);
         this.cdr.detectChanges();
       }
     });
@@ -509,7 +525,7 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     }
   }
 
-  isApproved(returnOrder: DeliveryNoteOrderListItem): boolean {
+  isApproved(returnOrder: SalesReturnOrderListItem): boolean {
     const rawStatus = returnOrder.approvalStatus;
     if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
       return false;
@@ -517,7 +533,7 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     return this.mapApprovalStatusText(String(rawStatus)) === 'Approved';
   }
 
-  getApprovalStatusText(returnOrder: DeliveryNoteOrderListItem): string {
+  getApprovalStatusText(returnOrder: SalesReturnOrderListItem): string {
     const rawStatus = returnOrder.approvalStatus;
     if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
       return 'not found';
@@ -525,7 +541,7 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     return this.mapApprovalStatusText(String(rawStatus));
   }
 
-  getApprovalBadgeClass(returnOrder: DeliveryNoteOrderListItem): string {
+  getApprovalBadgeClass(returnOrder: SalesReturnOrderListItem): string {
     const rawStatus = returnOrder.approvalStatus;
     if (rawStatus === null || rawStatus === undefined || rawStatus === '') {
       return 'badge bg-secondary';
@@ -543,12 +559,12 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     }
   }
 
-  onOpenApprovalModal(returnOrder: DeliveryNoteOrderListItem): void {
+  onOpenApprovalModal(returnOrder: SalesReturnOrderListItem): void {
     if (!returnOrder?.processApprovalId) {
       this.toastr.warning('Approval data not found', 'Warning');
       return;
     }
-    this.selectedDeliveryNoteForApproval = returnOrder;
+    this.selectedReturnForApproval = returnOrder;
     this.approvalComment = '';
     this.setApprovalModalVisible(true);
   }
@@ -557,13 +573,13 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
     if (this.approvalSubmitting) {
       return;
     }
-    this.selectedDeliveryNoteForApproval = null;
+    this.selectedReturnForApproval = null;
     this.setApprovalModalVisible(false);
   }
 
   onApprovalVisibleChange(visible: boolean): void {
     if (!visible && !this.approvalSubmitting) {
-      this.selectedDeliveryNoteForApproval = null;
+      this.selectedReturnForApproval = null;
     }
     this.setApprovalModalVisible(visible);
   }
@@ -583,24 +599,24 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
   }
 
   submitApproval(approved: boolean): void {
-    if (!this.selectedDeliveryNoteForApproval?.processApprovalId) {
+    if (!this.selectedReturnForApproval?.processApprovalId) {
       this.toastr.warning('Approval data not found', 'Warning');
       return;
     }
     this.setApprovalSubmitting(true);
     const comment = this.approvalComment?.trim();
     this.approvalService
-      .changeApprovalStatus(approved, this.selectedDeliveryNoteForApproval.processApprovalId, comment || undefined)
+      .changeApprovalStatus(approved, this.selectedReturnForApproval.processApprovalId, comment || undefined)
       .subscribe({
         next: () => {
           this.toastr.success(
             approved ? 'Approval sent successfully' : 'Rejection sent successfully',
             'Success'
           );
-          this.selectedDeliveryNoteForApproval = null;
+          this.selectedReturnForApproval = null;
           this.setApprovalModalVisible(false);
           this.setApprovalSubmitting(false);
-          this.loadDeliveryNotes();
+          this.loadReturns();
         },
         error: (err) => {
           console.error('Error updating approval status:', err);
@@ -610,4 +626,3 @@ export class DeliveryNoteOrdersComponent implements OnInit, OnDestroy {
       });
   }
 }
-

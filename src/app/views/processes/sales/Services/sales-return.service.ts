@@ -62,6 +62,38 @@ export class SalesReturnService {
     });
   }
 
+  getSalesReturnOrdersWithFilterationByDeliveryNote(
+    pageNumber: number,
+    pageSize: number,
+    deliveryNoteOrderId: number,
+    customerId?: number,
+    status?: string,
+    postingDate?: string,
+    dueDate?: string
+  ): Observable<any> {
+    const baseUrl = `${this.baseUrl}SalesReturnOrder/dashboard/delivery-note-order/status/posting-date/due-date/${deliveryNoteOrderId}/${pageNumber}/${pageSize}`;
+
+    let params = new HttpParams();
+
+    if (customerId) {
+      params = params.set('customerId', customerId);
+    }
+    if (status) {
+      params = params.set('status', status);
+    }
+    if (postingDate) {
+      params = params.set('postingDate', postingDate);
+    }
+    if (dueDate) {
+      params = params.set('dueDate', dueDate);
+    }
+
+    return this.http.get<any>(baseUrl, {
+      headers: this.headerOption.headers,
+      params
+    });
+  }
+
   getReturnBySalesId(salesOrderId: number): Observable<any> {
     return this.http.get<any>(`${this.baseUrl}SalesReturnOrder/sales-order/${salesOrderId}`, this.headerOption);
   }

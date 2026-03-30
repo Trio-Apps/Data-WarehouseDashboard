@@ -44,6 +44,15 @@ export const routes: Routes = [
         }
       },
       {
+        path: 'sales-return-orders-by-delivery-note/:deliveryNoteOrderId',
+        loadComponent: () =>
+          import('./sales-return/sales-return-orders-by-delivery-note/sales-return-orders-by-delivery-note.component')
+            .then(m => m.SalesReturnOrdersByDeliveryNoteComponent),
+        data: {
+          title: 'Sales Return Orders By Delivery Note'
+        }
+      },
+      {
         path: 'sales-return-order/:salesOrderId/:salesReturnId',
         loadComponent: () => import('./sales-return/sales-return.component').then(m => m.SalesReturnComponent),
         data: {
